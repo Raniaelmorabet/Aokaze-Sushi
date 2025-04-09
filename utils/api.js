@@ -267,12 +267,7 @@ export const chefSpecialtiesAPI = {
 
   // Create a new chef specialty (Admin only)
   createChefSpecialty: async (specialtyData) => {
-    return await apiRequest(
-      "/chef-specialties",
-      "POST",
-      specialtyData,
-      true
-    );
+    return await apiRequest("/chef-specialties", "POST", specialtyData, true);
   },
 
   // Update an existing chef specialty (Admin only)
@@ -287,12 +282,7 @@ export const chefSpecialtiesAPI = {
 
   // Delete a chef specialty (Admin only)
   deleteChefSpecialty: async (id) => {
-    return await apiRequest(
-      `/chef-specialties/${id}`,
-      "DELETE",
-      null,
-      true
-    );
+    return await apiRequest(`/chef-specialties/${id}`, "DELETE", null, true);
   },
 
   // Toggle featured status (Admin only)
@@ -320,88 +310,75 @@ export const chefSpecialtiesAPI = {
 
   // Get specialties by category
   getSpecialtiesByCategory: async (categoryId) => {
-    return await apiRequest(
-      `/chef-specialties?category=${categoryId}`,
-      "GET"
-    );
+    return await apiRequest(`/chef-specialties?category=${categoryId}`, "GET");
   },
 
   // Get specialties by property (e.g., Spicy, Vegetarian)
   getSpecialtiesByProperty: async (property) => {
-    return await apiRequest(
-      `/chef-specialties?property=${property}`,
-      "GET"
-    );
+    return await apiRequest(`/chef-specialties?property=${property}`, "GET");
   },
 };
-
 
 /**
  * Gallery API functions
  */
 export const galleryAPI = {
-    // Get all gallery images with optional pagination
-    getGalleryImages: async (queryParams = {}) => {
-      const queryString = new URLSearchParams(queryParams).toString();
-      return await apiRequest(`/gallery?${queryString}`, 'GET');
-    },
-  
-    // Upload new gallery images (Admin only) - accepts array of images
-    uploadGalleryImages: async (images) => {
-      const formData = new FormData();
-      images.forEach((image, index) => {
-        formData.append(`images`, image);
-      });
-      return await apiRequest('/gallery', 'POST', formData, true);
-    },
-  
-    // Delete a gallery image by publicId (Admin only)
-    deleteGalleryImage: async (publicId) => {
-      return await apiRequest(`/gallery/${publicId}`, 'DELETE', null, true);
-    },
-  
-    // Get paginated gallery images with additional metadata
-    getPaginatedGallery: async ({ page = 1, limit = 10 } = {}) => {
-      return await apiRequest(
-        `/gallery?page=${page}&limit=${limit}`,
-        'GET'
-      );
-    },
-  
-    // Get latest gallery images (first page with default limit)
-    getLatestGalleryImages: async () => {
-      return await apiRequest('/gallery?page=1', 'GET');
-    },
-  
-    // Get gallery images by batch (specific page and limit)
-    getGalleryBatch: async (page, limit) => {
-      return await apiRequest(
-        `/gallery?page=${page}&limit=${limit}`,
-        'GET'
-      );
-    }
-  };
+  // Get all gallery images with optional pagination
+  getGalleryImages: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/gallery?${queryString}`, "GET");
+  },
 
-  /**
+  // Upload new gallery images (Admin only) - accepts array of images
+  uploadGalleryImages: async (images) => {
+    const formData = new FormData();
+    images.forEach((image, index) => {
+      formData.append(`images`, image);
+    });
+    return await apiRequest("/gallery", "POST", formData, true);
+  },
+
+  // Delete a gallery image by publicId (Admin only)
+  deleteGalleryImage: async (publicId) => {
+    return await apiRequest(`/gallery/${publicId}`, "DELETE", null, true);
+  },
+
+  // Get paginated gallery images with additional metadata
+  getPaginatedGallery: async ({ page = 1, limit = 10 } = {}) => {
+    return await apiRequest(`/gallery?page=${page}&limit=${limit}`, "GET");
+  },
+
+  // Get latest gallery images (first page with default limit)
+  getLatestGalleryImages: async () => {
+    return await apiRequest("/gallery?page=1", "GET");
+  },
+
+  // Get gallery images by batch (specific page and limit)
+  getGalleryBatch: async (page, limit) => {
+    return await apiRequest(`/gallery?page=${page}&limit=${limit}`, "GET");
+  },
+};
+
+/**
  * Testimonial API functions
  */
 export const testimonialAPI = {
   // Get all testimonials with optional query parameters
   getTestimonials: async (queryParams = {}) => {
     const queryString = new URLSearchParams(queryParams).toString();
-    return await apiRequest(`/testimonials?${queryString}`, 'GET');
+    return await apiRequest(`/testimonials?${queryString}`, "GET");
   },
 
   // Create a new testimonial (Auth required)
   createTestimonial: async (testimonialData) => {
-    return await apiRequest('/testimonials', 'POST', testimonialData, true);
+    return await apiRequest("/testimonials", "POST", testimonialData, true);
   },
 
   // Update testimonial status (Admin only)
   updateTestimonialStatus: async (id, status) => {
     return await apiRequest(
       `/testimonials/${id}/status`,
-      'PUT',
+      "PUT",
       { status },
       true
     );
@@ -409,47 +386,134 @@ export const testimonialAPI = {
 
   // Delete a testimonial (Auth required)
   deleteTestimonial: async (id) => {
-    return await apiRequest(`/testimonials/${id}`, 'DELETE', null, true);
+    return await apiRequest(`/testimonials/${id}`, "DELETE", null, true);
   },
 
   // Get paginated testimonials
-  getPaginatedTestimonials: async ({ page = 1, limit = 10, status = "approved", sort = "newest" } = {}) => {
+  getPaginatedTestimonials: async ({
+    page = 1,
+    limit = 10,
+    status = "approved",
+    sort = "newest",
+  } = {}) => {
     return await apiRequest(
       `/testimonials?page=${page}&limit=${limit}&status=${status}&sort=${sort}`,
-      'GET'
+      "GET"
     );
   },
 
   // Get latest approved testimonials (first page with default limit)
   getLatestTestimonials: async () => {
-    return await apiRequest('/testimonials?page=1&status=approved&sort=newest', 'GET');
+    return await apiRequest(
+      "/testimonials?page=1&status=approved&sort=newest",
+      "GET"
+    );
   },
 
   // Get testimonials by batch (specific page and limit)
   getTestimonialsBatch: async (page, limit, status = "approved") => {
     return await apiRequest(
       `/testimonials?page=${page}&limit=${limit}&status=${status}`,
-      'GET'
+      "GET"
     );
   },
 
   // Get a specific testimonial by ID
   getTestimonialById: async (id) => {
-    return await apiRequest(`/testimonials/${id}`, 'GET');
+    return await apiRequest(`/testimonials/${id}`, "GET");
   },
 
   // Get testimonials by user (Auth required)
   getUserTestimonials: async (userId) => {
-    return await apiRequest(`/testimonials?user=${userId}`, 'GET', null, true);
+    return await apiRequest(`/testimonials?user=${userId}`, "GET", null, true);
   },
-  
+
   // Get pending testimonials (Admin only)
   getPendingTestimonials: async ({ page = 1, limit = 10 } = {}) => {
     return await apiRequest(
       `/testimonials?page=${page}&limit=${limit}&status=pending`,
-      'GET',
+      "GET",
       null,
       true
     );
-  }
+  },
+};
+
+/**
+ * Category API functions
+ */
+export const categoryAPI = {
+  // Get all categories with optional query parameters
+  getCategories: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/categories?${queryString}`, "GET");
+  },
+
+  // Get a specific category by ID
+  getCategoryById: async (id) => {
+    return await apiRequest(`/categories/${id}`, "GET");
+  },
+
+  // Create a new category (Admin only)
+  createCategory: async (categoryData) => {
+    return await apiRequest("/categories", "POST", categoryData, true);
+  },
+
+  // Update a category by ID (Admin only)
+  updateCategory: async (id, categoryData) => {
+    return await apiRequest(`/categories/${id}`, "PUT", categoryData, true);
+  },
+
+  // Delete a category by ID (Admin only)
+  deleteCategory: async (id) => {
+    return await apiRequest(`/categories/${id}`, "DELETE", null, true);
+  },
+
+  // Get paginated categories with additional metadata
+  getPaginatedCategories: async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    active = true,
+  } = {}) => {
+    return await apiRequest(
+      `/categories?page=${page}&limit=${limit}&search=${search}&active=${active}`,
+      "GET"
+    );
+  },
+
+  // Get active categories only (first page with default limit)
+  getActiveCategories: async () => {
+    return await apiRequest("/categories?page=1&active=true", "GET");
+  },
+
+  // Get categories by batch (specific page and limit)
+  getCategoriesBatch: async (page, limit, active = true) => {
+    return await apiRequest(
+      `/categories?page=${page}&limit=${limit}&active=${active}`,
+      "GET"
+    );
+  },
+
+  // Search categories by name or description
+  searchCategories: async (searchTerm) => {
+    return await apiRequest(`/categories?search=${searchTerm}`, "GET");
+  },
+
+  // Toggle category active status (Admin only)
+  toggleCategoryStatus: async (id, isActive) => {
+    return await apiRequest(
+      `/categories/${id}/status`,
+      "PATCH",
+      { isActive },
+      true
+    );
+  },
+
+  // Upload category image (Admin only)
+  uploadCategoryImage: async (id, imageFile) => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    return await apiRequest(`/categories/${id}/image`, "POST", formData, true);
+  },
 };
