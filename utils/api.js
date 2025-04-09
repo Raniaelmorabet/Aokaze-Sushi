@@ -1,7 +1,7 @@
 // utils/api.js
 
-const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-// const API_BASE_URL = "http://localhost:5000/api";
+// const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
@@ -381,3 +381,75 @@ export const galleryAPI = {
       );
     }
   };
+
+  /**
+ * Testimonial API functions
+ */
+export const testimonialAPI = {
+  // Get all testimonials with optional query parameters
+  getTestimonials: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/testimonials?${queryString}`, 'GET');
+  },
+
+  // Create a new testimonial (Auth required)
+  createTestimonial: async (testimonialData) => {
+    return await apiRequest('/testimonials', 'POST', testimonialData, true);
+  },
+
+  // Update testimonial status (Admin only)
+  updateTestimonialStatus: async (id, status) => {
+    return await apiRequest(
+      `/testimonials/${id}/status`,
+      'PUT',
+      { status },
+      true
+    );
+  },
+
+  // Delete a testimonial (Auth required)
+  deleteTestimonial: async (id) => {
+    return await apiRequest(`/testimonials/${id}`, 'DELETE', null, true);
+  },
+
+  // Get paginated testimonials
+  getPaginatedTestimonials: async ({ page = 1, limit = 10, status = "approved", sort = "newest" } = {}) => {
+    return await apiRequest(
+      `/testimonials?page=${page}&limit=${limit}&status=${status}&sort=${sort}`,
+      'GET'
+    );
+  },
+
+  // Get latest approved testimonials (first page with default limit)
+  getLatestTestimonials: async () => {
+    return await apiRequest('/testimonials?page=1&status=approved&sort=newest', 'GET');
+  },
+
+  // Get testimonials by batch (specific page and limit)
+  getTestimonialsBatch: async (page, limit, status = "approved") => {
+    return await apiRequest(
+      `/testimonials?page=${page}&limit=${limit}&status=${status}`,
+      'GET'
+    );
+  },
+
+  // Get a specific testimonial by ID
+  getTestimonialById: async (id) => {
+    return await apiRequest(`/testimonials/${id}`, 'GET');
+  },
+
+  // Get testimonials by user (Auth required)
+  getUserTestimonials: async (userId) => {
+    return await apiRequest(`/testimonials?user=${userId}`, 'GET', null, true);
+  },
+  
+  // Get pending testimonials (Admin only)
+  getPendingTestimonials: async ({ page = 1, limit = 10 } = {}) => {
+    return await apiRequest(
+      `/testimonials?page=${page}&limit=${limit}&status=pending`,
+      'GET',
+      null,
+      true
+    );
+  }
+};
