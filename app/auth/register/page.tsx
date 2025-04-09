@@ -3,29 +3,28 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Lock, Mail, User, AlertCircle, Phone, Check } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, User, Phone, AlertCircle } from "lucide-react"
+import { authAPI } from "@/utils/api"
 
 export default function Register() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
-    agreeTerms: false,
+    phone: ""
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [e.target.name]: e.target.value
     })
   }
 
@@ -34,26 +33,37 @@ export default function Register() {
     setLoading(true)
     setError("")
 
-    // Validate passwords match
+    // Password validation
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
       setLoading(false)
       return
     }
 
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters")
+      setLoading(false)
+      return
+    }
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Show success message
-      setSuccess(true)
-
-      // Redirect to login page after 2 seconds
-      setTimeout(() => {
-        window.location.href = "/auth/login"
-      }, 2000)
+      // Use our API utility for registration
+      const data = await authAPI.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || undefined
+      })
+      
+      // Redirect to home page after successful login if the user is a customer
+      // Redirect to admin page if the user is an admin
+      if (data.user.role=== "admin") {
+        router.push("/admin")
+      } else if (data.user.role=== "customer") {
+        router.push("/")
+      }
     } catch (err) {
-      setError("An error occurred during registration. Please try again.")
+      setError(err.message || "Registration failed. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -86,23 +96,16 @@ export default function Register() {
                   <path d="M8.21 13.89 7 23l-5-1L8.21 5.11a8 8 0 0 1 15.58 0L20 22l-5 1-1.21-9.11" />
                 </svg>
               </div>
-              <span className="font-bold text-2xl text-white">Sushibre</span>
+              <span className="font-bold text-2xl text-white">Aokaze</span>
             </Link>
 
             <h1 className="text-3xl font-bold text-white mb-2">Create an account</h1>
-            <p className="text-gray-400 mb-8">Join Sushibre to enjoy exclusive benefits</p>
+            <p className="text-gray-400 mb-8">Join us to experience the best Japanese cuisine</p>
 
             {error && (
               <div className="mb-6 bg-red-500/20 text-red-400 p-4 rounded-lg flex items-center gap-2">
                 <AlertCircle size={20} />
                 <span>{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div className="mb-6 bg-green-500/20 text-green-400 p-4 rounded-lg flex items-center gap-2">
-                <Check size={20} />
-                <span>Registration successful! Redirecting to login...</span>
               </div>
             )}
 
@@ -112,8 +115,8 @@ export default function Register() {
                 <div className="relative">
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
                     className="w-full bg-[#1E1E1E] text-white px-4 py-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="John Doe"
@@ -140,7 +143,7 @@ export default function Register() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm text-gray-400 mb-2">Phone Number</label>
+                <label className="block text-sm text-gray-400 mb-2">Phone Number (Optional)</label>
                 <div className="relative">
                   <input
                     type="tel"
@@ -148,8 +151,7 @@ export default function Register() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full bg-[#1E1E1E] text-white px-4 py-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="+1 (123) 456-7890"
-                    required
+                    placeholder="+1 (555) 123-4567"
                   />
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 </div>
@@ -166,7 +168,6 @@ export default function Register() {
                     className="w-full bg-[#1E1E1E] text-white px-4 py-3 pl-10 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="••••••••"
                     required
-                    minLength={8}
                   />
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   <button
@@ -177,14 +178,14 @@ export default function Register() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters long</p>
+                <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
               </div>
 
               <div className="mb-6">
                 <label className="block text-sm text-gray-400 mb-2">Confirm Password</label>
                 <div className="relative">
                   <input
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showPassword ? "text" : "password"}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
@@ -193,42 +194,12 @@ export default function Register() {
                     required
                   />
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                  >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
-              </div>
-
-              <div className="mb-8">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="agreeTerms"
-                    checked={formData.agreeTerms}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 accent-orange-500"
-                    required
-                  />
-                  <span className="text-sm text-gray-300">
-                    I agree to the{" "}
-                    <Link href="/terms" className="text-orange-500 hover:text-orange-400 transition-colors">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/privacy" className="text-orange-500 hover:text-orange-400 transition-colors">
-                      Privacy Policy
-                    </Link>
-                  </span>
-                </label>
               </div>
 
               <button
                 type="submit"
-                disabled={loading || success}
+                disabled={loading}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg transition-colors mb-6 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {loading ? (
@@ -255,11 +226,6 @@ export default function Register() {
                     </svg>
                     Creating account...
                   </>
-                ) : success ? (
-                  <>
-                    <Check size={18} className="mr-2" />
-                    Account Created
-                  </>
                 ) : (
                   "Create Account"
                 )}
@@ -279,18 +245,19 @@ export default function Register() {
 
         {/* Right Side - Image */}
         <div className="hidden md:block w-1/2 bg-[#0E0E0E] relative">
+          <div className="absolute inset-0 bg-black/40"></div>
           <Image
             src="https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=1200&auto=format&fit=crop"
             alt="Sushi"
             fill
-            className="object-cover opacity-60"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#121212] to-transparent"></div>
 
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full max-w-md px-8">
-            <h2 className="text-3xl font-bold mb-4">Join our community</h2>
+            <h2 className="text-3xl font-bold mb-4">Join our sushi community</h2>
             <p className="text-gray-300">
-              Create an account to enjoy exclusive benefits, track your orders, and earn rewards with every purchase.
+              Create an account to order your favorite Japanese dishes, earn rewards, and get exclusive offers.
             </p>
           </div>
         </div>
