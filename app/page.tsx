@@ -44,6 +44,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { OrderCart } from "@/components/order-cart";
 import { useLanguage } from "@/context/language-context";
 import {
+  categoryAPI,
   chefSpecialtiesAPI,
   galleryAPI,
   offersAPI,
@@ -70,6 +71,7 @@ export default function Home() {
   const [specialties, setSpecialties] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [serverTestimonials, setServerTestimonials] = useState([]);
+  const [categories, setCategories] = useState([]);
   // In the component, add a state to track how many images are visible
   const [visibleImages, setVisibleImages] = useState(6);
 
@@ -186,8 +188,21 @@ export default function Home() {
         page: 1,
         limit: 10,
       });
-      console.log(data.data);
       setServerTestimonials(data.data);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const getCategories = async () => {
+    try {
+      const data = await categoryAPI.getPaginatedCategories({
+        page: 1,
+        limit: 10,
+        active: true
+      });
+      console.log(data.data);
+      setCategories(data.data);
     } catch (error) {
       console.log(error.message);
     }
@@ -198,6 +213,7 @@ export default function Home() {
     getChefSpecialties();
     getGalleryImages();
     getTestimonials();
+    getCategories();
   }, []);
 
   const testimonials = [
@@ -1148,105 +1164,101 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+        {categories.length > 0 ? (
+    <motion.div
+      className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      {categories.map((category) => {
+        // Create a slug from the category name for comparison
+        const categorySlug = category.name.toLowerCase().replace(/\s+/g, '-');
+        
+        return (
           <button
-            onClick={() => setActiveCategory("appetizer")}
+            key={category._id}
+            onClick={() => setActiveCategory(categorySlug)}
             className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
-              activeCategory === "appetizer"
+              activeCategory === categorySlug
                 ? "bg-orange-500 shadow-lg shadow-orange-500/20"
                 : "bg-[#1E1E1E] hover:bg-[#2a2a2a]"
             }`}
           >
-            <Utensils
-              className={
-                activeCategory === "appetizer" ? "text-white" : "text-gray-400"
-              }
-            />
-            <span>{t("menu.categories.appetizer")}</span>
+            {/* You can add icons based on category name or type */}
+            {categorySlug.includes('appetizer') ? (
+              <Utensils
+                className={
+                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
+                }
+              />
+            ) : categorySlug.includes('sushi') ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={
+                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
+                }
+              >
+                <path d="M8 3v18M16 3v18" />
+                <path d="M8 12h8" />
+                <path d="M2 7h4" />
+                <path d="M18 7h4" />
+                <path d="M2 17h4" />
+                <path d="M18 17h4" />
+              </svg>
+            ) : categorySlug.includes('drink') ? (
+              <GlassWater
+                className={
+                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
+                }
+              />
+            ) : categorySlug.includes('bento') ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={
+                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
+                }
+              >
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+                <path d="M3 9h18" />
+                <path d="M3 15h18" />
+                <path d="M9 3v18" />
+                <path d="M15 3v18" />
+              </svg>
+            ) : (
+              <Utensils
+                className={
+                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
+                }
+              />
+            )}
+            <span>{category.name}</span>
           </button>
-          <button
-            onClick={() => setActiveCategory("sushi")}
-            className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
-              activeCategory === "sushi"
-                ? "bg-orange-500 shadow-lg shadow-orange-500/20"
-                : "bg-[#1E1E1E] hover:bg-[#2a2a2a]"
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={
-                activeCategory === "sushi" ? "text-white" : "text-gray-400"
-              }
-            >
-              <path d="M8 3v18M16 3v18" />
-              <path d="M8 12h8" />
-              <path d="M2 7h4" />
-              <path d="M18 7h4" />
-              <path d="M2 17h4" />
-              <path d="M18 17h4" />
-            </svg>
-            <span>{t("menu.categories.sushi")}</span>
-          </button>
-          <button
-            onClick={() => setActiveCategory("drink")}
-            className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
-              activeCategory === "drink"
-                ? "bg-orange-500 shadow-lg shadow-orange-500/20"
-                : "bg-[#1E1E1E] hover:bg-[#2a2a2a]"
-            }`}
-          >
-            <GlassWater
-              className={
-                activeCategory === "drink" ? "text-white" : "text-gray-400"
-              }
-            />
-            <span>{t("menu.categories.drink")}</span>
-          </button>
-          <button
-            onClick={() => setActiveCategory("bento")}
-            className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
-              activeCategory === "bento"
-                ? "bg-orange-500 shadow-lg shadow-orange-500/20"
-                : "bg-[#1E1E1E] hover:bg-[#2a2a2a]"
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={
-                activeCategory === "bento" ? "text-white" : "text-gray-400"
-              }
-            >
-              <rect width="18" height="18" x="3" y="3" rx="2" />
-              <path d="M3 9h18" />
-              <path d="M3 15h18" />
-              <path d="M9 3v18" />
-              <path d="M15 3v18" />
-            </svg>
-            <span>{t("menu.categories.bento")}</span>
-          </button>
-        </motion.div>
+        );
+      })}
+    </motion.div>
+  ) : (
+    <div className="text-center py-8">
+      <p className="text-gray-400">Loading categories...</p>
+    </div>
+  )}
 
         {/* Menu Items */}
         <div className="mt-12">
@@ -1392,10 +1404,10 @@ export default function Home() {
                   <div className="w-16 h-16 rounded-full overflow-hidden">
                     <Image
                       src={
-                        serverTestimonials[activeTestimonial].user.image ||
+                        serverTestimonials[activeTestimonial].user?.image ||
                         "/placeholder.svg"
                       }
-                      alt={serverTestimonials[activeTestimonial].user.name}
+                      alt={serverTestimonials[activeTestimonial].user?.name}
                       width={100}
                       height={100}
                       className="object-cover w-full h-full"
@@ -1403,7 +1415,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="font-bold text-lg">
-                      {serverTestimonials[activeTestimonial].user.name}
+                      {serverTestimonials[activeTestimonial].user?.name}
                     </p>
                     <p className="text-gray-400">Loyal Customer</p>
                   </div>
