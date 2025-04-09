@@ -334,3 +334,50 @@ export const chefSpecialtiesAPI = {
     );
   },
 };
+
+
+/**
+ * Gallery API functions
+ */
+export const galleryAPI = {
+    // Get all gallery images with optional pagination
+    getGalleryImages: async (queryParams = {}) => {
+      const queryString = new URLSearchParams(queryParams).toString();
+      return await apiRequest(`/gallery?${queryString}`, 'GET');
+    },
+  
+    // Upload new gallery images (Admin only) - accepts array of images
+    uploadGalleryImages: async (images) => {
+      const formData = new FormData();
+      images.forEach((image, index) => {
+        formData.append(`images`, image);
+      });
+      return await apiRequest('/gallery', 'POST', formData, true);
+    },
+  
+    // Delete a gallery image by publicId (Admin only)
+    deleteGalleryImage: async (publicId) => {
+      return await apiRequest(`/gallery/${publicId}`, 'DELETE', null, true);
+    },
+  
+    // Get paginated gallery images with additional metadata
+    getPaginatedGallery: async ({ page = 1, limit = 10 } = {}) => {
+      return await apiRequest(
+        `/gallery?page=${page}&limit=${limit}`,
+        'GET'
+      );
+    },
+  
+    // Get latest gallery images (first page with default limit)
+    getLatestGalleryImages: async () => {
+      return await apiRequest('/gallery?page=1', 'GET');
+    },
+  
+    // Get gallery images by batch (specific page and limit)
+    getGalleryBatch: async (page, limit) => {
+      return await apiRequest(
+        `/gallery?page=${page}&limit=${limit}`,
+        'GET'
+      );
+    }
+  };
