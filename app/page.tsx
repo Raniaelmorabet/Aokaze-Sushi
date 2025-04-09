@@ -37,6 +37,8 @@ import { FoodCustomizer } from "@/components/food-customizer"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { OrderCart } from "@/components/order-cart"
 import { useLanguage } from "@/context/language-context"
+import { chefSpecialtiesAPI, galleryAPI, offersAPI } from "@/utils/api"
+import { set } from "date-fns"
 
 export default function Home() {
   const { t, dir } = useLanguage()
@@ -53,6 +55,9 @@ export default function Home() {
   const [customizeItem, setCustomizeItem] = useState(null)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [activePromotion, setActivePromotion] = useState(0)
+  const [offers, setOffers] = useState([])
+  const [specialties, setSpecialties] = useState([])
+  const [gallery, setGallery] = useState([])
   // In the component, add a state to track how many images are visible
   const [visibleImages, setVisibleImages] = useState(6)
 
@@ -124,6 +129,53 @@ export default function Home() {
   const showMoreImages = () => {
     setVisibleImages((prev) => Math.min(prev + 6, galleryImages.length))
   }
+
+
+  const getOffers = async () => {
+    try {
+      const activeOffers = await offersAPI.getOffers({
+        active: true,
+        page: 1,
+        limit: 10
+      })
+      setOffers(activeOffers.data)
+    } catch (error) {
+      console.log(error);
+      
+    }
+}
+
+  const getChefSpecialties = async () => {
+    try {
+      const data = await chefSpecialtiesAPI.getChefSpecialties({
+        page: 1,
+        limit: 10,
+      })
+      setSpecialties(data.data)
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  const getGalleryImages = async () => {
+    try {
+      const images = await galleryAPI.getGalleryImages({
+        page: 1,
+        limit: 10,
+      })
+      console.log(images);
+      setGallery(images.data)
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  useEffect(() => {
+    getOffers();
+    getChefSpecialties();
+    getGalleryImages();
+  }, [])
+  
 
   const testimonials = [
     {
@@ -921,8 +973,8 @@ export default function Home() {
           <div className="relative">
             <div className="overflow-hidden">
               <motion.div className="flex" animate={{ x: `-${activePromotion * 100}%` }} transition={{ duration: 0.5 }}>
-                {promotions.map((promo, index) => (
-                  <div key={promo.id} className="min-w-full">
+                {offers.map((promo, index) => (
+                  <div key={promo._id} className="min-w-full">
                     <PromotionCard promotion={promo} />
                   </div>
                 ))}
@@ -930,7 +982,7 @@ export default function Home() {
             </div>
 
             <div className="flex justify-center mt-8 gap-2">
-              {promotions.map((_, index) => (
+              {offers.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setActivePromotion(index)}
@@ -1068,8 +1120,8 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {specialtyDishes.map((dish, index) => (
-              <SpecialtyDish key={dish.id} dish={dish} index={index} onAddToCart={() => addToCart(dish)} />
+            {specialties.map((dish, index) => (
+              <SpecialtyDish key={dish._id} dish={dish} index={index} onAddToCart={() => addToCart(dish)} />
             ))}
           </div>
         </div>
@@ -1286,7 +1338,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-          {galleryImages.slice(0, visibleImages).map((image, index) => (
+          {gallery.slice(0, visibleImages).map((image, index) => (
             <motion.div
               key={index}
               className="relative overflow-hidden aspect-square cursor-pointer group"
@@ -1301,7 +1353,7 @@ export default function Home() {
               }}
             >
               <Image
-                src={image || "/placeholder.svg"}
+                src={image.url || "/placeholder.svg"}
                 alt={`Gallery image ${index + 1}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
