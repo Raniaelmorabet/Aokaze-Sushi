@@ -37,7 +37,7 @@ import { FoodCustomizer } from "@/components/food-customizer"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { OrderCart } from "@/components/order-cart"
 import { useLanguage } from "@/context/language-context"
-import { chefSpecialtiesAPI, galleryAPI, offersAPI } from "@/utils/api"
+import { chefSpecialtiesAPI, galleryAPI, offersAPI, testimonialAPI } from "@/utils/api"
 import { set } from "date-fns"
 
 export default function Home() {
@@ -163,10 +163,23 @@ export default function Home() {
         page: 1,
         limit: 10,
       })
-      console.log(images);
       setGallery(images.data)
     } catch (error) {
       console.log(error.message);
+    }
+  }
+
+  const getTestimonials = async () => {
+    try {
+      const testimonials = await testimonialAPI.getTestimonials({
+        page: 1,
+        limit: 10,
+      })
+      console.log(testimonials);
+      
+    } catch (error) {
+      console.log(error.message);
+      
     }
   }
 
@@ -174,6 +187,7 @@ export default function Home() {
     getOffers();
     getChefSpecialties();
     getGalleryImages();
+    getTestimonials();
   }, [])
   
 
