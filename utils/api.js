@@ -1,4 +1,5 @@
 // utils/api.js
+import Cookies from "js-cookie";
 
 // const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
 const API_BASE_URL = "http://localhost:5000/api";
@@ -96,11 +97,10 @@ export const authAPI = {
   // Login user
   login: async (email, password) => {
     const data = await apiRequest("/auth/login", "POST", { email, password });
-    console.log("Login response:", data);
-
     // Store token if provided
     if (data.token) {
-      localStorage.setItem("token", data.token);
+      Cookies.set("token", data.token, { expires: 30 }); 
+      localStorage.setItem("token", data.token); 
     }
 
     return data;
@@ -112,6 +112,7 @@ export const authAPI = {
     console.log("Login response:", data);
     // Store token if provided
     if (data.token) {
+      Cookies.set("token", data.token, { expires: 30 }); // expires in 30 day
       localStorage.setItem("token", data.token);
     }
 
@@ -140,7 +141,7 @@ export const authAPI = {
     } finally {
       // Always clear local storage even if API call fails
       if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
+        Cookies.remove("token");
       }
     }
   },
@@ -151,8 +152,9 @@ export const authAPI = {
  */
 export const menuAPI = {
   // Get all menu items
-  getItems: async () => {
-    return await apiRequest("/menu", "GET");
+  getItems: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/menu?${queryString}`, "GET");
   },
 
   // Get menu item by ID
@@ -161,9 +163,60 @@ export const menuAPI = {
   },
 
   // Get menu items by category
-  getItemsByCategory: async (category) => {
-    return await apiRequest(`/menu/category/${category}`, "GET");
+  getItemsByCategory: async (category, queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/menu/category/${category}?${queryString}`, "GET");
   },
+
+  // Create new menu item (Admin only)
+  createItem: async (itemData) => {
+    return await apiRequest("/menu", "POST", itemData, true);
+  },
+
+  // Update menu item (Admin only)
+  updateItem: async (id, updateData) => {
+    return await apiRequest(`/menu/${id}`, "PUT", updateData, true);
+  },
+
+  // Delete menu item (Admin only)
+  deleteItem: async (id) => {
+    return await apiRequest(`/menu/${id}`, "DELETE", null, true);
+  },
+
+  // Toggle item availability (Admin only)
+  toggleAvailability: async (id) => {
+    return await apiRequest(`/menu/${id}/availability`, "PATCH", null, true);
+  },
+
+  // Toggle featured status (Admin only)
+  toggleFeatured: async (id) => {
+    return await apiRequest(`/menu/${id}/featured`, "PATCH", null, true);
+  },
+
+  // Get featured menu items
+  getFeaturedItems: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/menu/featured?${queryString}`, "GET");
+  },
+
+  // Get most ordered menu items
+  getMostOrderedItems: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/menu/most-ordered?${queryString}`, "GET");
+  },
+
+  // Search menu items
+  searchItems: async (searchTerm, queryParams = {}) => {
+    const params = { ...queryParams, search: searchTerm };
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/menu?${queryString}`, "GET");
+  },
+
+  // Filter menu items
+  filterItems: async (filters = {}) => {
+    const queryString = new URLSearchParams(filters).toString();
+    return await apiRequest(`/menu?${queryString}`, "GET");
+  }
 };
 
 /**
