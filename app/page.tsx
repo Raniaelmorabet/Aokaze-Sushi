@@ -1,4 +1,5 @@
 "use client";
+import Cookies from "js-cookie";
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -47,6 +48,7 @@ import {
   categoryAPI,
   chefSpecialtiesAPI,
   galleryAPI,
+  menuAPI,
   offersAPI,
   testimonialAPI,
 } from "@/utils/api";
@@ -72,6 +74,7 @@ export default function Home() {
   const [gallery, setGallery] = useState([]);
   const [serverTestimonials, setServerTestimonials] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [menu, setMenu] = useState([]);
   // In the component, add a state to track how many images are visible
   const [visibleImages, setVisibleImages] = useState(6);
 
@@ -199,10 +202,23 @@ export default function Home() {
       const data = await categoryAPI.getPaginatedCategories({
         page: 1,
         limit: 10,
-        active: true
+        active: true,
       });
       console.log(data.data);
       setCategories(data.data);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const getMenuItems = async () => {
+    try {
+      const data = await menuAPI.getItems({
+        page: 1,
+        limit: 10,
+      });
+      console.log(data.data);
+      setMenu(data.data);
     } catch (error) {
       console.log(error.message);
     }
@@ -214,6 +230,7 @@ export default function Home() {
     getGalleryImages();
     getTestimonials();
     getCategories();
+    getMenuItems();
   }, []);
 
   const testimonials = [
@@ -1165,100 +1182,112 @@ export default function Home() {
         </motion.div>
 
         {categories.length > 0 ? (
-    <motion.div
-      className="grid grid-cols-2 md:grid-cols-4 gap-4"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      {categories.map((category) => {
-        // Create a slug from the category name for comparison
-        const categorySlug = category.name.toLowerCase().replace(/\s+/g, '-');
-        
-        return (
-          <button
-            key={category._id}
-            onClick={() => setActiveCategory(categorySlug)}
-            className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
-              activeCategory === categorySlug
-                ? "bg-orange-500 shadow-lg shadow-orange-500/20"
-                : "bg-[#1E1E1E] hover:bg-[#2a2a2a]"
-            }`}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {/* You can add icons based on category name or type */}
-            {categorySlug.includes('appetizer') ? (
-              <Utensils
-                className={
-                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
-                }
-              />
-            ) : categorySlug.includes('sushi') ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={
-                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
-                }
-              >
-                <path d="M8 3v18M16 3v18" />
-                <path d="M8 12h8" />
-                <path d="M2 7h4" />
-                <path d="M18 7h4" />
-                <path d="M2 17h4" />
-                <path d="M18 17h4" />
-              </svg>
-            ) : categorySlug.includes('drink') ? (
-              <GlassWater
-                className={
-                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
-                }
-              />
-            ) : categorySlug.includes('bento') ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={
-                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
-                }
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M3 9h18" />
-                <path d="M3 15h18" />
-                <path d="M9 3v18" />
-                <path d="M15 3v18" />
-              </svg>
-            ) : (
-              <Utensils
-                className={
-                  activeCategory === categorySlug ? "text-white" : "text-gray-400"
-                }
-              />
-            )}
-            <span>{category.name}</span>
-          </button>
-        );
-      })}
-    </motion.div>
-  ) : (
-    <div className="text-center py-8">
-      <p className="text-gray-400">Loading categories...</p>
-    </div>
-  )}
+            {categories.map((category) => {
+              // Create a slug from the category name for comparison
+              const categorySlug = category.name
+                .toLowerCase()
+                .replace(/\s+/g, "-");
+
+              return (
+                <button
+                  key={category._id}
+                  onClick={() => setActiveCategory(categorySlug)}
+                  className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
+                    activeCategory === categorySlug
+                      ? "bg-orange-500 shadow-lg shadow-orange-500/20"
+                      : "bg-[#1E1E1E] hover:bg-[#2a2a2a]"
+                  }`}
+                >
+                  {/* You can add icons based on category name or type */}
+                  {categorySlug.includes("appetizer") ? (
+                    <Utensils
+                      className={
+                        activeCategory === categorySlug
+                          ? "text-white"
+                          : "text-gray-400"
+                      }
+                    />
+                  ) : categorySlug.includes("sushi") ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={
+                        activeCategory === categorySlug
+                          ? "text-white"
+                          : "text-gray-400"
+                      }
+                    >
+                      <path d="M8 3v18M16 3v18" />
+                      <path d="M8 12h8" />
+                      <path d="M2 7h4" />
+                      <path d="M18 7h4" />
+                      <path d="M2 17h4" />
+                      <path d="M18 17h4" />
+                    </svg>
+                  ) : categorySlug.includes("drink") ? (
+                    <GlassWater
+                      className={
+                        activeCategory === categorySlug
+                          ? "text-white"
+                          : "text-gray-400"
+                      }
+                    />
+                  ) : categorySlug.includes("bento") ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={
+                        activeCategory === categorySlug
+                          ? "text-white"
+                          : "text-gray-400"
+                      }
+                    >
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                      <path d="M3 9h18" />
+                      <path d="M3 15h18" />
+                      <path d="M9 3v18" />
+                      <path d="M15 3v18" />
+                    </svg>
+                  ) : (
+                    <Utensils
+                      className={
+                        activeCategory === categorySlug
+                          ? "text-white"
+                          : "text-gray-400"
+                      }
+                    />
+                  )}
+                  <span>{category.name}</span>
+                </button>
+              );
+            })}
+          </motion.div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-400">Loading categories...</p>
+          </div>
+        )}
 
         {/* Menu Items */}
         <div className="mt-12">
@@ -1271,9 +1300,9 @@ export default function Home() {
               transition={{ duration: 0.3 }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {menuItems[activeCategory].map((item, index) => (
+                {menu.map((item, index) => (
                   <MenuCard
-                    key={item.id}
+                    key={item._id}
                     item={item}
                     index={index}
                     onAddToCart={() => addToCart(item)}
@@ -1426,7 +1455,7 @@ export default function Home() {
             <button
               onClick={() =>
                 setActiveTestimonial((prev) =>
-                  prev === 0 ? testimonials.length - 1 : prev - 1
+                  prev === 0 ? serverTestimonials.length - 1 : prev - 1
                 )
               }
               className="absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
@@ -1437,7 +1466,7 @@ export default function Home() {
             <button
               onClick={() =>
                 setActiveTestimonial((prev) =>
-                  prev === testimonials.length - 1 ? 0 : prev + 1
+                  prev === serverTestimonials.length - 1 ? 0 : prev + 1
                 )
               }
               className="absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
@@ -1448,7 +1477,7 @@ export default function Home() {
         )}
 
         <div className="flex justify-center mt-8 gap-2">
-          {testimonials.map((_, index) => (
+          {serverTestimonials.map((_, index) => (
             <button
               key={index}
               onClick={() => setActiveTestimonial(index)}
@@ -1822,7 +1851,7 @@ export default function Home() {
               items={cartItems}
               onClose={() => setCartOpen(false)}
               onRemoveItem={(id) =>
-                setCartItems(cartItems.filter((item) => item.id !== id))
+                setCartItems(cartItems.filter((item) => item._id !== id))
               }
             />
           </motion.div>
