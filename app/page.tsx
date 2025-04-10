@@ -146,7 +146,7 @@ export default function Home() {
 
   // Add a function to show more images
   const showMoreImages = () => {
-    setVisibleImages((prev) => Math.min(prev + 6, galleryImages.length));
+    setVisibleImages((prev) => Math.min(prev + 6, gallery.length));
   };
 
   const getOffers = async () => {
@@ -1710,7 +1710,7 @@ export default function Home() {
         </div>
 
         {/* Show More Button */}
-        {visibleImages < galleryImages.length && (
+        {visibleImages < gallery.length && (
           <div className="mt-8 text-center">
             <motion.button
               onClick={showMoreImages}
@@ -1767,7 +1767,7 @@ export default function Home() {
 
             <div className="relative w-full max-w-5xl aspect-video">
               <Image
-                src={galleryImages[activeGalleryImage] || "/placeholder.svg"}
+                src={gallery[activeGalleryImage].url || "/placeholder.svg"}
                 alt={`Gallery image ${activeGalleryImage + 1}`}
                 fill
                 className="object-contain"
@@ -1778,7 +1778,7 @@ export default function Home() {
               className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/10 rounded-full p-3 hover:bg-white/20 transition-colors"
               onClick={() =>
                 setActiveGalleryImage((prev) =>
-                  prev === 0 ? galleryImages.length - 1 : prev - 1
+                  prev === 0 ? gallery.length - 1 : prev - 1
                 )
               }
             >
@@ -1789,7 +1789,7 @@ export default function Home() {
               className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/10 rounded-full p-3 hover:bg-white/20 transition-colors"
               onClick={() =>
                 setActiveGalleryImage((prev) =>
-                  prev === galleryImages.length - 1 ? 0 : prev + 1
+                  prev === gallery.length - 1 ? 0 : prev + 1
                 )
               }
             >
@@ -1797,7 +1797,7 @@ export default function Home() {
             </button>
 
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-              {galleryImages.map((_, index) => (
+              {gallery.map((_, index) => (
                 <button
                   key={index}
                   className={`w-2 h-2 rounded-full ${
