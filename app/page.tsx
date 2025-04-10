@@ -1,7 +1,6 @@
 "use client";
-import Cookies from "js-cookie";
 
-import { useEffect, useRef, useState } from "react";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -76,7 +75,6 @@ export default function Home() {
   const [serverTestimonials, setServerTestimonials] = useState([]);
   const [categories, setCategories] = useState([]);
   const [menu, setMenu] = useState([]);
-  // In the component, add a state to track how many images are visible
   const [visibleImages, setVisibleImages] = useState(6);
 
   const heroRef = useRef(null);
@@ -118,7 +116,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToSection = (id) => {
+  const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       const headerOffset = 80;
@@ -134,12 +132,12 @@ export default function Home() {
     }
   };
 
-  const addToCart = (item) => {
+  const addToCart = (item: never) => {
     setCartItems([...cartItems, item]);
     setCartOpen(true);
   };
 
-  const openCustomize = (item) => {
+  const openCustomize = (item: SetStateAction<null>) => {
     setCustomizeItem(item);
     setCustomizeOpen(true);
   };
@@ -228,7 +226,7 @@ export default function Home() {
     }
   };
 
-  const getMenuItemsByCategory = async (id) => {
+  const getMenuItemsByCategory = async (id: any) => {
     setLoadingMenuItems(true);
     try {
       const data = await menuAPI.getItemsByCategory(id, {
@@ -1863,7 +1861,7 @@ export default function Home() {
 
               <FoodCustomizer
                 item={customizeItem}
-                onAddToCart={(item) => {
+                onAddToCart={(item: any) => {
                   addToCart(item);
                   setCustomizeOpen(false);
                 }}
@@ -1887,7 +1885,7 @@ export default function Home() {
             <OrderCart
               items={cartItems}
               onClose={() => setCartOpen(false)}
-              onRemoveItem={(id) =>
+              onRemoveItem={(id: any) =>
                 setCartItems(cartItems.filter((item) => item._id !== id))
               }
             />
