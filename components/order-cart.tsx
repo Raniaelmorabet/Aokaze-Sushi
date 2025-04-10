@@ -72,7 +72,7 @@ export function OrderCart({ items, onClose, onRemoveItem }) {
                   <div className="flex justify-between">
                     <h4 className="font-medium">{item.name}</h4>
                     <button
-                      onClick={() => onRemoveItem(item.id)}
+                      onClick={() => onRemoveItem(item._id)}
                       className="text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={16} />
