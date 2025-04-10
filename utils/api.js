@@ -85,7 +85,7 @@ export const apiRequest = async (
 
     return responseData;
   } catch (error) {
-    console.error(`API Error (${endpoint}):`, error);
+    console.error(`API Errorrr (${endpoint}):`, error);
     throw error;
   }
 };
