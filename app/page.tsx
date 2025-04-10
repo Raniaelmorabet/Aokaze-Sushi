@@ -58,6 +58,7 @@ export default function Home() {
   const { t, dir } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("sushi");
+  const [loadingMenuItems, setLoadingMenuItems] = useState(false);
   const [isHeaderFixed, setIsHeaderFixed] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -212,6 +213,7 @@ export default function Home() {
   };
 
   const getMenuItems = async () => {
+    setLoadingMenuItems(true);
     try {
       const data = await menuAPI.getItems({
         page: 1,
@@ -221,6 +223,24 @@ export default function Home() {
       setMenu(data.data);
     } catch (error) {
       console.log(error.message);
+    } finally {
+      setLoadingMenuItems(false);
+    }
+  };
+
+  const getMenuItemsByCategory = async (id) => {
+    setLoadingMenuItems(true);
+    try {
+      const data = await menuAPI.getItemsByCategory(id, {
+        page: 1,
+        limit: 10,
+      });
+      console.log(data);
+      setMenu(data.data);
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setLoadingMenuItems(false);
     }
   };
 
@@ -1198,7 +1218,10 @@ export default function Home() {
               return (
                 <button
                   key={category._id}
-                  onClick={() => setActiveCategory(categorySlug)}
+                  onClick={() => {
+                    getMenuItemsByCategory(category._id);
+                    setActiveCategory(categorySlug);
+                  }}
                   className={`flex items-center gap-2 p-4 rounded-lg transition-all duration-300 ${
                     activeCategory === categorySlug
                       ? "bg-orange-500 shadow-lg shadow-orange-500/20"
@@ -1291,27 +1314,41 @@ export default function Home() {
 
         {/* Menu Items */}
         <div className="mt-12">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeCategory}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {menu.map((item, index) => (
-                  <MenuCard
-                    key={item._id}
-                    item={item}
-                    index={index}
-                    onAddToCart={() => addToCart(item)}
-                    onCustomize={() => openCustomize(item)}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+          {loadingMenuItems ? (
+            <div className="w-full flex justify-center items-center h-20 text-gray-600 animate-bounce">
+              Loading...
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeCategory}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {menu.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {menu.map((item, index) => (
+                      <MenuCard
+                        key={item._id}
+                        item={item}
+                        index={index}
+                        onAddToCart={() => addToCart(item)}
+                        onCustomize={() => openCustomize(item)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">
+                      No items available in this category.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
       </section>
 
