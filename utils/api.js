@@ -40,18 +40,21 @@ export const apiRequest = async (
   customHeaders = {}
 ) => {
   try {
+    // Check if data is FormData
+    const isFormData = data instanceof FormData;
+
     // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      ...customHeaders,
-    };
+    const headers = { ...customHeaders };
+
+    // Only set JSON content type if not FormData
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
 
     // Add auth token if required
     if (requiresAuth) {
       const token = getToken();
-      if (!token) {
-        throw new Error("Authentication required");
-      }
+      if (!token) throw new Error("Authentication required");
       headers["Authorization"] = `Bearer ${token}`;
     }
 
@@ -59,33 +62,25 @@ export const apiRequest = async (
     const options = {
       method,
       headers,
-      credentials: "include", // Include cookies for cross-origin requests
+      credentials: "include",
     };
 
     // Add body data if needed
-    if (data && ["POST", "PUT", "PATCH"].includes(method)) {
-      options.body = JSON.stringify(data);
+    if (data) {
+      options.body = isFormData ? data : JSON.stringify(data);
     }
 
     // Make the request
-    const url = `${API_BASE_URL}${endpoint}`;
-    const response = await fetch(url, options);
-
-    // Parse the response
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     const responseData = await response.json();
 
-    // Handle error responses
     if (!response.ok) {
-      const errorMessage =
-        responseData.error ||
-        responseData.message ||
-        `Request failed with status ${response.status}`;
-      throw new Error(errorMessage);
+      throw new Error(responseData.message || "Request failed");
     }
 
     return responseData;
   } catch (error) {
-    console.error(`API Errorrr (${endpoint}):`, error);
+    console.error(`API Error (${endpoint}):`, error);
     throw error;
   }
 };
@@ -169,8 +164,8 @@ export const menuAPI = {
   },
 
   // Create new menu item (Admin only)
-  createItem: async (itemData) => {
-    return await apiRequest("/menu", "POST", itemData, true);
+  createItem: async (formData) => {
+    return await apiRequest("/menu", "POST", formData, true);
   },
 
   // Update menu item (Admin only)
