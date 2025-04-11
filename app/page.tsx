@@ -203,7 +203,6 @@ export default function Home() {
         limit: 10,
         active: true,
       });
-      console.log(data.data);
       setCategories(data.data);
     } catch (error) {
       console.log(error.message);
@@ -216,8 +215,8 @@ export default function Home() {
       const data = await menuAPI.getItems({
         page: 1,
         limit: 10,
+        available: true,
       });
-      console.log(data.data);
       setMenu(data.data);
     } catch (error) {
       console.log(error.message);
@@ -232,8 +231,8 @@ export default function Home() {
       const data = await menuAPI.getItemsByCategory(id, {
         page: 1,
         limit: 10,
+        available: true,
       });
-      console.log(data);
       setMenu(data.data);
     } catch (error) {
       console.log(error.message);
