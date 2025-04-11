@@ -142,25 +142,23 @@ const EditItemMenu = ({
   };
 
   // Image handling
-// Update the handleImageUpload function
-const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        const dataUrl = event.target.result as string;
-        setLocalImage(dataUrl);
-        // Update parent formData immediately with the File object
-        setFormData(prev => ({
-          ...prev!,
-          image: file  // Store the File object directly
-        }));
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-};
+  // Update the handleImageUpload function
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setLocalImage(event.target.result as string);
+          setFormData((prev) => ({
+            ...prev!,
+            image: file, // Store File object directly
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Category handling
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -192,6 +190,13 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     };
     clearErrors();
   }, [formData, ingredients, allergens, errors]);
+
+  const handleIngredientChange = (index: number, value: string) => {
+    const newIngredients = [...ingredients];
+    newIngredients[index] = value;
+    setIngredients(newIngredients);
+    setFormData({ ...formData, ingredients: newIngredients });
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -337,6 +342,7 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
                         ? "focus:ring-red-500 border-red-500/50"
                         : "focus:ring-orange-500"
                     }`}
+                    placeholder={`Ingredient ${index + 1}`}
                   />
                   <button
                     type="button"
@@ -392,7 +398,26 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
               )}
             </div>
           </div>
-          // components/modals/edit-item-menu.tsx
+          <div className="mb-6">
+            <label className="block text-sm text-gray-400 mb-1">
+              Spicy Level (0-5)
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                name="spicyLevel"
+                min="0"
+                max="5"
+                value={formData.spicyLevel || 0}
+                onChange={handleChange}
+                className="flex-1 accent-orange-500 hover:cursor-pointer"
+              />
+              <span className="text-sm w-6 text-center">
+                {formData.spicyLevel || 0}
+              </span>
+              <Flame size={16} className="text-red-500" />
+            </div>
+          </div>
           {/* Image Preview Section */}
           <div className="mb-6">
             <label className="block text-sm text-gray-400 mb-1">
