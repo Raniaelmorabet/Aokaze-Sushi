@@ -228,9 +228,6 @@ export default function MenuManagementPage() {
       // Handle image
       if (data.image instanceof File) {
         formData.append("image", data.image);
-      } else if (typeof data.image === "string") {
-        // Only send image URL if no new file was uploaded
-        formData.append("imageUrl", data.image);
       }
       console.log("📝 FormData content:");
       for (let [key, value] of formData.entries()) {
@@ -261,8 +258,8 @@ export default function MenuManagementPage() {
   
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    await editItem({ ...formData, _id: selectedItem._id });
     setShowEditItemModal(false);
+    await editItem({ ...formData, _id: selectedItem._id });
   };
 
   const handleDeleteItem = (item) => {
@@ -270,12 +267,17 @@ export default function MenuManagementPage() {
     setShowDeleteConfirmation(true);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    
+    setFormData(prev => ({
+      ...prev!,
+      [name]: type === "checkbox" ? checked :
+              name === "spicyLevel" ? parseInt(value, 10) :
+              value
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -627,7 +629,7 @@ export default function MenuManagementPage() {
                         {item.isFeatured && (
                           <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                             <Award size={12} />
-                            <span>Featured</span>
+                            <span>Feat</span>
                           </span>
                         )}
 
