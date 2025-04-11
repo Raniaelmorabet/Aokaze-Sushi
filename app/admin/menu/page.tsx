@@ -572,7 +572,7 @@ export default function MenuManagementPage() {
                   </motion.button>
                 ))}
             </div>
-            <motion.button
+            {/* <motion.button
               // onClick={handleAddItem}
               className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors mr-4"
               initial={{ opacity: 0, y: 20 }}
@@ -581,7 +581,7 @@ export default function MenuManagementPage() {
             >
               <Plus size={18} />
               <span>Add Category</span>
-            </motion.button>
+            </motion.button> */}
           </div>
         </AnimatePresence>
 
