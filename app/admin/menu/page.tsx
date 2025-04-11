@@ -19,6 +19,7 @@ import { categoryAPI, menuAPI } from "@/utils/api";
 import AddItemMenu from "@/components/modals/add-item-menu";
 import { set } from "date-fns";
 import EditItemMenu from "@/components/modals/edit-item-menu";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function MenuManagementPage() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -28,6 +29,7 @@ export default function MenuManagementPage() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loadingMenuItems, setLoadingMenuItems] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [alertStatus, setAlertStatus] = useState({});
   const [isExiting, setIsExiting] = useState(false);
   const [menu, setMenu] = useState([]);
@@ -180,112 +182,87 @@ export default function MenuManagementPage() {
     setShowAddItemModal(true);
   };
 
-  const handleEditItem = (item) => {
+  const handleEditItem = (item: any) => {
     setFormData({
-      name: item.name,
-      description: item.description,
-      price: item.price,
-      category: item.category,
-      image: item.image,
-      ingredients: item.ingredients || [] as string[],
-      allergens: item.allergens || [] as string[],
-      spicyLevel: item.spicyLevel,
-      isVegetarian: item.isVegetarian,
-      isGlutenFree: item.isGlutenFree,
-      isAvailable: item.isAvailable,
-      isFeatured: item.isFeatured,
+      _id: item._id,
+      name: item.name || "",
+      description: item.description || "",
+      price: item.price || 0,
+      category: item.category || categories[0]?._id || "",
+      image: item.image || "",
+      ingredients: item.ingredients || [],
+      allergens: item.allergens || [],
+      spicyLevel: item.spicyLevel || 0,
+      isVegetarian: item.isVegetarian || false,
+      isGlutenFree: item.isGlutenFree || false,
+      isAvailable: item.isAvailable ?? true,
+      isFeatured: item.isFeatured || false,
     });
     setShowEditItemModal(true);
   };
 
-  const handleEditSubmit = (item) => {
-    e.preventDefault();
-    console.log("Form submitted:", item);
-
-    // Call the createItem function with the form data
-    editItem(item);
-
-    // Close the modal
-    setShowAddItemModal(false);
-  };
-
   const editItem = async (data) => {
     try {
-      console.log("Editing item:", data);
-
-      // Create FormData object
       const formData = new FormData();
-
-      // Add text fields
+      console.log("Editing item:", data);
+      
+      // Append basic fields
       formData.append("name", data.name);
       formData.append("description", data.description);
-      formData.append("price", data.price);
+      formData.append("price", data.price.toString());
       formData.append("category", data.category._id);
-
-      // Add arrays
-      if (data.ingredients?.length) {
-        data.ingredients.forEach((ingredient) => {
-          formData.append("ingredients", ingredient);
-        });
-      }
-
-      if (data.allergens?.length) {
-        data.allergens.forEach((allergen) => {
-          formData.append("allergens", allergen);
-        });
-      }
-
-      // Add boolean fields
+      formData.append("spicyLevel", data.spicyLevel.toString());
       formData.append("isVegetarian", data.isVegetarian.toString());
       formData.append("isGlutenFree", data.isGlutenFree.toString());
       formData.append("isAvailable", data.isAvailable.toString());
       formData.append("isFeatured", data.isFeatured.toString());
-
-      // Add spicy level
-      if (data.spicyLevel !== undefined) {
-        formData.append("spicyLevel", data.spicyLevel.toString());
+  
+      // Append arrays
+      data.ingredients.forEach(ingredient => 
+        formData.append("ingredients", ingredient)
+      );
+      data.allergens.forEach(allergen => 
+        formData.append("allergens", allergen)
+      );
+  
+      // Handle image
+      if (data.image instanceof File) {
+        formData.append("image", data.image);
+      } else if (typeof data.image === "string") {
+        // Only send image URL if no new file was uploaded
+        formData.append("imageUrl", data.image);
       }
-
-      // Handle the image
-      if (data.image) {
-        if (data.image instanceof File) {
-          formData.append("image", data.image);
-        } else if (
-          typeof data.image === "string" &&
-          data.image.startsWith("data:")
-        ) {
-          // Convert base64 to blob
-          const response = await fetch(data.image);
-          const blob = await response.blob();
-          formData.append("image", blob, "menu-item-image.jpg");
-        } else if (typeof data.image === "string") {
-          formData.append("imageUrl", data.image);
-        }
+      console.log("📝 FormData content:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
       }
-
-      // Send the formData to the API
+      // Send request
       const response = await menuAPI.updateItem(data._id, formData);
-
-      // Update the menu list with the new item
-      setMenu((prevMenu) => [...prevMenu, response.data]);
-
+      console.log("Item updated:", response);
+      
+  
+      // Update state
+      setMenu(prev => prev.map(item => 
+        item._id === data._id ? response.data : item
+      ));
+  
       setAlertStatus({
-        type: response.success,
-        message: "Item created successfully",
+        type: true,
+        message: "Item updated successfully"
       });
-
-      return response;
+  
     } catch (error) {
-      console.error("Error creating item:", error);
       setAlertStatus({
         type: false,
-        message: "Error creating item",
+        message: error.response?.data?.message || "Failed to update item"
       });
-      setTimeout(() => {
-        setAlertStatus({});
-      }, 3000);
-      throw error;
     }
+  };
+  
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    await editItem({ ...formData, _id: selectedItem._id });
+    setShowEditItemModal(false);
   };
 
   const handleDeleteItem = (item) => {
@@ -414,7 +391,7 @@ export default function MenuManagementPage() {
   };
 
   const getCategories = async () => {
-    setLoadingMenuItems(true);
+    setLoadingCategories(true);
     try {
       const data = await categoryAPI.getPaginatedCategories({
         page: 1,
@@ -425,7 +402,7 @@ export default function MenuManagementPage() {
     } catch (error) {
       console.error(error.message);
     } finally {
-      setLoadingMenuItems(false);
+      setLoadingCategories(false);
     }
   };
 
@@ -482,7 +459,6 @@ export default function MenuManagementPage() {
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
     if (Object.keys(alertStatus).length > 0) {
       setIsExiting(false);
       timer = setTimeout(() => {
@@ -493,21 +469,40 @@ export default function MenuManagementPage() {
         }, 300); // Match this with your slideOut animation duration
       }, 3000); // Display duration
     }
-
     return () => clearTimeout(timer);
   }, [alertStatus]);
 
   return (
     <div className="relative">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+        {/* Title */}
         <div>
-          <h1 className="text-3xl font-bold">Menu Management</h1>
-          <p className="text-gray-400">Add, edit, and manage your menu items</p>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="text-3xl font-bold"
+          >
+            Menu Management
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 2 * 0.1 }}
+            className="text-gray-400"
+          >
+            Add, edit, and manage your menu items
+          </motion.p>
         </div>
 
         {/* Search and Add Item Button */}
         <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
-          <div className="relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 3 * 0.1 }}
+            className="relative"
+          >
             <input
               type="text"
               placeholder="Search menu items..."
@@ -518,202 +513,211 @@ export default function MenuManagementPage() {
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               size={18}
             />
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
             onClick={handleAddItem}
             className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 4 * 0.1 }}
           >
             <Plus size={18} />
             <span>Add Item</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
       <div className="bg-[#1E1E1E] rounded-xl shadow-md overflow-hidden mb-8">
         {/* Category nav */}
-        <div className="flex justify-between items-center">
-          <div className="p-4 border-b border-gray-800 flex flex-wrap gap-4">
-            <button
-              onClick={() => {
-                getMenuItems();
-                setActiveCategory("all");
-              }}
-              className={`px-4 py-2 rounded-lg text-sm ${
-                activeCategory === "all"
-                  ? "bg-orange-500 text-white"
-                  : "bg-[#2a2a2a] text-gray-300 hover:bg-[#333]"
-              }`}
+        <AnimatePresence mode="wait">
+          <div className="flex justify-between items-center">
+            <div className="p-4 border-b border-gray-800 flex flex-wrap gap-4">
+              <motion.button
+                onClick={() => {
+                  getMenuItems();
+                  setActiveCategory("all");
+                }}
+                className={`px-4 py-2 rounded-lg text-sm ${
+                  activeCategory === "all"
+                    ? "bg-orange-500 text-white"
+                    : "bg-[#2a2a2a] text-gray-300 hover:bg-[#333]"
+                }`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+              >
+                All Categories
+              </motion.button>
+              {categories.length > 0 &&
+                categories.map((category, index) => (
+                  <motion.button
+                    key={category._id}
+                    onClick={() => {
+                      getMenuItemsByCategory(category._id);
+                      setActiveCategory(category.name);
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm ${
+                      activeCategory === category.name
+                        ? "bg-orange-500 text-white"
+                        : "bg-[#2a2a2a] text-gray-300 hover:bg-[#333]"
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    {category.name}
+                  </motion.button>
+                ))}
+            </div>
+            <motion.button
+              // onClick={handleAddItem}
+              className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors mr-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 6 * 0.1 }}
             >
-              All Categories
-            </button>
-            {categories.length > 0 &&
-              categories.map((category) => (
-                <button
-                  key={category._id}
-                  onClick={() => {
-                    getMenuItemsByCategory(category._id);
-                    setActiveCategory(category.name);
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm ${
-                    activeCategory === category.name
-                      ? "bg-orange-500 text-white"
-                      : "bg-[#2a2a2a] text-gray-300 hover:bg-[#333]"
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
+              <Plus size={18} />
+              <span>Add Category</span>
+            </motion.button>
           </div>
-          <button
-            // onClick={handleAddItem}
-            className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors mr-4"
-          >
-            <Plus size={18} />
-            <span>Add Category</span>
-          </button>
-        </div>
+        </AnimatePresence>
 
         {/* Menu List */}
-        <div className="p-6">
-          {loadingMenuItems ? (
-            <div className="flex items-center justify-center w-full h-20 text-gray-400">
-              Loading...
-            </div>
-          ) : (
-            <>
-              {menu.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {menu.map((item) => (
-                    <div
-                      key={item._id}
-                      className="bg-[#2a2a2a] rounded-xl overflow-hidden"
-                    >
-                      <div className="relative h-48">
-                        <Image
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        <AnimatePresence mode="wait">
+          <div className="p-6">
+            {loadingMenuItems ? (
+              <div className="flex items-center justify-center w-full h-20 text-gray-400">
+                Loading...
+              </div>
+            ) : menu.length > 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              >
+                {menu.map((item, index) => (
+                  <motion.div
+                    key={item._id}
+                    className="bg-[#2a2a2a] rounded-xl overflow-hidden"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <div className="relative h-48">
+                      <Image
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
-                        {!item.isAvailable && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                              Unavailable
-                            </span>
-                          </div>
+                      {!item.isAvailable && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            Unavailable
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="absolute top-2 left-2 flex gap-1">
+                        {item.isFeatured && (
+                          <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <Award size={12} />
+                            <span>Featured</span>
+                          </span>
                         )}
 
-                        <div className="absolute top-2 left-2 flex gap-1">
-                          {item.isFeatured && (
-                            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                              <Award size={12} />
-                              <span>Featured</span>
-                            </span>
-                          )}
+                        {item.spicyLevel > 0 && (
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <Flame size={12} />
+                            <span>{item.spicyLevel}</span>
+                          </span>
+                        )}
 
-                          {item.spicyLevel > 0 && (
-                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                              <Flame size={12} />
-                              <span>{item.spicyLevel}</span>
-                            </span>
-                          )}
+                        {item.isVegetarian && (
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <Leaf size={12} />
+                            <span>Veg</span>
+                          </span>
+                        )}
+                      </div>
 
-                          {item.isVegetarian && (
-                            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                              <Leaf size={12} />
-                              <span>Veg</span>
-                            </span>
-                          )}
-                        </div>
+                      <div className="absolute top-2 right-2 flex">
+                        <button
+                          onClick={() => handleEditItem(item)}
+                          className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors"
+                        >
+                          <Edit size={16} />
+                        </button>
+                      </div>
+                    </div>
 
-                        <div className="absolute top-2 right-2 flex">
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-medium">
+                          {item.name.length > 12
+                            ? item.name.slice(0, 12) + ".."
+                            : item.name}
+                        </h3>
+                        <p className="text-lg font-bold text-orange-500">
+                          ${Number(item.price).toFixed(2)}
+                        </p>
+                      </div>
+
+                      <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                        {item.description}
+                      </p>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs px-2 py-1 bg-[#333] rounded-full">
+                          {item.category.name.charAt(0).toUpperCase() +
+                            item.category.name.slice(1)}
+                        </span>
+
+                        <div className="flex gap-2">
                           <button
-                            onClick={() => handleEditItem(item)}
-                            className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors"
+                            onClick={() => {
+                              handleEditItem(item);
+                              setSelectedItem(item);
+                            }}
+                            className="p-2 bg-[#333] hover:bg-[#444] rounded-lg transition-colors"
+                            title="Edit Item"
                           >
                             <Edit size={16} />
                           </button>
-                        </div>
-                      </div>
-
-                      <div className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">
-                            {item.name.length > 12
-                              ? item.name.slice(0, 12) + ".."
-                              : item.name}
-                          </h3>
-                          <p className="text-lg font-bold text-orange-500">
-                            ${Number(item.price).toFixed(2)}
-                          </p>
-                        </div>
-
-                        <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-                          {item.description}
-                        </p>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs px-2 py-1 bg-[#333] rounded-full">
-                            {item.category.name.charAt(0).toUpperCase() +
-                              item.category.name.slice(1)}
-                          </span>
-
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {handleEditItem(item); setSelectedItem(item)}}
-                              className="p-2 bg-[#333] hover:bg-[#444] rounded-lg transition-colors"
-                              title="Edit Item"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteItem(item)}
-                              className="p-2 bg-[#333] hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
-                              title="Delete Item"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleDeleteItem(item)}
+                            className="p-2 bg-[#333] hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
+                            title="Delete Item"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-400 mb-4">
-                    No menu items found in this category.
-                  </p>
-                  <button
-                    onClick={handleAddItem}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
-                  >
-                    <Plus size={18} />
-                    <span>Add New Item</span>
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* {filteredItems.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-400 mb-4">
-                No menu items found in this category.
-              </p>
-              <button
-                onClick={handleAddItem}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
-              >
-                <Plus size={18} />
-                <span>Add New Item</span>
-              </button>
-            </div>
-          )} */}
-        </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">
+                  No menu items found in this category.
+                </p>
+                <button
+                  onClick={handleAddItem}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
+                >
+                  <Plus size={18} />
+                  <span>Add New Item</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </AnimatePresence>
       </div>
 
       {/* Add Item Modal */}
@@ -736,8 +740,9 @@ export default function MenuManagementPage() {
           handleChange={handleChange}
           categories={categories}
           handleDeleteItem={handleDeleteItem}
-          setSelectedItem={setSelectedItem}
           selectedItem={selectedItem}
+          formData={formData}
+          setFormData={setFormData}
         />
       )}
 
@@ -808,7 +813,7 @@ export default function MenuManagementPage() {
               ? "border-[#179417] bg-[#1b3f07]"
               : "border-[#941717] bg-[#3f0707]"
           } text-center py-4 px-4 border-2 rounded-xl text-gray-400 ${
-            isExiting ? 'animate-slideOut' : 'animate-slideIn'
+            isExiting ? "animate-slideOut" : "animate-slideIn"
           }`}
         >
           {alertStatus.message}
