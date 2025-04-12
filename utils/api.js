@@ -32,13 +32,7 @@ export const isAuthenticated = () => {
  * @param {Object} customHeaders - Additional headers to include (optional)
  * @returns {Promise<Object>} - Response data
  */
-export const apiRequest = async (
-  endpoint,
-  method = "GET",
-  data = null,
-  requiresAuth = false,
-  customHeaders = {}
-) => {
+export const apiRequest = async ( endpoint, method = "GET", data = null, requiresAuth = false, customHeaders = {} ) => {
   try {
     // Check if data is FormData
     const isFormData = data instanceof FormData;
@@ -94,8 +88,8 @@ export const authAPI = {
     const data = await apiRequest("/auth/login", "POST", { email, password });
     // Store token if provided
     if (data.token) {
-      Cookies.set("token", data.token, { expires: 30 }); 
-      localStorage.setItem("token", data.token); 
+      Cookies.set("token", data.token, { expires: 30 });
+      localStorage.setItem("token", data.token);
     }
 
     return data;
@@ -211,13 +205,19 @@ export const menuAPI = {
   filterItems: async (filters = {}) => {
     const queryString = new URLSearchParams(filters).toString();
     return await apiRequest(`/menu?${queryString}`, "GET");
-  }
+  },
 };
 
 /**
  * Order API functions
  */
 export const orderAPI = {
+  // Get orders
+  getOrders: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/orders?${queryString}`, "GET", null, true);
+  },
+
   // Place a new order
   placeOrder: async (orderData) => {
     return await apiRequest("/orders", "POST", orderData, true);
