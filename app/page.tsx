@@ -52,7 +52,7 @@ import {
   testimonialAPI,
 } from "@/utils/api";
 import { set } from "date-fns";
-
+import logo from "@/public/logo.png";
 export default function Home() {
   const { t, dir } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -794,21 +794,8 @@ export default function Home() {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-white">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M8.21 13.89 7 23l-5-1L8.21 5.11a8 8 0 0 1 15.58 0L20 22l-5 1-1.21-9.11" />
-              </svg>
+            <Image src={logo} alt='logo' className='w-28'/>
             </div>
-            <span className="font-bold text-xl">Sushibre</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <button
