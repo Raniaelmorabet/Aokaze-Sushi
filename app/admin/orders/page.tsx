@@ -3,16 +3,10 @@
 import { useEffect, useState, useRef } from "react";
 import {
   Search,
-  Filter,
-  ChevronDown,
   MoreHorizontal,
-  Download,
-  Printer,
   Eye,
   X,
   Check,
-  CircleArrowRight,
-  ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
@@ -398,9 +392,9 @@ export default function OrdersPage() {
             </motion.table>
           </div>
         ) : (
-          <tbody className="w-full text-gray-400 h-20 flex justify-center items-center animate-bounce">
+          <div className="w-full text-gray-400 h-20 flex justify-center items-center animate-bounce">
             Loading
-          </tbody>
+          </div>
         )}
         {ordersData.length === 0 && !loadingOrders && (
           <div className="p-8 text-center">
@@ -408,6 +402,7 @@ export default function OrdersPage() {
           </div>
         )}
 
+        {/* Pagination */}
         <div className="p-4 border-t border-gray-800 flex justify-between items-center">
           <p className="text-sm text-gray-400">
             Showing {count} of {total} orders
