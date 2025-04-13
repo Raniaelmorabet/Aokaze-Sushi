@@ -144,14 +144,14 @@ export default function AdminLayout({ children }) {
                 <Menu size={24} />
               </button>
 
-              <div className="relative hidden md:block">
+              {/* <div className="relative hidden md:block">
                 <input
                   type="text"
                   placeholder="Search..."
                   className="bg-[#2a2a2a] text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 w-64"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center gap-4">
