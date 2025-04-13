@@ -32,7 +32,13 @@ export const isAuthenticated = () => {
  * @param {Object} customHeaders - Additional headers to include (optional)
  * @returns {Promise<Object>} - Response data
  */
-export const apiRequest = async ( endpoint, method = "GET", data = null, requiresAuth = false, customHeaders = {} ) => {
+export const apiRequest = async (
+  endpoint,
+  method = "GET",
+  data = null,
+  requiresAuth = false,
+  customHeaders = {}
+) => {
   try {
     // Check if data is FormData
     const isFormData = data instanceof FormData;
@@ -146,6 +152,12 @@ export const menuAPI = {
     return await apiRequest(`/menu?${queryString}`, "GET");
   },
 
+  // Get menu items count
+  getItemsCount: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/menu/stats/count?${queryString}`, "GET");
+  },
+
   // Get menu item by ID
   getItemById: async (id) => {
     return await apiRequest(`/menu/${id}`, "GET");
@@ -218,6 +230,17 @@ export const orderAPI = {
     return await apiRequest(`/orders?${queryString}`, "GET", null, true);
   },
 
+  // Get orders count
+  getOrdersCount: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/orders/stats/count?${queryString}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
   // Place a new order
   placeOrder: async (orderData) => {
     return await apiRequest("/orders", "POST", orderData, true);
@@ -236,6 +259,17 @@ export const orderAPI = {
   // Update order status (for admins)
   updateOrderStatus: async (id, status) => {
     return await apiRequest(`/orders/${id}/status`, "PUT", { status }, true);
+  },
+
+  // Get total revenue
+  getTotalRevenue: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/orders/stats/income?${queryString}`,
+      "GET",
+      null,
+      true
+    );
   },
 };
 
@@ -563,5 +597,117 @@ export const categoryAPI = {
     const formData = new FormData();
     formData.append("image", imageFile);
     return await apiRequest(`/categories/${id}/image`, "POST", formData, true);
+  },
+};
+
+/**
+ * Customer API functions
+ */
+export const customerAPI = {
+  // Get all customers with optional query parameters (Admin only)
+  getCustomers: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/customers?${queryString}`, "GET", null, true);
+  },
+
+  // Get a specific customer by ID (Admin only)
+  getCustomerById: async (id) => {
+    return await apiRequest(`/customers/${id}`, "GET", null, true);
+  },
+
+  // Update a customer by ID (Admin only)
+  updateCustomer: async (id, customerData) => {
+    return await apiRequest(`/customers/${id}`, "PUT", customerData, true);
+  },
+
+  // Delete a customer by ID (Admin only)
+  deleteCustomer: async (id) => {
+    return await apiRequest(`/customers/${id}`, "DELETE", null, true);
+  },
+
+  // Get a customer's orders (Admin only)
+  getCustomerOrders: async (id, queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/customers/${id}/orders?${queryString}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Get customer statistics (Admin only)
+  getCustomerStats: async (period = "month") => {
+    return await apiRequest(
+      `/customers/stats?period=${period}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Get total number of customers (Admin only)
+  getCustomerCount: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/customers/count?${queryString}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Get paginated customers with additional metadata (Admin only)
+  getPaginatedCustomers: async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    sort = "-createdAt",
+    select = "name,email,phone,createdAt",
+  } = {}) => {
+    return await apiRequest(
+      `/customers?page=${page}&limit=${limit}&search=${search}&sort=${sort}&select=${select}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Search customers by name, email or phone (Admin only)
+  searchCustomers: async (searchTerm, fields = "name,email,phone") => {
+    return await apiRequest(
+      `/customers?search=${searchTerm}&fields=${fields}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Filter customers by advanced criteria (Admin only)
+  filterCustomers: async (filters = {}) => {
+    const queryString = Object.entries(filters)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join("&");
+    return await apiRequest(`/customers?${queryString}`, "GET", null, true);
+  },
+
+  // Get customers created in a specific time period (Admin only)
+  getCustomersByPeriod: async (startDate, endDate) => {
+    return await apiRequest(
+      `/customers?createdAt[gte]=${startDate}&createdAt[lte]=${endDate}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Get customers with specific field values (Admin only)
+  getCustomersByField: async (field, value, operator = "eq") => {
+    return await apiRequest(
+      `/customers?${field}[${operator}]=${value}`,
+      "GET",
+      null,
+      true
+    );
   },
 };
