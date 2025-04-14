@@ -794,7 +794,7 @@ export default function Home() {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-white">
-            <Image src={logo} alt='logo' className='w-28'/>
+              <Image src={logo} alt="logo" className="w-28" />
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -1419,9 +1419,30 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.5 }}
-                className="bg-[#1E1E1E] rounded-xl p-8 shadow-xl"
+                className="bg-[#1E1E1E] rounded-xl px-8 pt-6 md:pt-8 shadow-xl"
               >
-                <div className="flex gap-1 mb-1">
+                <div className="w-full flex flex-col justify-center items-center gap-4 -translate-y-14">
+                  <div className="w-16 h-16 rounded-full overflow-hidden">
+                    <Image
+                      src={
+                        serverTestimonials[activeTestimonial].user?.image ||
+                        "/placeholder.svg"
+                      }
+                      alt={serverTestimonials[activeTestimonial].user?.name}
+                      width={100}
+                      height={100}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-bold text-lg text-center">
+                      {serverTestimonials[activeTestimonial].user?.name}
+                    </p>
+                    {/* <p className="text-gray-400">Loyal Customer</p> */}
+                  </div>
+                </div>
+                {/* Stars */}
+                <div className="flex justify-center  -translate-y-12 gap-1 mb-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg
                       key={star}
@@ -1444,32 +1465,12 @@ export default function Home() {
                     </svg>
                   ))}
                 </div>
-                <h4 className="font-medium text-xl mb-4">
+                <h4 className="font-medium text-xl -translate-y-10 mb-4 text-center px-4">
                   {serverTestimonials[activeTestimonial].title}
                 </h4>
-                <p className="text-gray-400 text-lg mb-8">
+                <p className="text-gray-400 text-lg -translate-y-12 mb-8 text-center px-4">
                   "{serverTestimonials[activeTestimonial].comment}"
                 </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden">
-                    <Image
-                      src={
-                        serverTestimonials[activeTestimonial].user?.image ||
-                        "/placeholder.svg"
-                      }
-                      alt={serverTestimonials[activeTestimonial].user?.name}
-                      width={100}
-                      height={100}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg">
-                      {serverTestimonials[activeTestimonial].user?.name}
-                    </p>
-                    <p className="text-gray-400">Loyal Customer</p>
-                  </div>
-                </div>
               </motion.div>
             </AnimatePresence>
 
@@ -1479,7 +1480,7 @@ export default function Home() {
                   prev === 0 ? serverTestimonials.length - 1 : prev - 1
                 )
               }
-              className="absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
+              className="hidden md:flex absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-16 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
             >
               <ChevronLeft size={24} />
             </button>
@@ -1490,7 +1491,7 @@ export default function Home() {
                   prev === serverTestimonials.length - 1 ? 0 : prev + 1
                 )
               }
-              className="absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
+              className="hidden md:flex absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-16 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
             >
               <ChevronRight size={24} />
             </button>
