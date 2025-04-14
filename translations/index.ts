@@ -105,7 +105,7 @@ export const translations = {
       cta: "MORE INFORMATION",
     },
     gallery: {
-      title: "Our Gallery",
+      title: "Our gallery",
       description:
         "Take a visual journey through our culinary creations and get a taste of what awaits you at Sushibre.",
     },
