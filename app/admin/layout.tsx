@@ -29,6 +29,7 @@ export default function AdminLayout({ children }) {
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Menu Management", href: "/admin/menu", icon: FileText },
     { name: "Customers", href: "/admin/customers", icon: Users },
+    { name: "Testimonials", href: "/admin/testimonials", icon: Users },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 
