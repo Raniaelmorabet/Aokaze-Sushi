@@ -5,21 +5,11 @@ import Link from "next/link"
 import Image from "next/Image"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-  LayoutDashboard,
-  ShoppingBag,
-  Users,
-  FileText,
-  Settings,
-  Menu,
-  X,
-  LogOut,
-  Bell,
-  Search,
-  User,
-  ChevronDown,
-} from "lucide-react"
+import {LayoutDashboard, ShoppingBag, Users, FileText, Settings, Menu, X, LogOut, Bell, Search, User, ChevronDown,} from "lucide-react"
 import logo from "@/public/logo.png"
+import { GrGallery } from "react-icons/gr";
+import { TfiCommentsSmiley } from "react-icons/tfi";
+import icon from "../../public/testImage.png"
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
@@ -29,7 +19,8 @@ export default function AdminLayout({ children }) {
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Menu Management", href: "/admin/menu", icon: FileText },
     { name: "Customers", href: "/admin/customers", icon: Users },
-    { name: "Testimonials", href: "/admin/testimonials", icon: Users },
+    { name: "Testimonials", href: "/admin/testimonials", image: icon },
+    { name: "Gallery Management", href: "/admin/gallery", icon: GrGallery },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 
@@ -81,7 +72,8 @@ export default function AdminLayout({ children }) {
                         : "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
                     }`}
                   >
-                    <item.icon size={20} />
+                    {item.icon && <item.icon size={20}/>}
+                    {item.image && <Image src={item.image} size={20}/>}
                     <span>{item.name}</span>
                   </Link>
                 ))}
@@ -120,7 +112,8 @@ export default function AdminLayout({ children }) {
                     : "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
                 }`}
               >
-                <item.icon size={20} />
+                {item.icon && <item.icon size={20}/>}
+                {item.image && <Image src={item.image} width={20}/> }
                 <span>{item.name}</span>
               </Link>
             ))}
