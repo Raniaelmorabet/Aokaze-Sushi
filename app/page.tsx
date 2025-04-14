@@ -1480,7 +1480,7 @@ export default function Home() {
                   prev === 0 ? serverTestimonials.length - 1 : prev - 1
                 )
               }
-              className="hidden md:flex absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-16 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
+              className="hidden md:flex absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
             >
               <ChevronLeft size={24} />
             </button>
@@ -1491,7 +1491,7 @@ export default function Home() {
                   prev === serverTestimonials.length - 1 ? 0 : prev + 1
                 )
               }
-              className="hidden md:flex absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-16 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
+              className="hidden md:flex absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
             >
               <ChevronRight size={24} />
             </button>
