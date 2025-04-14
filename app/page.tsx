@@ -1633,7 +1633,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Gallery */}
+      {/* gallery */}
       <section className="py-20">
         <div className="container mx-auto px-4 mb-12">
           <motion.div
@@ -1734,7 +1734,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Gallery Lightbox */}
+      {/* gallery Lightbox */}
       <AnimatePresence>
         {isGalleryOpen && (
           <motion.div
