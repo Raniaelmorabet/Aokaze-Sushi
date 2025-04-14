@@ -81,7 +81,7 @@ export const translations = {
         title: "Title",
         comment: "Your Experience",
         submit: "Submit Testimonial",
-        success: "Thank you for your testimonial!",
+        success: "Thank you for your testimonials!",
         error: "Please fill out all fields correctly.",
       },
     },
