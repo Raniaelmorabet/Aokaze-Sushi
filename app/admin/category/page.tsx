@@ -19,7 +19,7 @@ import {
     RefreshCw,
 } from "lucide-react"
 import Image from "next/image"
-
+import Loader from "@/components/Loader"
 import { useToast } from "@/hooks/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 
@@ -147,12 +147,10 @@ export default function CategoryManagement() {
     const fetchCategories = async () => {
         setLoading(true)
         try {
-            // In a real app, you would fetch from API
-            // For demo, we'll use the sample data
             setTimeout(() => {
                 setCategories(sampleCategories)
                 setLoading(false)
-            }, 800)
+            }, 2000)
         } catch (error) {
             console.error("Error fetching categories:", error)
             setLoading(false)
@@ -807,10 +805,11 @@ export default function CategoryManagement() {
 
             {/* Categories Grid */}
             {loading ? (
-                <div className="flex flex-col justify-center items-center h-64">
-                    <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
-                    <p className="text-gray-400">Loading categories...</p>
-                </div>
+                // <div className="flex flex-col justify-center items-center h-64">
+                //     <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
+                //     <p className="text-gray-400">Loading categories...</p>
+                // </
+                <Loader/>
             ) : filteredCategories.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence>

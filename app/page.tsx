@@ -53,6 +53,7 @@ import {
 } from "@/utils/api";
 import { set } from "date-fns";
 import logo from "@/public/logo.png";
+import PreLoader from "@/components/PreLoader";
 export default function Home() {
   const { t, dir } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,8 +77,8 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
   const [menu, setMenu] = useState([]);
   const [visibleImages, setVisibleImages] = useState(6);
-
   const heroRef = useRef(null);
+  const [loading, setLoading] = useState(true)
   const aboutRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -769,7 +770,15 @@ export default function Home() {
       caption: "Bento box lunch special today! #lunchtime",
     },
   ];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
 
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <PreLoader/>
   return (
     <div
       className="bg-[#121212] text-white min-h-screen overflow-x-hidden"
