@@ -14,7 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { customerAPI, menuAPI, orderAPI } from "@/utils/api";
 import { set } from "date-fns";
-
+import PreLoader from "@/components/PreLoader"
 const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -299,6 +299,15 @@ export default function AdminDashboard() {
     getMenuItems();
   }, []);
 
+  useEffect(() => {
+    const Timer = setTimeout(()=> {
+      setLoading(false)
+    },3000)
+    return () => clearTimeout(Timer);
+  }, []);
+
+
+  if (loading) <PreLoader/>
   return (
     <div>
       {/* Header */}
