@@ -6,10 +6,12 @@ import Image from "next/Image"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {LayoutDashboard, ShoppingBag, Users, FileText, Settings, Menu, X, LogOut, Bell, Search, User, ChevronDown,} from "lucide-react"
+import { RiUserStarLine } from "react-icons/ri";
 import logo from "@/public/logo.png"
-import { GrGallery } from "react-icons/gr";
-import { TfiCommentsSmiley } from "react-icons/tfi";
-import icon from "../../public/testImage.png"
+import { RiGalleryFill } from "react-icons/ri";
+import { Tag } from "lucide-react";
+import { MdOutlineRestaurantMenu } from "react-icons/md";
+import { PiChefHat } from "react-icons/pi";
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
@@ -19,8 +21,11 @@ export default function AdminLayout({ children }) {
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Menu Management", href: "/admin/menu", icon: FileText },
     { name: "Customers", href: "/admin/customers", icon: Users },
-    { name: "Testimonials", href: "/admin/testimonials", image: icon },
-    { name: "Gallery Management", href: "/admin/gallery", icon: GrGallery },
+    { name: "Testimonials", href: "/admin/testimonials", icon: RiUserStarLine },
+    { name: "Gallery Management", href: "/admin/gallery", icon: RiGalleryFill },
+    { name: "Category", href: "/admin/category", icon: MdOutlineRestaurantMenu },
+    { name: "Chef's Management", href: "/admin/chefs", icon: PiChefHat },
+    { name: "Offers Management", href: "/admin/offers", icon: Tag },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 
