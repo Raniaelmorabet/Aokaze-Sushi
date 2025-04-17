@@ -151,7 +151,7 @@ export default function TestimonialManagement() {
     const [filterOpen, setFilterOpen] = useState(false)
     const [sortBy, setSortBy] = useState("date")
     const [sortOrder, setSortOrder] = useState("desc")
-
+    const [showTestimonial, setShowTestimonial] = useState([])
     // Fetch testimonials
     const fetchTestimonials = async () => {
         setLoading(true)
@@ -269,6 +269,29 @@ export default function TestimonialManagement() {
                 return null
         }
     }
+
+    const getTestimonials= async ()=> {
+        const Token = localStorage.getItem("token");
+        try {
+            const response = await fetch("https://aokaze-sushi.vercel.app/api/testimonials", {
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${Token}`
+                }
+            })
+            const data = await response.json()
+            console.log(data)
+            setShowTestimonial(data.data)
+        }
+        catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        getTestimonials()
+    }, []);
 
     return (
         <div className="min-h-screen">
@@ -448,7 +471,7 @@ export default function TestimonialManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Total Testimonials</p>
-                        <p className="text-2xl font-bold">{testimonials.length}</p>
+                        <p className="text-2xl font-bold">{showTestimonial.length}</p>
                     </div>
                 </div>
 
@@ -458,7 +481,7 @@ export default function TestimonialManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Accepted</p>
-                        <p className="text-2xl font-bold">{testimonials.filter((t) => t.status === "accepted").length}</p>
+                        <p className="text-2xl font-bold">{showTestimonial.filter((t) => t.status === "accepted").length}</p>
                     </div>
                 </div>
 
@@ -468,7 +491,7 @@ export default function TestimonialManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Pending Review</p>
-                        <p className="text-2xl font-bold">{testimonials.filter((t) => t.status === "pending").length}</p>
+                        <p className="text-2xl font-bold">{showTestimonial.filter((t) => t.status === "pending").length}</p>
                     </div>
                 </div>
             </motion.div>
@@ -482,7 +505,7 @@ export default function TestimonialManagement() {
             ) : filteredTestimonials.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence>
-                        {filteredTestimonials.map((testimonial, index) => (
+                        {showTestimonial.map((testimonial, index) => (
                             <motion.div
                                 key={testimonial._id}
                                 initial={{ opacity: 0, scale: 0.9 }}
@@ -507,16 +530,16 @@ export default function TestimonialManagement() {
                                     <div className="flex items-center mb-4">
                                         <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
                                             <Image
-                                                src={testimonial.user?.image || "/placeholder.svg"}
-                                                alt={testimonial.user?.name || "User"}
+                                                src={testimonial.user.image || "/placeholder.svg"}
+                                                alt={testimonial.user.name || "User"}
                                                 width={48}
                                                 height={48}
                                                 className="object-cover w-full h-full"
                                             />
                                         </div>
                                         <div>
-                                            <h3 className="font-medium">{testimonial.user?.name}</h3>
-                                            <p className="text-gray-400 text-sm">{formatDate(testimonial.date)}</p>
+                                            <h3 className="font-medium">{testimonial.user.name}</h3>
+                                            <p className="text-gray-400 text-sm">{formatDate(testimonial.createdAt)}</p>
                                         </div>
                                     </div>
 
@@ -610,15 +633,15 @@ export default function TestimonialManagement() {
                                 <div className="flex items-center mb-3">
                                     <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
                                         <Image
-                                            src={selectedTestimonial.user?.image || "/placeholder.svg"}
-                                            alt={selectedTestimonial.user?.name || "User"}
+                                            src={selectedTestimonial.user.image || "/placeholder.svg"}
+                                            alt={selectedTestimonial.user.name || "User"}
                                             width={40}
                                             height={40}
                                             className="object-cover w-full h-full"
                                         />
                                     </div>
                                     <div>
-                                        <h3 className="font-medium">{selectedTestimonial.user?.name}</h3>
+                                        <h3 className="font-medium">{selectedTestimonial.user.name}</h3>
                                         <div className="flex">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <svg
@@ -679,15 +702,15 @@ export default function TestimonialManagement() {
                                 <div className="flex items-center mb-3">
                                     <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
                                         <Image
-                                            src={selectedTestimonial.user?.image || "/placeholder.svg"}
-                                            alt={selectedTestimonial.user?.name || "User"}
+                                            src={selectedTestimonial.user.image || "/placeholder.svg"}
+                                            alt={selectedTestimonial.user.name || "User"}
                                             width={40}
                                             height={40}
                                             className="object-cover w-full h-full"
                                         />
                                     </div>
                                     <div>
-                                        <h3 className="font-medium">{selectedTestimonial.user?.name}</h3>
+                                        <h3 className="font-medium">{selectedTestimonial.user.name}</h3>
                                         <p className="text-sm text-gray-400">
                                             Current status:{" "}
                                             <span
@@ -776,7 +799,7 @@ export default function TestimonialManagement() {
 
                             <div className="relative max-w-4xl mx-auto">
                                 <motion.div
-                                    key={activeTestimonial}
+                                    key={selectedTestimonial}
                                     initial={{ opacity: 0, x: 100 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -100 }}
@@ -786,8 +809,8 @@ export default function TestimonialManagement() {
                                     <div className="w-full flex flex-col justify-center items-center gap-4 -translate-y-14">
                                         <div className="w-16 h-16 rounded-full overflow-hidden">
                                             <Image
-                                                src={filteredTestimonials[activeTestimonial].user?.image || "/placeholder.svg"}
-                                                alt={filteredTestimonials[activeTestimonial].user?.name}
+                                                src={selectedTestimonial.user.image || "/placeholder.svg"}
+                                                alt={selectedTestimonial.user.name}
                                                 width={100}
                                                 height={100}
                                                 className="object-cover w-full h-full"
@@ -795,15 +818,15 @@ export default function TestimonialManagement() {
                                         </div>
                                         <div>
                                             <p className="font-bold text-lg text-center">
-                                                {filteredTestimonials[activeTestimonial].user?.name}
+                                                {selectedTestimonial.user.name}
                                             </p>
                                             <div
                                                 className={`mx-auto mt-1 ${getStatusColor(
                                                     filteredTestimonials[activeTestimonial].status,
                                                 )} text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 justify-center w-fit`}
                                             >
-                                                {getStatusIcon(filteredTestimonials[activeTestimonial].status)}
-                                                <span className="capitalize">{filteredTestimonials[activeTestimonial].status}</span>
+                                                {getStatusIcon(selectedTestimonial.status)}
+                                                <span className="capitalize">{selectedTestimonial.status}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -816,7 +839,7 @@ export default function TestimonialManagement() {
                                                 width="20"
                                                 height="20"
                                                 viewBox="0 0 24 24"
-                                                fill={star <= Math.floor(filteredTestimonials[activeTestimonial].rate) ? "#facc15" : "none"}
+                                                fill={star <= Math.floor(selectedTestimonial.rate) ? "#facc15" : "none"}
                                                 stroke="#facc15"
                                                 strokeWidth="2"
                                                 strokeLinecap="round"
@@ -827,16 +850,16 @@ export default function TestimonialManagement() {
                                         ))}
                                     </div>
                                     <h4 className="font-medium text-xl -translate-y-10 mb-4 text-center px-4">
-                                        {filteredTestimonials[activeTestimonial].title}
+                                        {selectedTestimonial.title}
                                     </h4>
                                     <p className="text-gray-400 text-lg -translate-y-12 mb-8 text-center px-4">
-                                        "{filteredTestimonials[activeTestimonial].comment}"
+                                        "{selectedTestimonial.comment}"
                                     </p>
                                 </motion.div>
 
                                 <button
                                     onClick={() =>
-                                        setActiveTestimonial((prev) => (prev === 0 ? filteredTestimonials.length - 1 : prev - 1))
+                                        setActiveTestimonial((prev) => (prev === 0 ? selectedTestimonial.length - 1 : prev - 1))
                                     }
                                     className="absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
                                 >
@@ -845,7 +868,7 @@ export default function TestimonialManagement() {
 
                                 <button
                                     onClick={() =>
-                                        setActiveTestimonial((prev) => (prev === filteredTestimonials.length - 1 ? 0 : prev + 1))
+                                        setActiveTestimonial((prev) => (prev === selectedTestimonial.length - 1 ? 0 : prev + 1))
                                     }
                                     className="absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
                                 >
