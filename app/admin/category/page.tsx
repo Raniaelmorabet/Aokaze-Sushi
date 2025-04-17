@@ -101,6 +101,7 @@ const sampleCategories = [
 
 export default function CategoryManagement() {
     const [categories, setCategories] = useState(sampleCategories)
+    const [showCategory, setShowCategory] = useState([])
     const [loading, setLoading] = useState(false)
     const [addModalOpen, setAddModalOpen] = useState(false)
     const [updateModalOpen, setUpdateModalOpen] = useState(false)
@@ -591,6 +592,28 @@ export default function CategoryManagement() {
         return error
     }
 
+    const getCategory = async ()=> {
+        const token = localStorage.getItem("token")
+        try {
+            const response = await fetch("https://aokaze-sushi.vercel.app/api/categories", {
+                method: "GET",
+                headers: {
+                   "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            const data = await response.json()
+            console.log(data.data)
+            setShowCategory(data.data)
+        }
+        catch (error) {
+            console.error(error)
+        }
+    }
+    useEffect(() => {
+        getCategory()
+    }, []);
+
     return (
         <div className="min-h-screen">
             {/* Header */}
@@ -778,7 +801,7 @@ export default function CategoryManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Total Categories</p>
-                        <p className="text-2xl font-bold">{categories.length}</p>
+                        <p className="text-2xl font-bold">{showCategory.length}</p>
                     </div>
                 </div>
 
@@ -788,7 +811,7 @@ export default function CategoryManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Active Categories</p>
-                        <p className="text-2xl font-bold">{categories.filter((cat) => cat.isActive).length}</p>
+                        <p className="text-2xl font-bold">{showCategory.filter((cat) => cat.isActive).length}</p>
                     </div>
                 </div>
 
@@ -798,7 +821,7 @@ export default function CategoryManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Inactive Categories</p>
-                        <p className="text-2xl font-bold">{categories.filter((cat) => !cat.isActive).length}</p>
+                        <p className="text-2xl font-bold">{showCategory.filter((cat) => !cat.isActive).length}</p>
                     </div>
                 </div>
             </motion.div>
@@ -813,7 +836,7 @@ export default function CategoryManagement() {
             ) : filteredCategories.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence>
-                        {filteredCategories.map((category, index) => (
+                        {showCategory.map((category, index) => (
                             <motion.div
                                 key={category._id}
                                 initial={{ opacity: 0, scale: 0.9 }}
@@ -837,7 +860,7 @@ export default function CategoryManagement() {
                                 }`}
                             >
                                 <div className="relative h-48">
-                                    <Image
+                                    <img
                                         src={category.image || "/placeholder.svg"}
                                         alt={category.name}
                                         fill
