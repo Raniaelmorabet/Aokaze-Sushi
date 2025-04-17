@@ -143,6 +143,7 @@ const SAMPLE_MENU_ITEMS = [
 export default function OffersManagement() {
     const { toast } = useToast()
     const [offers, setOffers] = useState(SAMPLE_OFFERS)
+    const [showOffers, setShowOffers] = useState([])
     const [activeOffer, setActiveOffer] = useState("basic")
     const [filteredOffers, setFilteredOffers] = useState(SAMPLE_OFFERS)
     const [searchQuery, setSearchQuery] = useState("")
@@ -565,6 +566,28 @@ export default function OffersManagement() {
         setIsStatusConfirmOpen(true)
     }
 
+    const getOffers = async () => {
+        const token = localStorage.getItem("token")
+        try {
+            const response = await fetch("https://aokaze-sushi.vercel.app/api/offers", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            const data = await response.json()
+            console.log(data)
+            setShowOffers(data.data)
+        }
+        catch (error) {
+            console.error(error)
+        }
+    }
+    useEffect(() => {
+        getOffers()
+    }, []);
+
     return (
         <div className="space-y-6 bg-[#121212] text-white min-h-screen">
             {/* Enhanced header with gradient background */}
@@ -607,7 +630,7 @@ export default function OffersManagement() {
                         Total Offers
                     </h3>
                     <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                        {offers.length}
+                        {showOffers.length}
                     </p>
                 </motion.div>
 
@@ -623,7 +646,7 @@ export default function OffersManagement() {
                         Active Offers
                     </h3>
                     <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                        {offers.filter((offer) => offer.isActive).length}
+                        {showOffers.filter((offer) => offer.isActive).length}
                     </p>
                 </motion.div>
 
@@ -639,7 +662,7 @@ export default function OffersManagement() {
                         Avg. Discount
                     </h3>
                     <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                        {Math.round(offers.reduce((sum, offer) => sum + offer.discountPercentage, 0) / offers.length)}%
+                        {Math.round(showOffers.reduce((sum, offer) => sum + showOffers.discountPercentage, 0) / showOffers.length)}%
                     </p>
                 </motion.div>
 
@@ -655,7 +678,7 @@ export default function OffersManagement() {
                         Total Redemptions
                     </h3>
                     <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                        {offers.reduce((sum, offer) => sum + offer.currentUsage, 0)}
+                        {showOffers.reduce((sum, offer) => sum + offer.currentUsage, 0)}
                     </p>
                 </motion.div>
             </div>
@@ -735,9 +758,9 @@ export default function OffersManagement() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 pb-6">
                 <AnimatePresence>
-                    {filteredOffers.map((offer, index) => (
+                    {showOffers.map((offer, index) => (
                         <motion.div
-                            key={offer.id}
+                            key={offer._id}
                             className={`bg-gradient-to-br from-[#1E1E1E] to-[#252525] rounded-xl overflow-hidden shadow-lg border border-[#333] group relative ${
                                 recentlyToggledOfferId === offer.id ? "z-10" : ""
                             }`}
@@ -746,7 +769,7 @@ export default function OffersManagement() {
                                 opacity: 1,
                                 y: 0,
                                 boxShadow:
-                                    recentlyToggledOfferId === offer.id
+                                    recentlyToggledOfferId === offer._id
                                         ? ["0px 0px 0px rgba(0,0,0,0)", "0px 0px 30px rgba(255,165,0,0.5)", "0px 0px 0px rgba(0,0,0,0)"]
                                         : "0px 0px 0px rgba(0,0,0,0)",
                             }}
