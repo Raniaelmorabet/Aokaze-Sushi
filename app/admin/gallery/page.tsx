@@ -88,6 +88,7 @@ const sampleGallery = [
 
 export default function GalleryManagement() {
     const [gallery, setGallery] = useState(sampleGallery)
+    const [getGallery, setGetGallery] = useState([])
     const [loading, setLoading] = useState(false)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -323,6 +324,30 @@ export default function GalleryManagement() {
         setSelectingPosition(null)
     }
 
+    const Gallery = async ()=> {
+        const token = localStorage.getItem("token")
+        try {
+            const response = await fetch("https://aokaze-sushi.vercel.app/api/gallery", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                }
+            })
+            const data = await response.json()
+            console.log(data)
+            setGetGallery(data.data)
+
+        }
+        catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        Gallery()
+    }, []);
+
     return (
         <div className="min-h-screen">
             {/* Header */}
@@ -429,7 +454,7 @@ export default function GalleryManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Total Images</p>
-                        <p className="text-2xl font-bold">{gallery.length}</p>
+                        <p className="text-2xl font-bold">{getGallery.length}</p>
                     </div>
                 </div>
 
@@ -439,7 +464,7 @@ export default function GalleryManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Featured Images</p>
-                        <p className="text-2xl font-bold">{gallery.filter((img) => img.featured).length}</p>
+                        <p className="text-2xl font-bold">{gallery.filter((img) => getGallery.isFeatured).length}</p>
                     </div>
                 </div>
             </motion.div>
@@ -453,7 +478,7 @@ export default function GalleryManagement() {
             ) : filteredGallery.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     <AnimatePresence>
-                        {filteredGallery.map((image, index) => (
+                        {getGallery.map((image, index) => (
                             <motion.div
                                 key={image._id}
                                 initial={{ opacity: 0, scale: 0.9 }}
@@ -499,7 +524,8 @@ export default function GalleryManagement() {
                                                         image.featured ? "bg-orange-500 hover:bg-orange-600" : "bg-white/20 hover:bg-white/30"
                                                     } text-white p-2 rounded-full transition-colors`}
                                                 >
-                                                    {image.featured ? <Star size={16} /> : <StarOff size={16} />}
+                                                    {image.featured ? <Star size={16} /> : <StarOff size={16} /> }
+                                                    {/*{console.log(image.isFeatured)}*/}
                                                 </button>
                                                 <button
                                                     onClick={() => openDeleteModal(image)}
@@ -769,10 +795,10 @@ export default function GalleryManagement() {
                                 <button
                                     onClick={() => toggleFeatured(selectedImage)}
                                     className={`${
-                                        selectedImage.featured ? "bg-orange-500 hover:bg-orange-600" : "bg-[#2a2a2a] hover:bg-[#3a3a3a]"
+                                        selectedImage.isFeatured ? "bg-orange-500 hover:bg-orange-600" : "bg-[#2a2a2a] hover:bg-[#3a3a3a]"
                                     } text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors`}
                                 >
-                                    {selectedImage.featured ? (
+                                    {selectedImage.isFeatured ? (
                                         <>
                                             <StarOff size={18} />
                                             <span>Remove Featured</span>
