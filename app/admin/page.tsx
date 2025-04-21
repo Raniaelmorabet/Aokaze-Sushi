@@ -225,7 +225,7 @@ export default function AdminDashboard() {
       );
       setItemsCount(data.stats.totalItems);
     } catch (error) {
-      console.error("Error fetching items count:", error.message);
+      console.error("Error fetching items count:", error);
     } finally {
       setLoading(false);
     }

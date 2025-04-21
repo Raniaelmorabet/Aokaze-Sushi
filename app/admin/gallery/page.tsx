@@ -348,6 +348,25 @@ export default function GalleryManagement() {
         Gallery()
     }, []);
 
+    const handleDeleteImage = async () => {
+        try {
+            console.log(selectedImage.publicId)
+            const token = localStorage.getItem("token");
+            const response = await fetch(`https://aokaze-sushi.vercel.app/api/gallery/${selectedImage.publicId}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": 'application/json',
+                    Authorization: `Bearer ${token}`,
+                }
+            })
+            console.log(response)
+                setDeleteModalOpen(false)
+                setGetGallery(getGallery.filter((image) => image.publicId !== selectedImage.publicId))
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     return (
         <div className="min-h-screen">
             {/* Header */}
@@ -464,7 +483,7 @@ export default function GalleryManagement() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-sm">Featured Images</p>
-                        <p className="text-2xl font-bold">{gallery.filter((img) => getGallery.isFeatured).length}</p>
+                        <p className="text-2xl font-bold">{getGallery.filter((img) => img.isFeatured).length}</p>
                     </div>
                 </div>
             </motion.div>
@@ -473,7 +492,7 @@ export default function GalleryManagement() {
             {loading ? (
                 <div className="flex flex-col justify-center items-center h-64">
                     <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
-                    <p className="text-gray-400">Loading gallery images...</p>
+                    <p className="text-gray-400">Loading gnollery images...</p>
                 </div>
             ) : filteredGallery.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -496,7 +515,7 @@ export default function GalleryManagement() {
                                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                                     />
 
-                                    {image.featured && (
+                                    {image.isFeatured && (
                                         <div className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
                                             Featured
                                         </div>
@@ -524,11 +543,14 @@ export default function GalleryManagement() {
                                                         image.featured ? "bg-orange-500 hover:bg-orange-600" : "bg-white/20 hover:bg-white/30"
                                                     } text-white p-2 rounded-full transition-colors`}
                                                 >
-                                                    {image.featured ? <Star size={16} /> : <StarOff size={16} /> }
+                                                    {image.isFeatured ? <Star size={16} /> : <StarOff size={16} /> }
                                                     {/*{console.log(image.isFeatured)}*/}
                                                 </button>
                                                 <button
-                                                    onClick={() => openDeleteModal(image)}
+                                                    onClick={() => {
+                                                        openDeleteModal(image);
+                                                        setSelectedImage(image);
+                                                    }}
                                                     className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors"
                                                 >
                                                     <Trash2 size={16} />
@@ -726,7 +748,7 @@ export default function GalleryManagement() {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleDelete}
+                                    onClick={handleDeleteImage}
                                     className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition-colors"
                                 >
                                     Delete
@@ -1005,7 +1027,7 @@ export default function GalleryManagement() {
                                                 )}
 
                                                 {/* Show featured badge if featured */}
-                                                {image.featured && (
+                                                {image.isFeatured && (
                                                     <div className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
                                                         Featured
                                                     </div>

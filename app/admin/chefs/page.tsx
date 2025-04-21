@@ -76,6 +76,7 @@ const SAMPLE_CHEFS = [
 export default function ChefsManagement() {
     const { toast } = useToast()
     const [chefs, setChefs] = useState(SAMPLE_CHEFS)
+    const [showChef, setShowChef] = useState([])
     const [filteredChefs, setFilteredChefs] = useState(SAMPLE_CHEFS)
     const [searchQuery, setSearchQuery] = useState("")
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -365,6 +366,27 @@ export default function ChefsManagement() {
         setErrors({})
     }
 
+    const getChef = async () => {
+        const token = localStorage.getItem("token")
+        try {
+            const response = await fetch("https://aokaze-sushi.vercel.app/api/chefs", {
+                method: 'GET',
+                headers: {
+                    "Content-Type": 'application/json',
+                    Authorization: `Bearer ${token}`,
+                }
+            })
+            const data = await response.json()
+            console.log(data)
+            setShowChef(data.data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+    useEffect(() => {
+        getChef()
+    }, []);
+
     return (
         <div className="p-6 space-y-6 bg-[#121212] text-white min-h-screen">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -392,7 +414,7 @@ export default function ChefsManagement() {
                         <ChefHat className="mr-2 h-4 w-4 text-orange-500" />
                         Total Chefs
                     </h3>
-                    <p className="text-3xl font-bold">{chefs.length}</p>
+                    <p className="text-3xl font-bold">{showChef.length}</p>
                 </div>
 
                 <div className="bg-[#1A1A1A] p-4 rounded-lg">
@@ -443,9 +465,9 @@ export default function ChefsManagement() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
-                    {filteredChefs.map((chef, index) => (
+                    {showChef.map((chef, index) => (
                         <motion.div
-                            key={chef.id}
+                            key={chef._id}
                             className="bg-[#1E1E1E] rounded-xl overflow-hidden"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -469,7 +491,7 @@ export default function ChefsManagement() {
                             </div>
 
                             <div className="p-4">
-                                <p className="text-gray-300 text-sm mb-4 line-clamp-3">{chef.bio}</p>
+                                <p className="text-gray-300 text-sm mb-4 line-clamp-3">{chef.description}</p>
 
                                 <div className="mb-4">
                                     <p className="text-sm font-medium mb-2">Specialties:</p>
@@ -572,7 +594,7 @@ export default function ChefsManagement() {
                                         if (errors.name) {
                                             const { name, ...rest } = errors
                                             setErrors(rest)
-                                        }
+                                        }x
                                     }}
                                 />
                                 {errors.name && (
