@@ -417,7 +417,7 @@ export default function MenuManagementPage() {
       });
       setMenu(data.data);
     } catch (error) {
-      console.error(error.message);
+      console.error(error);
     } finally {
       setLoadingMenuItems(false);
     }
