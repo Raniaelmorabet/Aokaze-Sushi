@@ -215,7 +215,7 @@ export default function CustomersPage() {
             </thead>
             <tbody className="divide-y divide-gray-800">
               {showCustomers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-[#2a2a2a] transition-colors">
+                <tr key={customer._id} className="hover:bg-[#2a2a2a] transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden">
