@@ -560,11 +560,6 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                           {formatDate(order.orderDate)}
                         </td>
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                        <button className="text-gray-400 hover:text-white">
-                          <MoreHorizontal size={16} />
-                        </button>
-                      </td> */}
                       </motion.tr>
                     ))}
                     {!loadingOrderes && orders.length === 0 && (
