@@ -12,6 +12,7 @@ import { RiGalleryFill } from "react-icons/ri";
 import { Tag } from "lucide-react";
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
+import { Toaster } from "sonner"
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
@@ -177,7 +178,7 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
         </header>
-
+        <Toaster position="top-center" richColors />
         {/* Page content */}
         <main className="p-4 md:p-8">{children}</main>
       </div>
