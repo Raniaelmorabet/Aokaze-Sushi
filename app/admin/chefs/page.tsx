@@ -144,6 +144,7 @@ export default function ChefsManagement() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [activeInfo, setActiveInfo] = useState("basic");
+  const [imageFile, setImageFile] = useState(null);
 
   // Validation function
   const validateChef = (chef) => {
@@ -178,11 +179,11 @@ export default function ChefsManagement() {
 
   // Filter chefs based on search query
   useEffect(() => {
-    const filtered = chefs.filter(
+    const filtered = showChef.filter(
       (chef) =>
         chef.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         chef.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chef.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        chef.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         chef.specialties.some((s) =>
           s.toLowerCase().includes(searchQuery.toLowerCase())
         ) ||
@@ -206,7 +207,7 @@ export default function ChefsManagement() {
     });
 
     setFilteredChefs(sorted);
-  }, [chefs, searchQuery, sortOrder, sortField]);
+  }, [showChef, searchQuery, sortOrder, sortField]);
 
   // Handle adding a new chef
   const handleAddChef = () => {
@@ -259,22 +260,21 @@ export default function ChefsManagement() {
       formDataToSend.append("description", selectedChef.description);
       formDataToSend.append("title", selectedChef.title);
       formDataToSend.append("createdAt", selectedChef.createdAt);
-      formDataToSend.append("image", selectedChef.image);
 
       // Add arrays
       if (selectedChef.awards?.length) {
         selectedChef.awards.forEach((award) => {
-            formDataToSend.append("awards", award);
+          formDataToSend.append("awards", award);
         });
       }
 
       if (selectedChef.specialties?.length) {
         selectedChef.specialties.forEach((spec) => {
-            formDataToSend.append("specialties", spec);
+          formDataToSend.append("specialties", spec);
         });
       }
 
-    //   Handle image upload
+      //   Handle image upload
       if (imageFile) {
         formDataToSend.append("image", imageFile);
       } else if (formData.image) {
@@ -292,6 +292,7 @@ export default function ChefsManagement() {
       setIsUpdateModalOpen(false);
       setSelectedChef(null);
       setErrors({});
+      setImageFile(null);
 
       //   toast({
       //     title: "Chef Updated Successfully",
@@ -302,19 +303,24 @@ export default function ChefsManagement() {
   };
 
   // Handle deleting a chef
-  const handleDeleteChef = () => {
-    const updatedChefs = chefs.filter((chef) => chef.id !== selectedChef.id);
-    const chefName = selectedChef.name;
+  const handleDeleteChef = async () => {
+    try {
+      const res = await chefsAPI.deleteChef(selectedChef._id);
+      console.log(res);
 
-    setChefs(updatedChefs);
-    setIsDeleteModalOpen(false);
-    setSelectedChef(null);
+      if (res.success) {
+        const updatedChefs = showChef.filter(
+          (chef) => chef._id !== selectedChef._id
+        );
+        const chefName = selectedChef.name;
 
-    toast({
-      title: "Chef Removed",
-      description: `${chefName} has been removed from the team.`,
-      variant: "destructive",
-    });
+        setShowChef(updatedChefs);
+        setIsDeleteModalOpen(false);
+        setSelectedChef(null);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // Handle adding a specialty
@@ -396,16 +402,10 @@ export default function ChefsManagement() {
   // Handle image upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      setErrors({
-        ...errors,
-        image: "Please upload a valid image file (JPG, PNG, or WEBP)",
-      });
-      return;
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
     }
 
     setIsUploading(true);
@@ -428,10 +428,6 @@ export default function ChefsManagement() {
       }
 
       setIsUploading(false);
-      setErrors({
-        ...errors,
-        image: null,
-      });
     }, 1500);
   };
 
@@ -460,19 +456,17 @@ export default function ChefsManagement() {
   const getChef = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/chefs`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/chefs`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       console.log(data);
       setShowChef(data.data);
+      setFilteredChefs(data.data);
     } catch (error) {
       console.error(error);
     }
@@ -581,9 +575,9 @@ export default function ChefsManagement() {
       {/* Chefs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
-          {showChef.map((chef, index) => (
+          {filteredChefs.map((chef, index) => (
             <motion.div
-              key={chef._id}
+              key={chef._id || `chef-${index}`}
               className="bg-[#1E1E1E] rounded-xl overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
