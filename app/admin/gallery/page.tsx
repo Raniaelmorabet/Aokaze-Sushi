@@ -18,6 +18,7 @@ import {
     Check,
 } from "lucide-react"
 import Image from "next/image"
+import { API_BASE_URL } from "@/utils/api"
 
 // Sample gallery data with Unsplash images
 const sampleGallery = [
@@ -327,7 +328,7 @@ export default function GalleryManagement() {
     const Gallery = async ()=> {
         const token = localStorage.getItem("token")
         try {
-            const response = await fetch("https://aokaze-sushi.vercel.app/api/gallery", {
+            const response = await fetch(`${API_BASE_URL}/gallery`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -352,7 +353,7 @@ export default function GalleryManagement() {
         try {
             console.log(selectedImage.publicId)
             const token = localStorage.getItem("token");
-            const response = await fetch(`https://aokaze-sushi.vercel.app/api/gallery/${selectedImage.publicId}`, {
+            const response = await fetch(`${API_BASE_URL}/gallery/${selectedImage.publicId}`, {
                 method: 'DELETE',
                 headers: {
                     "Content-Type": 'application/json',
