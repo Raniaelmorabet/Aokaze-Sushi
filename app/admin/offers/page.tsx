@@ -35,6 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { format } from "date-fns"
+import { API_BASE_URL } from "@/utils/api"
 
 // Sample data for offers
 const SAMPLE_OFFERS = [
@@ -569,7 +570,7 @@ export default function OffersManagement() {
     const getOffers = async () => {
         const token = localStorage.getItem("token")
         try {
-            const response = await fetch("https://aokaze-sushi.vercel.app/api/offers", {
+            const response = await fetch(`${API_BASE_URL}/offers`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
