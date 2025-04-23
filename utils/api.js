@@ -1,8 +1,8 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-// const API_BASE_URL = "http://localhost:5000/api";
+// export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
@@ -709,5 +709,67 @@ export const customerAPI = {
       null,
       true
     );
+  },
+};
+
+
+/**
+ * Chefs API functions
+ */
+export const chefsAPI = {
+  // Get all chefs
+  getChefs: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/chefs?${queryString}`, "GET");
+  },
+
+  // Get chefs count
+  getChefsCount: async () => {
+    return await apiRequest(`/chefs/stats/count`, "GET");
+  },
+
+  // Search chefs
+  searchChefs: async (searchTerm, queryParams = {}) => {
+    const params = { ...queryParams, search: searchTerm };
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/chefs?${queryString}`, "GET");
+  },
+
+  // Filter chefs by specialties
+  filterBySpecialties: async (specialties = [], queryParams = {}) => {
+    const params = { ...queryParams, specialties: specialties.join(',') };
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/chefs?${queryString}`, "GET");
+  },
+
+  // Create new chef (Admin only)
+  createChef: async (formData) => {
+    return await apiRequest("/chefs", "POST", formData, true);
+  },
+
+  // Get chef by ID
+  getChefById: async (id) => {
+    return await apiRequest(`/chefs/${id}`, "GET");
+  },
+
+  // Update chef (Admin only)
+  updateChef: async (id, updateData) => {
+    return await apiRequest(`/chefs/${id}`, "PUT", updateData, true);
+  },
+
+  // Delete chef (Admin only)
+  deleteChef: async (id) => {
+    return await apiRequest(`/chefs/${id}`, "DELETE", null, true);
+  },
+
+  // Get chefs sorted by most recent
+  getRecentChefs: async (limit = 5) => {
+    return await apiRequest(`/chefs?sort=-createdAt&limit=${limit}`, "GET");
+  },
+
+  // Get chefs sorted by name
+  getChefsByName: async (order = 'asc') => {
+    const sortOrder = order === 'desc' ? '-name' : 'name';
+    return await apiRequest(`/chefs?sort=${sortOrder}`, "GET");
   },
 };
