@@ -22,6 +22,8 @@ import Loader from "@/components/Loader";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { categoryAPI } from "@/utils/api";
+import { Toaster } from "sonner";
+import { toast } from 'sonner'
 
 // Sample categories data
 const sampleCategories = [
@@ -150,16 +152,16 @@ export default function CategoryManagement() {
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [statusModalOpen, setStatusModalOpen] = useState(false); // New state for status confirmation modal
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [recentlyUpdated, setRecentlyUpdated] = useState(null); // New state to track recently updated category
+  const [recentlyUpdated, setRecentlyUpdated] = useState(null);
 
-  const { toast } = useToast();
+//   const { toast } = useToast();
 
   // Form states
   const [formData, setFormData] = useState({
@@ -175,6 +177,7 @@ export default function CategoryManagement() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [validateInputs, setValidateInpust] = useState("");
 
   const fileInputRef = useRef(null);
 
@@ -248,8 +251,6 @@ export default function CategoryManagement() {
       ...formData,
       [name]: newValue,
     });
-
-    // Perform real-time validation
     const error = validateField(name, newValue);
 
     setFormErrors({
@@ -366,15 +367,67 @@ export default function CategoryManagement() {
   // Handle form submission for adding a category
   const handleAddCategory = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
+  
+    // Simple validation
+    if (!formData.name.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+  
+    if (formData.name.trim().length < 2) {
+      toast.error("Category name must be at least 2 characters");
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Category description is required");
+      return;
+    }
+  
+    if (formData.description.trim().length < 10) {
+      toast.error("Category description must be at least 10 characters");
       return;
     }
 
+    if (!formData.image) {
+      toast.error("Category image is required");
+      return;
+    }
+  
+    // Check for duplicate name
+    const isDuplicate = showCategory.some(
+      cat => cat.name.toLowerCase() === formData.name.toLowerCase()
+    );
+  
+    if (isDuplicate) {
+      toast.error("A category with this name already exists");
+      return;
+    }
+  
     setUploading(true);
     setUploadProgress(0);
-
+  
     try {
+
+        const formDataToSend = new FormData();
+
+      // Append all text fields
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("isActive", formData.isActive);
+
+      // Handle image upload
+      if (imageFile) {
+        formDataToSend.append("image", imageFile);
+      } else if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      }
+
+      const res = await categoryAPI.createCategory(
+        formDataToSend
+      );
+
+      console.log(res);
+      
       // Simulate upload progress
       const interval = setInterval(() => {
         setUploadProgress((prev) => {
@@ -385,31 +438,23 @@ export default function CategoryManagement() {
           return prev + 5;
         });
       }, 100);
-
+  
       // For demo, we'll simulate the API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
-
+  
       // Add the new category to our local state
-      const newCategory = {
-        _id: String(Date.now()),
-        ...formData,
-        createdAt: new Date().toISOString(),
-        updatedAt: null,
-      };
-
-      setCategories([newCategory, ...categories]);
-
+      const newCategory = res.data
+      
+  
+      setShowCategory([newCategory, ...showCategory]);
+  
       clearInterval(interval);
       setUploadProgress(100);
       setUploadSuccess(true);
-
+  
       // Show success toast
-      toast({
-        title: "Category Added",
-        description: `"${formData.name}" has been successfully created.`,
-        variant: "success",
-      });
-
+      toast.success(`"${formData.name}" has been successfully created.`);
+  
       // Reset form after successful upload
       setTimeout(() => {
         setAddModalOpen(false);
@@ -418,14 +463,7 @@ export default function CategoryManagement() {
     } catch (error) {
       console.error("Error adding category:", error);
       setUploading(false);
-
-      // Show error toast
-      toast({
-        title: "Error",
-        description: "Failed to add category. Please try again.",
-        variant: "destructive",
-        action: <ToastAction altText="Try again">Try again</ToastAction>,
-      });
+      toast.error("Failed to add category. Please try again.");
     }
   };
 
@@ -441,45 +479,50 @@ export default function CategoryManagement() {
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(interval);
-            return 95;
-          }
-          return prev + 5;
-        });
-      }, 100);
+      const formDataToSend = new FormData();
 
-      // For demo, we'll simulate the API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Append all text fields
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("isActive", formData.isActive);
+      formDataToSend.append("createdAt", selectedCategory.createdAt);
+      formDataToSend.append("updatedAt", new Date().toISOString());
 
-      // Update the category in our local state
-      const updatedCategories = categories.map((cat) =>
+      // Handle image upload
+      if (imageFile) {
+        formDataToSend.append("image", imageFile);
+      } else if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      }
+
+      const res = await categoryAPI.updateCategory(
+        selectedCategory._id,
+        formDataToSend
+      );
+
+      // Update local state
+      const updatedCategories = showCategory.map((cat) =>
         cat._id === selectedCategory._id
           ? {
               ...cat,
-              ...formData,
+              name: formData.name,
+              description: formData.description,
+              isActive: formData.isActive,
+              image: res.data?.image || cat.image,
               updatedAt: new Date().toISOString(),
             }
           : cat
       );
 
-      setCategories(updatedCategories);
-
-      clearInterval(interval);
-      setUploadProgress(100);
+      setShowCategory(updatedCategories);
       setUploadSuccess(true);
 
-      // Show success toast
       toast({
         title: "Category Updated",
         description: `"${formData.name}" has been successfully updated.`,
         variant: "success",
       });
 
-      // Reset form after successful upload
       setTimeout(() => {
         setUpdateModalOpen(false);
         resetForm();
@@ -487,11 +530,10 @@ export default function CategoryManagement() {
     } catch (error) {
       console.error("Error updating category:", error);
       setUploading(false);
-
-      // Show error toast
       toast({
         title: "Error",
-        description: "Failed to update category. Please try again.",
+        description:
+          error.message || "Failed to update category. Please try again.",
         variant: "destructive",
         action: <ToastAction altText="Try again">Try again</ToastAction>,
       });
@@ -516,7 +558,7 @@ export default function CategoryManagement() {
           variant: "success",
         });
       }
-      setDeleteLoading(false)
+      setDeleteLoading(false);
     } catch (error) {
       console.error("Error deleting category:", error);
 
@@ -533,24 +575,23 @@ export default function CategoryManagement() {
   // Open status confirmation modal
   const openStatusModal = async (category) => {
     console.log(category);
-    
+
     setSelectedCategory(category);
     setStatusModalOpen(true);
-
   };
 
   // Toggle category active status
   const toggleCategoryStatus = async () => {
     try {
-        const formData = new FormData();
-        formData.append("createdAt", selectedCategory.createdAt);
-        formData.append("description", selectedCategory.description);
-        formData.append("image", selectedCategory.image);
-        formData.append("isActive", selectedCategory.isActive ? false : true);
-        formData.append("name", selectedCategory.name);
-        formData.append("updatedAt", selectedCategory.updatedAt);
+      const formData = new FormData();
+      formData.append("createdAt", selectedCategory.createdAt);
+      formData.append("description", selectedCategory.description);
+      formData.append("image", selectedCategory.image);
+      formData.append("isActive", selectedCategory.isActive ? false : true);
+      formData.append("name", selectedCategory.name);
+      formData.append("updatedAt", selectedCategory.updatedAt);
 
-              // Handle image
+      // Handle image
       if (selectedCategory.image instanceof File) {
         formData.append("image", selectedCategory.image);
       }
@@ -559,7 +600,10 @@ export default function CategoryManagement() {
         console.log(`${key}:`, value);
       }
 
-      const res = await categoryAPI.updateCategory(selectedCategory._id, formData);
+      const res = await categoryAPI.updateCategory(
+        selectedCategory._id,
+        formData
+      );
 
       console.log(res);
 
@@ -1321,7 +1365,7 @@ export default function CategoryManagement() {
                     </p>
                   </div>
 
-                  <div className="mb-4">
+                  {/* <div className="mb-4">
                     {Object.keys(formErrors).length > 0 ? (
                       <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-500">
                         <div className="flex items-center gap-2">
@@ -1365,7 +1409,7 @@ export default function CategoryManagement() {
                         </div>
                       </div>
                     ) : null}
-                  </div>
+                  </div> */}
 
                   {uploading && (
                     <div className="mb-6">
@@ -1385,10 +1429,10 @@ export default function CategoryManagement() {
                     type="submit"
                     className={`w-full py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
                       Object.keys(formErrors).length > 0
-                        ? "bg-gray-600 cursor-not-allowed text-gray-300"
+                        ? "bg-orange-500 hover:bg-orange-600 text-white"
                         : "bg-orange-500 hover:bg-orange-600 text-white"
                     } ${uploading ? "bg-gray-600 cursor-not-allowed" : ""}`}
-                    disabled={uploading || Object.keys(formErrors).length > 0}
+                    // disabled={uploading || Object.keys(formErrors).length > 0}
                   >
                     {uploading ? (
                       <>
@@ -1678,7 +1722,7 @@ export default function CategoryManagement() {
                     </div>
                   </div>
 
-                  <div className="mb-4">
+                  {/* <div className="mb-4">
                     {Object.keys(formErrors).length > 0 ? (
                       <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-500">
                         <div className="flex items-center gap-2">
@@ -1722,7 +1766,7 @@ export default function CategoryManagement() {
                         </div>
                       </div>
                     ) : null}
-                  </div>
+                  </div> */}
 
                   {uploading && (
                     <div className="mb-6">
@@ -1742,10 +1786,10 @@ export default function CategoryManagement() {
                     type="submit"
                     className={`w-full py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
                       Object.keys(formErrors).length > 0
-                        ? "bg-gray-600 cursor-not-allowed text-gray-300"
+                        ? "bg-orange-500 hover:bg-orange-600 text-white"
                         : "bg-orange-500 hover:bg-orange-600 text-white"
                     } ${uploading ? "bg-gray-600 cursor-not-allowed" : ""}`}
-                    disabled={uploading || Object.keys(formErrors).length > 0}
+                    // disabled={uploading || Object.keys(formErrors).length > 0}
                   >
                     {uploading ? (
                       <>
@@ -1812,8 +1856,7 @@ export default function CategoryManagement() {
                   onClick={handleDeleteCategory}
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition-colors"
                 >
-                    {deleteLoading ? "Deleting.." : "Delete"}
-                  
+                  {deleteLoading ? "Deleting.." : "Delete"}
                 </button>
               </div>
             </motion.div>
