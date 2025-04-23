@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react"
 import { Search, Eye, Phone, MapPin, Calendar, User, X } from "lucide-react"
 import Image from "next/image"
+import { API_BASE_URL } from "@/utils/api"
 
 export default function CustomersPage() {
   const [selectedStatus, setSelectedStatus] = useState("all")
@@ -101,7 +102,7 @@ export default function CustomersPage() {
   const getCustomers = async ()=> {
     const token = localStorage.getItem("token");
     try {
-       const response = await fetch("https://aokaze-sushi.vercel.app/api/customers?limit=2", {
+       const response = await fetch(`${API_BASE_URL}/customers?limit=2`, {
          method: "GET",
          headers: {
            "Content-Type": "application/json",
