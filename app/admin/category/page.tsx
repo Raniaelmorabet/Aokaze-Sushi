@@ -210,7 +210,7 @@ export default function CategoryManagement() {
   }, []);
 
   // Filter and sort categories
-  const filteredCategories = categories
+  const filteredCategories = showCategory
     .filter((category) => {
       // Filter by search query
       const matchesSearch =
@@ -552,23 +552,23 @@ export default function CategoryManagement() {
         );
         setDeleteModalOpen(false);
         // Show success toast
-        toast({
-          title: "Category Deleted",
-          description: `"${selectedCategory.name}" has been successfully deleted.`,
-          variant: "success",
-        });
+        // toast({
+        //   title: "Category Deleted",
+        //   description: `"${selectedCategory.name}" has been successfully deleted.`,
+        //   variant: "success",
+        // });
       }
       setDeleteLoading(false);
     } catch (error) {
       console.error("Error deleting category:", error);
 
       // Show error toast
-      toast({
-        title: "Error",
-        description: "Failed to delete category. Please try again.",
-        variant: "destructive",
-        action: <ToastAction altText="Try again">Try again</ToastAction>,
-      });
+    //   toast({
+    //     title: "Error",
+    //     description: "Failed to delete category. Please try again.",
+    //     variant: "destructive",
+    //     action: <ToastAction altText="Try again">Try again</ToastAction>,
+    //   });
     }
   };
 
@@ -627,23 +627,23 @@ export default function CategoryManagement() {
       setRecentlyUpdated(selectedCategory._id);
 
       // Show success toast
-      toast({
-        title: "Status Updated",
-        description: `"${selectedCategory.name}" is now ${
-          !selectedCategory.isActive ? "active" : "inactive"
-        }.`,
-        variant: "success",
-      });
+    //   toast({
+    //     title: "Status Updated",
+    //     description: `"${selectedCategory.name}" is now ${
+    //       !selectedCategory.isActive ? "active" : "inactive"
+    //     }.`,
+    //     variant: "success",
+    //   });
     } catch (error) {
       console.error("Error toggling category status:", error);
 
       // Show error toast
-      toast({
-        title: "Error",
-        description: "Failed to update status. Please try again.",
-        variant: "destructive",
-        action: <ToastAction altText="Try again">Try again</ToastAction>,
-      });
+    //   toast({
+    //     title: "Error",
+    //     description: "Failed to update status. Please try again.",
+    //     variant: "destructive",
+    //     action: <ToastAction altText="Try again">Try again</ToastAction>,
+    //   });
     }
   };
 
@@ -994,7 +994,7 @@ export default function CategoryManagement() {
       ) : filteredCategories.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {showCategory.map((category, index) => (
+            {filteredCategories.map((category, index) => (
               <motion.div
                 key={category._id}
                 initial={{ opacity: 0, scale: 0.9 }}
