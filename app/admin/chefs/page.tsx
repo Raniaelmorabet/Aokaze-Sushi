@@ -70,58 +70,10 @@ const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
   );
 };
 
-// Sample data for chefs
-const SAMPLE_CHEFS = [
-  {
-    id: "1",
-    name: "Marco Rossi",
-    title: "Executive Chef",
-    image:
-      "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=3537&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "With over 20 years of experience in Italian cuisine, Chef Marco brings authentic flavors from his hometown in Naples to every dish he creates.",
-    specialties: ["Italian Cuisine", "Pasta Making", "Wood-fired Pizza"],
-    awards: [
-      "Michelin Star 2019",
-      "Best Chef Award 2021",
-      "Culinary Excellence 2022",
-    ],
-  },
-  {
-    id: "2",
-    name: "Sophia Chen",
-    title: "Head Chef",
-    image:
-      "https://images.unsplash.com/photo-1583394293214-28ded15ee548?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "Chef Sophia specializes in fusion cuisine, blending Asian techniques with Mediterranean ingredients to create unique culinary experiences.",
-    specialties: ["Asian Fusion", "Seafood", "Molecular Gastronomy"],
-    awards: ["Rising Star Chef 2020", "Innovation in Cuisine 2022"],
-  },
-  {
-    id: "3",
-    name: "James Wilson",
-    title: "Pastry Chef",
-    image:
-      "https://images.unsplash.com/photo-1581299894007-aaa50297cf16?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "Specializing in French pastry techniques, Chef James creates desserts that are as visually stunning as they are delicious.",
-    specialties: ["French Pastry", "Chocolate Work", "Wedding Cakes"],
-    awards: ["Best Pastry Chef 2021", "Dessert Masters Champion 2019"],
-  },
-  {
-    id: "4",
-    name: "Amara Johnson",
-    title: "Sous Chef",
-    image:
-      "https://images.unsplash.com/photo-1607631568010-a87245c0dbd8?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "Chef Amara brings a fresh perspective to traditional Southern cuisine, incorporating modern techniques while honoring classic flavors.",
-    specialties: ["Southern Cuisine", "Farm-to-Table", "Barbecue"],
-    awards: ["Southern Cuisine Innovator 2022", "Local Food Champion 2021"],
-  },
-];
 
 export default function ChefsManagement() {
-  const [chefs, setChefs] = useState(SAMPLE_CHEFS);
   const [showChef, setShowChef] = useState([]);
-  const [filteredChefs, setFilteredChefs] = useState(SAMPLE_CHEFS);
+  const [filteredChefs, setFilteredChefs] = useState();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -577,7 +529,7 @@ export default function ChefsManagement() {
           </h3>
           <p className="text-3xl font-bold">
             <AnimatedCounter
-              value={chefs.filter((chef) => chef.awards.length > 0).length}
+              value={showChef.filter((chef) => chef.awards.length > 0).length}
               dur={1000}
             />
           </p>
