@@ -34,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { chefsAPI } from "@/utils/api";
+import { API_BASE_URL, chefsAPI } from "@/utils/api";
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -461,7 +461,7 @@ export default function ChefsManagement() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "https://aokaze-sushi.vercel.app/api/chefs",
+        `${API_BASE_URL}/chefs`,
         {
           method: "GET",
           headers: {
