@@ -35,6 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { API_BASE_URL, chefsAPI } from "@/utils/api";
+import { toast } from "sonner";
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -118,7 +119,6 @@ const SAMPLE_CHEFS = [
 ];
 
 export default function ChefsManagement() {
-  const { toast } = useToast();
   const [chefs, setChefs] = useState(SAMPLE_CHEFS);
   const [showChef, setShowChef] = useState([]);
   const [filteredChefs, setFilteredChefs] = useState(SAMPLE_CHEFS);
@@ -133,7 +133,7 @@ export default function ChefsManagement() {
     name: "",
     title: "",
     image: "",
-    bio: "",
+    description: "",
     specialties: [],
     awards: [],
   });
@@ -210,37 +210,93 @@ export default function ChefsManagement() {
   }, [showChef, searchQuery, sortOrder, sortField]);
 
   // Handle adding a new chef
-  const handleAddChef = () => {
-    // const validationErrors = validateChef(newChef);
+  const handleAddChef = async () => {
+    if (!newChef.name.trim()) {
+      toast.error("Chef name is required");
+      return;
+    }
+    if (!newChef.title.trim()) {
+      toast.error("Chef title is required");
+      return;
+    }
+    if (!newChef.description.trim()) {
+      toast.error("Chef description is required");
+      return;
+    }
+    if (newChef.description.length < 10) {
+      toast.error("Chef description must be at least 10 characters");
+      return;
+    }
+    if ( !imageFile){
+      toast.error("Chef image is required");
+      return;
+    }
+    if (newChef.specialties.length < 1) {
+      toast.error("Chef specialties must be at least 1");
+      return;
+    }
+    if (newChef.specialties.length > 3) {
+      toast.error("Chef specialties must be less than 3");
+      return;
+    }
+    if (newChef.awards.length < 1) {
+      toast.error("Chef awards must be at least 1");
+      return;
+    }
+    if (newChef.awards.length > 5) {
+      toast.error("Chef awards must be less than 5");
+      return;
+    }
 
-    // if (Object.keys(validationErrors).length > 0) {
-    //   setErrors(validationErrors);
-    //   return;
-    // }
+    try {
+      const formDataToSend = new FormData();
 
-    const newId = (
-      Math.max(...chefs.map((c) => Number.parseInt(c.id))) + 1
-    ).toString();
-    const chefToAdd = { ...newChef, id: newId };
-    console.log(newChef);
+      // Append all text fields
+      formDataToSend.append("name", newChef.name);
+      formDataToSend.append("description", newChef.description);
+      formDataToSend.append("title", newChef.title);
 
-    setChefs([...chefs, chefToAdd]);
-    setIsAddModalOpen(false);
-    setNewChef({
-      name: "",
-      title: "",
-      image: "",
-      bio: "",
-      specialties: [],
-      awards: [],
-    });
-    setErrors({});
+      // Add arrays
+      if (newChef.awards?.length) {
+        newChef.awards.forEach((award) => {
+          formDataToSend.append("awards", award);
+        });
+      }
 
-    toast({
-      title: "Chef Added Successfully",
-      description: `${chefToAdd.name} has been added to the team.`,
-      variant: "success",
-    });
+      if (newChef.specialties?.length) {
+        newChef.specialties.forEach((spec) => {
+          formDataToSend.append("specialties", spec);
+        });
+      }
+
+      //   Handle image upload
+      if (imageFile) {
+        formDataToSend.append("image", imageFile);
+      }
+
+      const res = await chefsAPI.createChef(formDataToSend);
+      console.log(res);
+      console.log(newChef);
+    
+      console.log(newChef);
+  
+      setShowChef([...showChef, res.data]);
+      setIsAddModalOpen(false);
+      setNewChef({
+        name: "",
+        title: "",
+        image: "",
+        description: "",
+        specialties: [],
+        awards: [],
+      });
+      setErrors({});
+    } catch (error) {
+      console.error(error);
+      
+    }
+
+
   };
 
   // Handle updating a chef
@@ -439,7 +495,7 @@ export default function ChefsManagement() {
       name: "",
       title: "",
       image: "",
-      bio: "",
+      description: "",
       specialties: [],
       awards: [],
     });
@@ -743,7 +799,7 @@ export default function ChefsManagement() {
                       const { name, ...rest } = errors;
                       setErrors(rest);
                     }
-                    x;
+                    ;
                   }}
                 />
                 {errors.name && (
@@ -789,25 +845,25 @@ export default function ChefsManagement() {
                   id="bio"
                   placeholder="Write a short bio about the chef"
                   className={`bg-[#252525] border-[#333] min-h-[100px] ${
-                    errors.bio ? "border-red-500" : ""
+                    errors.description ? "border-red-500" : ""
                   }`}
-                  value={newChef.bio}
+                  value={newChef.description}
                   onChange={(e) => {
-                    setNewChef({ ...newChef, bio: e.target.value });
-                    if (errors.bio) {
-                      const { bio, ...rest } = errors;
+                    setNewChef({ ...newChef, description: e.target.value });
+                    if (errors.description) {
+                      const { description, ...rest } = errors;
                       setErrors(rest);
                     }
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-400">
-                  <span>{newChef.bio.length} characters</span>
+                  <span>{newChef.description.length} characters</span>
                   <span>Max 300 characters</span>
                 </div>
-                {errors.bio && (
+                {errors.description && (
                   <p className="text-red-500 text-sm flex items-center mt-1">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.bio}
+                    {errors.description}
                   </p>
                 )}
               </div>
@@ -989,14 +1045,14 @@ export default function ChefsManagement() {
           </Tabs>
 
           <div className="bg-[#151515] -mx-6 -mb-6 px-6 py-4 mt-6 flex justify-between items-center">
-            <div>
+            {/* <div>
               {Object.keys(errors).length > 0 && (
                 <p className="text-red-500 text-sm flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   Please fix the errors before submitting
                 </p>
               )}
-            </div>
+            </div> */}
 
             <DialogFooter className="sm:justify-end">
               <Button
