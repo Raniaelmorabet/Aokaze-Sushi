@@ -21,7 +21,7 @@ import Image from "next/image";
 import Loader from "@/components/Loader";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { categoryAPI } from "@/utils/api";
+import { API_BASE_URL, categoryAPI } from "@/utils/api";
 import { Toaster } from "sonner";
 import { toast } from 'sonner'
 
@@ -733,7 +733,7 @@ export default function CategoryManagement() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "https://aokaze-sushi.vercel.app/api/categories",
+        `${API_BASE_URL}/categories`,
         {
           method: "GET",
           headers: {
