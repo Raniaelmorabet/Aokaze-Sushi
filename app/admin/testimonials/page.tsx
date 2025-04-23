@@ -17,6 +17,7 @@ import {
     MoreHorizontal,
 } from "lucide-react"
 import Image from "next/image"
+import { API_BASE_URL } from "@/utils/api"
 
 // Sample testimonials data
 const sampleTestimonials = [
@@ -273,7 +274,7 @@ export default function TestimonialManagement() {
     const getTestimonials= async ()=> {
         const Token = localStorage.getItem("token");
         try {
-            const response = await fetch("https://aokaze-sushi.vercel.app/api/testimonials", {
+            const response = await fetch(`${API_BASE_URL}/testimonials`, {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
