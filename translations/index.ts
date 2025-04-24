@@ -70,7 +70,7 @@ export const translations = {
     },
     testimonials: {
       title: "Testimonials",
-      subtitle: "People Say About Sushibre",
+      subtitle: "People Say About Aokaaze",
       description:
         "Don't just take our word for it. Here's what our customers have to say about their experience at Sushibre.",
       customer: "Loyal Customer",
@@ -89,7 +89,7 @@ export const translations = {
       title: "About Us",
       subtitle: "We Are Here Because Of You",
       description1:
-        "Founded in 2015, Sushibre has been serving authentic Japanese cuisine with a modern twist. Our mission is to bring the art of sushi making to your table with the freshest ingredients and traditional techniques.",
+        "Founded in 2015, Aokaaze has been serving authentic Japanese cuisine with a modern twist. Our mission is to bring the art of sushi making to your table with the freshest ingredients and traditional techniques.",
       description2:
         "Our team of expert chefs, led by Master Chef Takashi Yamamoto, has over 20 years of experience in Japanese cuisine. We source our ingredients directly from local fishermen and farmers to ensure the highest quality and freshness.",
       features: {
@@ -107,12 +107,12 @@ export const translations = {
     gallery: {
       title: "Our gallery",
       description:
-        "Take a visual journey through our culinary creations and get a taste of what awaits you at Sushibre.",
+        "Take a visual journey through our culinary creations and get a taste of what awaits you at Aokaaze.",
     },
     instagram: {
       title: "Follow Us on Instagram",
       description: "Stay updated with our latest creations and events by following us on Instagram",
-      follow: "Follow @sushibre",
+      follow: "Follow @Aokaaze",
     },
     cart: {
       title: "Your Order",
@@ -178,14 +178,14 @@ export const translations = {
       getInTouch: "Get in Touch",
       address: "123 Sushi Street, Cijeruk, Indonesia",
       phone: "Phone: +62 8914 2014",
-      email: "support@sushibre.com",
+      email: "support@Aokaaze.com",
       hours: "Opening Hours",
       weekdays: "Monday - Friday",
       saturday: "Saturday",
       sunday: "Sunday",
       newsletter: "Subscribe to our newsletter",
       emailPlaceholder: "Your email",
-      rights: "© 2025 Sushibre. All rights reserved.",
+      rights: "© 2025 Aokaaze. All rights reserved.",
       privacy: "Privacy Policy",
       terms: "Terms of Service",
       cookies: "Cookies Settings",
@@ -264,7 +264,7 @@ export const translations = {
     },
     testimonials: {
       title: "Témoignages",
-      subtitle: "Ce que les Gens Disent de Sushibre",
+      subtitle: "Ce que les Gens Disent de Aokaaze",
       description:
         "Ne nous croyez pas sur parole. Voici ce que nos clients ont à dire sur leur expérience chez Sushibre.",
       customer: "Client Fidèle",
@@ -283,7 +283,7 @@ export const translations = {
       title: "À Propos de Nous",
       subtitle: "Nous Sommes Là Grâce à Vous",
       description1:
-        "Fondé en 2015, Sushibre sert une cuisine japonaise authentique avec une touche moderne. Notre mission est d'apporter l'art de la fabrication des sushis à votre table avec les ingrédients les plus frais et des techniques traditionnelles.",
+        "Fondé en 2015, Aokaaze sert une cuisine japonaise authentique avec une touche moderne. Notre mission est d'apporter l'art de la fabrication des sushis à votre table avec les ingrédients les plus frais et des techniques traditionnelles.",
       description2:
         "Notre équipe de chefs experts, dirigée par le Maître Chef Takashi Yamamoto, possède plus de 20 ans d'expérience dans la cuisine japonaise. Nous nous approvisionnons directement auprès des pêcheurs et agriculteurs locaux pour garantir la plus haute qualité et fraîcheur.",
       features: {
@@ -306,7 +306,7 @@ export const translations = {
     instagram: {
       title: "Suivez-Nous sur Instagram",
       description: "Restez informé de nos dernières créations et événements en nous suivant sur Instagram",
-      follow: "Suivez @sushibre",
+      follow: "Suivez @Aokaaze",
     },
     cart: {
       title: "Votre Commande",
