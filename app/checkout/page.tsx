@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronLeft, CreditCard, MapPin, Truck, Check, Shield, Clock, AlertCircle } from "lucide-react"
+import logo from "@/public/logo.png";
 
 export default function Checkout() {
   const [step, setStep] = useState(1)
@@ -102,22 +103,7 @@ export default function Checkout() {
       <header className="bg-[#1a1a1a] py-4 shadow-md">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="text-white">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M8.21 13.89 7 23l-5-1L8.21 5.11a8 8 0 0 1 15.58 0L20 22l-5 1-1.21-9.11" />
-              </svg>
-            </div>
-            <span className="font-bold text-xl">Sushibre</span>
+            <Image src={logo} alt={logo} className='w-24'></Image>
           </Link>
 
           <div className="flex items-center gap-2">
