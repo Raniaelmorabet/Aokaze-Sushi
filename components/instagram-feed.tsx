@@ -58,7 +58,7 @@ export function InstagramFeed({ posts }) {
           className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
         >
           <Instagram size={20} />
-          Follow @sushibre
+          Follow @Aokaäze
         </a>
       </div>
     </div>
