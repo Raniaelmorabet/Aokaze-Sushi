@@ -450,7 +450,7 @@ export default function ReservationPage() {
                                     </div>
                                 </div>
 
-                                <div className="overflow-auto p-4" style={{ maxHeight: "600px", maxWidth: "100%" }}>
+                                <div className="overflow-auto px-28" style={{ maxHeight: "600px", maxWidth: "100%" }}>
                                     <div style={{ width: "1200px", height: "auto", minHeight: "800px" }}>
                                         {Object.entries(tablesByRow).map(([rowIndex, rowTables]) => {
                                             const rowNumber = Number.parseInt(rowIndex)
