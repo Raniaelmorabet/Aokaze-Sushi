@@ -20,6 +20,7 @@ import AddItemMenu from "@/components/modals/add-item-menu";
 import { set } from "date-fns";
 import EditItemMenu from "@/components/modals/edit-item-menu";
 import { AnimatePresence, motion } from "framer-motion";
+import { PiChefHat } from "react-icons/pi";
 
 export default function MenuManagementPage() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -454,6 +455,27 @@ export default function MenuManagementPage() {
     }
   };
 
+  const handleToggleChefSpecialty = async (item: any) => {
+    try {
+      const updatedItem = await menuAPI.toggleChefSpecialty(item._id);
+      setMenu((prevMenu) =>
+        prevMenu.map((menuItem) =>
+          menuItem._id === item._id ? updatedItem.data : menuItem
+        )
+      );
+      setAlertStatus({
+        type: true,
+        message: "Chef specialty updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating chef specialty:", error);
+      setAlertStatus({
+        type: false,
+        message: "Error updating chef specialty",
+      });
+    }
+  };
+
   useEffect(() => {
     getCategories();
     getMenuItems();
@@ -648,12 +670,12 @@ export default function MenuManagementPage() {
                         )}
                       </div>
 
-                      <div className="absolute top-2 right-2 flex">
+                      <div className="absolute top-2 right-2 cu flex">
                         <button
-                          onClick={() => handleEditItem(item)}
-                          className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors"
+                          onClick={() => handleToggleChefSpecialty(item)}
+                          className={`${item.isChefSpecialty ? "bg-green-500/70 hover:bg-green-500/90" : "bg-white/20 hover:bg-white/30"}  backdrop-blur-sm p-2 rounded-full  transition-colors`}
                         >
-                          <Edit size={16} />
+                          <PiChefHat size={16} />
                         </button>
                       </div>
                     </div>
