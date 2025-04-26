@@ -79,8 +79,8 @@ export default function Home() {
   const [menu, setMenu] = useState([]);
   const [visibleImages, setVisibleImages] = useState(6);
   const heroRef = useRef(null);
-  const [getChefs, setGetChefs] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [getChefs, setGetChefs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const aboutRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -165,9 +165,14 @@ export default function Home() {
 
   const getChefSpecialties = async () => {
     try {
-      const data = await chefSpecialtiesAPI.getChefSpecialties({
+      // const data = await chefSpecialtiesAPI.getChefSpecialties({
+      //   page: 1,
+      //   limit: 10,
+      // });
+      const data = await menuAPI.getChefSpecialtyItems({
         page: 1,
         limit: 10,
+        available: true,
       });
       setSpecialties(data.data);
     } catch (error) {
@@ -246,501 +251,35 @@ export default function Home() {
 
   useEffect(() => {
     getOffers();
+    getCategories();
+    getMenuItems();
     getChefSpecialties();
     getGalleryImages();
     getTestimonials();
-    getCategories();
-    getMenuItems();
   }, []);
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Karina Feliciana",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
-      rating: 5,
-      title: "Pecinta Sushi wajib banget cobain Sushibre",
-      comment:
-        "Rasanya enak semuanya bikin kenyang cobain semua bikin kenyang terjangkau untuk kaum milenial. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque turpis odio sed odio venenatis semper.",
-    },
-    {
-      id: 2,
-      name: "Anisa Zahra",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop",
-      rating: 5,
-      title: "Sushi terbaik yang pernah saya coba",
-      comment:
-        "Rasanya autentik dan bahan-bahannya sangat segar. Pelayanannya juga ramah dan cepat. Pasti akan kembali lagi untuk mencoba menu lainnya. Harganya juga sangat terjangkau untuk kualitas yang ditawarkan.",
-    },
-    {
-      id: 3,
-      name: "David Chen",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
-      rating: 5,
-      title: "A culinary journey to Japan without leaving town",
-      comment:
-        "The attention to detail in each dish is remarkable. From the presentation to the flavors, everything is perfectly balanced. The chef clearly understands the art of sushi making. I've been to Japan multiple times and this is as authentic as it gets.",
-    },
-  ];
-
-  const menuItems = {
-    appetizer: [
-      {
-        id: 1,
-        name: "Edamame",
-        description: "Steamed young soybeans lightly seasoned with sea salt",
-        price: 4.5,
-        image:
-          "https://images.unsplash.com/photo-1615361200141-f45625a9296d?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        spicy: false,
-        vegetarian: true,
-        popular: false,
-      },
-      {
-        id: 2,
-        name: "Gyoza",
-        description:
-          "Pan-fried dumplings filled with seasoned ground pork and vegetables",
-        price: 6.75,
-        image:
-          "https://images.unsplash.com/photo-1625938145744-e380515399b7?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 3,
-        name: "Miso Soup",
-        description:
-          "Traditional Japanese soup with tofu, seaweed, and green onions",
-        price: 3.25,
-        image:
-          "https://images.unsplash.com/photo-1607330289024-1535c6b4e1c1?q=80&w=600&auto=format&fit=crop",
-        rating: 4.7,
-        spicy: false,
-        vegetarian: true,
-        popular: false,
-      },
-      {
-        id: 4,
-        name: "Agedashi Tofu",
-        description: "Lightly fried tofu served in a flavorful dashi broth",
-        price: 5.5,
-        image:
-          "https://images.unsplash.com/photo-1546069901-5ec6a79120b0?q=80&w=600&auto=format&fit=crop",
-        rating: 4.6,
-        spicy: false,
-        vegetarian: true,
-        popular: false,
-      },
-      {
-        id: 5,
-        name: "Takoyaki",
-        description:
-          "Octopus-filled savory balls topped with takoyaki sauce and bonito flakes",
-        price: 7.25,
-        image:
-          "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 6,
-        name: "Spicy Tuna Tartare",
-        description:
-          "Fresh tuna mixed with spicy mayo, served with wonton chips",
-        price: 9.95,
-        image:
-          "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        spicy: true,
-        vegetarian: false,
-        popular: true,
-      },
-    ],
-    sushi: [
-      {
-        id: 1,
-        name: "Salmon Nigiri",
-        description: "Fresh salmon over seasoned rice",
-        price: 8.5,
-        image:
-          "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=600&auto=format&fit=crop",
-        rating: 5.0,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 2,
-        name: "Dragon Roll",
-        description: "Eel and cucumber inside, avocado and tobiko on top",
-        price: 12.95,
-        image:
-          "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 3,
-        name: "Tuna Sashimi",
-        description:
-          "Thinly sliced fresh tuna served with wasabi and soy sauce",
-        price: 10.75,
-        image:
-          "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        spicy: false,
-        vegetarian: false,
-        popular: false,
-      },
-      {
-        id: 4,
-        name: "California Roll",
-        description: "Crab, avocado, and cucumber wrapped in seaweed and rice",
-        price: 8.25,
-        image:
-          "https://images.unsplash.com/photo-1559410545-0bdcd187e323?q=80&w=600&auto=format&fit=crop",
-        rating: 4.7,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 5,
-        name: "Spicy Tuna Roll",
-        description: "Spicy tuna and cucumber wrapped in seaweed and rice",
-        price: 9.5,
-        image:
-          "https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        spicy: true,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 6,
-        name: "Rainbow Roll",
-        description: "California roll topped with assorted sashimi",
-        price: 13.95,
-        image:
-          "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 7,
-        name: "Vegetable Roll",
-        description: "Assorted fresh vegetables wrapped in seaweed and rice",
-        price: 7.5,
-        image:
-          "https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=600&auto=format&fit=crop",
-        rating: 4.6,
-        spicy: false,
-        vegetarian: true,
-        popular: false,
-      },
-      {
-        id: 8,
-        name: "Unagi Nigiri",
-        description: "Grilled freshwater eel over seasoned rice",
-        price: 9.25,
-        image:
-          "https://images.unsplash.com/photo-1562158074-d49fbeffcc91?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        spicy: false,
-        vegetarian: false,
-        popular: false,
-      },
-    ],
-    drink: [
-      {
-        id: 1,
-        name: "Sake",
-        description: "Traditional Japanese rice wine served warm or cold",
-        price: 7.5,
-        image:
-          "https://images.unsplash.com/photo-1627517511589-b920f2c1a30b?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        alcoholic: true,
-        popular: true,
-      },
-      {
-        id: 2,
-        name: "Matcha Tea",
-        description: "Premium Japanese green tea with a rich, earthy flavor",
-        price: 4.25,
-        image:
-          "https://images.unsplash.com/photo-1563929084-73cd4bbe2ddc?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        alcoholic: false,
-        popular: true,
-      },
-      {
-        id: 3,
-        name: "Ramune",
-        description: "Japanese marble soda available in various flavors",
-        price: 3.75,
-        image:
-          "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?q=80&w=600&auto=format&fit=crop",
-        rating: 4.7,
-        alcoholic: false,
-        popular: true,
-      },
-      {
-        id: 4,
-        name: "Asahi Beer",
-        description: "Popular Japanese lager with a crisp, dry taste",
-        price: 5.5,
-        image:
-          "https://images.unsplash.com/photo-1600788886242-5c96aabe3757?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        alcoholic: true,
-        popular: true,
-      },
-      {
-        id: 5,
-        name: "Yuzu Lemonade",
-        description: "Refreshing lemonade infused with Japanese yuzu citrus",
-        price: 4.5,
-        image:
-          "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=600&auto=format&fit=crop",
-        rating: 4.7,
-        alcoholic: false,
-        popular: false,
-      },
-      {
-        id: 6,
-        name: "Plum Wine",
-        description: "Sweet Japanese wine made from ume plums",
-        price: 6.75,
-        image:
-          "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=600&auto=format&fit=crop",
-        rating: 4.6,
-        alcoholic: true,
-        popular: false,
-      },
-    ],
-    bento: [
-      {
-        id: 1,
-        name: "Salmon Bento",
-        description: "Grilled salmon with rice, miso soup, salad, and gyoza",
-        price: 15.95,
-        image:
-          "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 2,
-        name: "Teriyaki Chicken Bento",
-        description:
-          "Teriyaki chicken with rice, miso soup, salad, and tempura",
-        price: 14.5,
-        image:
-          "https://images.unsplash.com/photo-1596797038530-2c107aa4e0dc?q=80&w=600&auto=format&fit=crop",
-        rating: 4.8,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-      {
-        id: 3,
-        name: "Vegetable Bento",
-        description:
-          "Assorted vegetable tempura with rice, miso soup, and salad",
-        price: 13.75,
-        image:
-          "https://images.unsplash.com/photo-1546069901-5ec6a79120b0?q=80&w=600&auto=format&fit=crop",
-        rating: 4.7,
-        spicy: false,
-        vegetarian: true,
-        popular: false,
-      },
-      {
-        id: 4,
-        name: "Sushi Bento",
-        description: "Assorted sushi with miso soup, salad, and tempura",
-        price: 17.95,
-        image:
-          "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=600&auto=format&fit=crop",
-        rating: 4.9,
-        spicy: false,
-        vegetarian: false,
-        popular: true,
-      },
-    ],
-  };
-
-  const specialtyDishes = [
-    {
-      id: 1,
-      name: "Omakase Sushi Platter",
-      description: "Chef's selection of premium sushi and sashimi",
-      price: 45.0,
-      image:
-        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=800&auto=format&fit=crop",
-      ingredients: [
-        "Premium Tuna",
-        "Salmon",
-        "Yellowtail",
-        "Eel",
-        "Shrimp",
-        "Scallop",
-        "Uni",
-        "Ikura",
-      ],
-      preparationTime: "25 minutes",
-      calories: 850,
-      rating: 4.9,
-    },
-    {
-      id: 2,
-      name: "Wagyu Beef Tataki",
-      description: "Lightly seared A5 Wagyu beef with ponzu sauce",
-      price: 38.0,
-      image:
-        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop",
-      ingredients: [
-        "A5 Wagyu Beef",
-        "Ponzu Sauce",
-        "Green Onion",
-        "Garlic Chips",
-        "Micro Greens",
-      ],
-      preparationTime: "20 minutes",
-      calories: 520,
-      rating: 5.0,
-    },
-    {
-      id: 3,
-      name: "Lobster Tempura Roll",
-      description: "Tempura lobster roll with avocado and special sauce",
-      price: 32.0,
-      image:
-        "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=800&auto=format&fit=crop",
-      ingredients: [
-        "Maine Lobster",
-        "Avocado",
-        "Cucumber",
-        "Tempura Batter",
-        "Spicy Mayo",
-        "Eel Sauce",
-      ],
-      preparationTime: "30 minutes",
-      calories: 680,
-      rating: 4.8,
-    },
-  ];
-
-  const chefs = [
-    {
-      id: 1,
-      name: "Takashi Yamamoto",
-      title: "Executive Chef",
-      bio: "With over 20 years of experience in traditional Japanese cuisine, Chef Takashi trained in Tokyo before bringing his expertise to Sushibre.",
-      image:
-        "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=400&auto=format&fit=crop",
-      specialties: ["Omakase", "Nigiri", "Traditional Sushi"],
-      awards: ["Best Sushi Chef 2022", "Culinary Excellence Award"],
-    },
-    {
-      id: 2,
-      name: "Mei Lin",
-      title: "Head Sushi Chef",
-      bio: "Chef Mei combines traditional techniques with innovative flavors, creating unique sushi experiences that surprise and delight.",
-      image:
-        "https://images.unsplash.com/photo-1581299894007-aaa50297cf16?q=80&w=400&auto=format&fit=crop",
-      specialties: ["Fusion Rolls", "Sashimi Art", "Vegetarian Sushi"],
-      awards: ["Rising Star Chef 2023", "Innovation in Cuisine Award"],
-    },
-    {
-      id: 3,
-      name: "Hiroshi Tanaka",
-      title: "Master Sake Sommelier",
-      bio: "Hiroshi is an expert in sake pairing, helping guests discover the perfect complement to their meal.",
-      image:
-        "https://images.unsplash.com/photo-1583394293214-28ded15ee548?q=80&w=400&auto=format&fit=crop",
-      specialties: ["Sake Pairing", "Beverage Curation", "Japanese Spirits"],
-      awards: ["Certified Sake Expert", "International Sommelier Award"],
-    },
-  ];
-
-  const promotions = [
-    {
-      id: 1,
-      title: "Happy Hour Special",
-      description: "Enjoy 30% off all appetizers and drinks from 4-6pm daily",
-      image:
-        "https://images.unsplash.com/photo-1625938145744-e380515399b7?q=80&w=800&auto=format&fit=crop",
-      discount: "30% OFF",
-      validUntil: "Daily, 4-6pm",
-      code: "HAPPY30",
-    },
-    {
-      id: 2,
-      title: "Weekend Brunch",
-      description: "All-you-can-eat sushi brunch every Saturday and Sunday",
-      image:
-        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=800&auto=format&fit=crop",
-      discount: "$29.99",
-      validUntil: "Weekends, 11am-3pm",
-      code: "BRUNCH",
-    },
-    {
-      id: 3,
-      title: "First Order Discount",
-      description: "20% off your first online order when you sign up",
-      image:
-        "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=800&auto=format&fit=crop",
-      discount: "20% OFF",
-      validUntil: "New customers only",
-      code: "WELCOME20",
-    },
-  ];
-
-  const galleryImages = [
-    "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1534482421-64566f976cfa?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1611143669185-af224c5e3252?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?q=80&w=1200&auto=format&fit=crop",
-  ];
-
-    useEffect(() => {
-      const fetchChefs = async () => {
-        const token = localStorage.getItem("token")
-        try {
-          const response = await fetch("https://aokaze-sushi.vercel.app/api/chefs", {
+  useEffect(() => {
+    const fetchChefs = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(
+          "https://aokaze-sushi.vercel.app/api/chefs",
+          {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          })
-          const result = await response.json()
-          setGetChefs(result.data)
-        } catch (err) {
-          console.error("Failed to fetch chefs", err)
-        }
+          }
+        );
+        const result = await response.json();
+        setGetChefs(result.data);
+      } catch (err) {
+        console.error("Failed to fetch chefs", err);
       }
+    };
 
-      fetchChefs()
-    }, [])
+    fetchChefs();
+  }, []);
 
   const instagramPosts = [
     {
@@ -791,6 +330,7 @@ export default function Home() {
       caption: "Bento box lunch special today! #lunchtime",
     },
   ];
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -799,7 +339,8 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <PreLoader/>
+  if (loading) return <PreLoader />;
+
   return (
     <div
       className="bg-[#121212] text-white min-h-screen overflow-x-hidden"
@@ -885,8 +426,8 @@ export default function Home() {
               <span>{t("nav.login")}</span>
             </Link>
             <Link
-                href="/reservation"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors hidden md:block"
+              href="/reservation"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors hidden md:block"
             >
               {t("nav.reserve")}
             </Link>
@@ -1924,7 +1465,7 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <div className="text-white">
-                 <Image src={logo} alt={logo} className='w-28'></Image>
+                  <Image src={logo} alt={logo} className="w-28"></Image>
                 </div>
                 {/*<span className="font-bold text-2xl">Aokaaze</span>*/}
               </div>
