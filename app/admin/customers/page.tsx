@@ -102,7 +102,7 @@ export default function CustomersPage() {
   const getCustomers = async ()=> {
     const token = localStorage.getItem("token");
     try {
-       const response = await fetch(`${API_BASE_URL}/customers?limit=2`, {
+       const response = await fetch(`${API_BASE_URL}/customers?limit=6`, {
          method: "GET",
          headers: {
            "Content-Type": "application/json",

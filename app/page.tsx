@@ -32,7 +32,7 @@ import {
   AnimatePresence,
   useMotionValueEvent,
 } from "framer-motion";
-import { ReservationForm } from "@/components/reservation-form";
+// import { ReservationForm } from "@/components/reservation-form";
 import { MenuCard } from "@/components/menu-card";
 import { SpecialtyDish } from "@/components/specialty-dish";
 import { ChefCard } from "@/components/chef-card";
@@ -43,6 +43,7 @@ import { FoodCustomizer } from "@/components/food-customizer";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { OrderCart } from "@/components/order-cart";
 import { useLanguage } from "@/context/language-context";
+import pic from "../public/ig.jpg";
 import {
   categoryAPI,
   chefSpecialtiesAPI,
@@ -78,6 +79,7 @@ export default function Home() {
   const [menu, setMenu] = useState([]);
   const [visibleImages, setVisibleImages] = useState(6);
   const heroRef = useRef(null);
+  const [getChefs, setGetChefs] = useState([])
   const [loading, setLoading] = useState(true)
   const aboutRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -720,6 +722,26 @@ export default function Home() {
     "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?q=80&w=1200&auto=format&fit=crop",
   ];
 
+    useEffect(() => {
+      const fetchChefs = async () => {
+        const token = localStorage.getItem("token")
+        try {
+          const response = await fetch("https://aokaze-sushi.vercel.app/api/chefs", {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          const result = await response.json()
+          setGetChefs(result.data)
+        } catch (err) {
+          console.error("Failed to fetch chefs", err)
+        }
+      }
+
+      fetchChefs()
+    }, [])
+
   const instagramPosts = [
     {
       id: 1,
@@ -755,8 +777,7 @@ export default function Home() {
     },
     {
       id: 5,
-      image:
-        "https://images.unsplash.com/photo-1625938145744-e380515399b7?q=80&w=400&auto=format&fit=crop",
+      image: pic,
       likes: 203,
       comments: 15,
       caption: "Gyoza appetizers to start the meal right #japanesefood",
@@ -863,12 +884,12 @@ export default function Home() {
               <User size={16} />
               <span>{t("nav.login")}</span>
             </Link>
-            <button
-              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors hidden md:block"
-              onClick={() => setReservationOpen(true)}
+            <Link
+                href="/reservation"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors hidden md:block"
             >
               {t("nav.reserve")}
-            </button>
+            </Link>
             <button className="md:hidden" onClick={() => setIsMenuOpen(true)}>
               <Menu size={24} />
             </button>
@@ -1394,7 +1415,7 @@ export default function Home() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {chefs.map((chef, index) => (
+          {getChefs.map((chef, index) => (
             <ChefCard key={chef.id} chef={chef} index={index} />
           ))}
         </div>
@@ -1903,21 +1924,9 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <div className="text-white">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M8.21 13.89 7 23l-5-1L8.21 5.11a8 8 0 0 1 15.58 0L20 22l-5 1-1.21-9.11" />
-                  </svg>
+                 <Image src={logo} alt={logo} className='w-28'></Image>
                 </div>
-                <span className="font-bold text-2xl">Sushibre</span>
+                {/*<span className="font-bold text-2xl">Aokaaze</span>*/}
               </div>
               <p className="text-gray-400 mb-6">{t("footer.description")}</p>
               <div className="flex gap-4">
@@ -2040,7 +2049,7 @@ export default function Home() {
           <div className="border-t border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 mb-4 md:mb-0">
-                © {new Date().getFullYear()} Sushibre. {t("footer.rights")}
+                © {new Date().getFullYear()} Aokaaze. {t("footer.rights")}
               </p>
               <div className="flex gap-6">
                 <a
