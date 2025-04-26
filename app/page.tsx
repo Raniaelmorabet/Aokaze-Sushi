@@ -1416,7 +1416,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {getChefs.map((chef, index) => (
-            <ChefCard key={chef.id} chef={chef} index={index} />
+            <ChefCard key={chef._id} chef={chef} index={index} />
           ))}
         </div>
       </section>
