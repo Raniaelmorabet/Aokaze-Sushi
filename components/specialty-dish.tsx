@@ -62,7 +62,7 @@ export function SpecialtyDish({ dish, index, onAddToCart }) {
       <div className="relative h-64 overflow-hidden">
         <Image
           src={dish.image || "/placeholder.svg"}
-          alt={dish.title}
+          alt={dish.name}
           width={600}
           height={400}
           className="w-full h-full object-cover"
@@ -70,7 +70,7 @@ export function SpecialtyDish({ dish, index, onAddToCart }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-xl font-bold">{dish.title}</h3>
+          <h3 className="text-xl font-bold">{dish.name}</h3>
           <div className="flex items-center gap-2">
             <div className="flex">
               {[1, 2, 3, 4, 5].map((star) => (

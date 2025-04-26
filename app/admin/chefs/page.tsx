@@ -73,7 +73,7 @@ const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
 
 export default function ChefsManagement() {
   const [showChef, setShowChef] = useState([]);
-  const [filteredChefs, setFilteredChefs] = useState();
+  const [filteredChefs, setFilteredChefs] = useState(showChef);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
