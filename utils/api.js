@@ -1,8 +1,8 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-// export const API_BASE_URL = "http://localhost:5000/api";
+// export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
@@ -194,10 +194,21 @@ export const menuAPI = {
     return await apiRequest(`/menu/${id}/featured`, "PATCH", null, true);
   },
 
+  // Toggle chef's specialty status (Admin only)
+  toggleChefSpecialty: async (id) => {
+    return await apiRequest(`/menu/${id}/chef-specialty`, "PATCH", null, true);
+  },
+
   // Get featured menu items
   getFeaturedItems: async (queryParams = {}) => {
     const queryString = new URLSearchParams(queryParams).toString();
     return await apiRequest(`/menu/featured?${queryString}`, "GET");
+  },
+
+  // Get chef's specialty menu items
+  getChefSpecialtyItems: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/menu/chef-specialty?${queryString}`, "GET");
   },
 
   // Get most ordered menu items
