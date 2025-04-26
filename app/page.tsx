@@ -857,10 +857,10 @@ export default function Home() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
             </button>
             <Link
-              href="/admin"
+              href="/profile"
               className="hover:text-orange-400 transition-colors relative group"
             >
-              {t("nav.admin")}
+              {t("Profile")}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </nav>
