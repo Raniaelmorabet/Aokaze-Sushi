@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import logo from "@/public/logo.png"
+import { API_BASE_URL } from "@/utils/api"
 
 export default function ProfilePage() {
     const { t } = useLanguage()
@@ -121,7 +122,7 @@ export default function ProfilePage() {
     const handleSaveUser = async () => {
         const token = localStorage.getItem("token")
         try {
-            const response = await fetch("https://aokaze-sushi.vercel.app/api/auth/updatedetails", {
+            const response = await fetch(`${API_BASE_URL}/auth/updatedetails`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -142,7 +143,7 @@ export default function ProfilePage() {
     const ShowOrders = async () => {
         const token = localStorage.getItem("token")
         try {
-            const response = await fetch("https://aokaze-sushi.vercel.app/api/orders/myorders", {
+            const response = await fetch(`${API_BASE_URL}/orders/myorders`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -159,7 +160,7 @@ export default function ProfilePage() {
     const ShowUser = async () => {
         const token = localStorage.getItem("token")
         try {
-            const response = await fetch("https://aokaze-sushi.vercel.app/api/auth/me", {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
