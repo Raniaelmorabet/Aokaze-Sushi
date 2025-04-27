@@ -40,8 +40,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { format } from "date-fns";
-import { API_BASE_URL, offersAPI } from "@/utils/api";
+import { format, set } from "date-fns";
+import { API_BASE_URL, categoryAPI, menuAPI, offersAPI } from "@/utils/api";
+import Loading from "./loading";
 
 // Sample data for offers
 const SAMPLE_OFFERS = [
@@ -141,26 +142,13 @@ const SAMPLE_CATEGORIES = [
   "All",
 ];
 
-// Sample menu items for dropdown
-const SAMPLE_MENU_ITEMS = [
-  { id: "m1", name: "California Roll" },
-  { id: "m2", name: "Spicy Tuna Roll" },
-  { id: "m3", name: "Dragon Roll" },
-  { id: "m4", name: "Salmon Nigiri" },
-  { id: "m5", name: "Tuna Sashimi" },
-  { id: "m6", name: "Miso Soup" },
-  { id: "m7", name: "Edamame" },
-  { id: "m8", name: "Green Tea" },
-  { id: "m9", name: "Sake" },
-  { id: "m10", name: "Mochi Ice Cream" },
-];
 
 export default function OffersManagement() {
   const { toast } = useToast();
   const [offers, setOffers] = useState(SAMPLE_OFFERS);
   const [showOffers, setShowOffers] = useState([]);
   const [activeOffer, setActiveOffer] = useState("basic");
-  const [filteredOffers, setFilteredOffers] = useState(SAMPLE_OFFERS);
+  const [filteredOffers, setFilteredOffers] = useState(showOffers);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -168,6 +156,8 @@ export default function OffersManagement() {
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [sortField, setSortField] = useState("title");
+  const [alertStatus, setAlertStatus] = useState({});
+  const [isExiting, setIsExiting] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // all, active, inactive
   const [newOffer, setNewOffer] = useState({
     title: "",
@@ -190,6 +180,10 @@ export default function OffersManagement() {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [menu, setMenu] = useState();
+  const [categories, setCategories] = useState();
   const fileInputRef = useRef(null);
   // Add a new state for the confirmation dialog
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
@@ -311,98 +305,411 @@ export default function OffersManagement() {
     }
   }, [selectedOffer, isUpdateModalOpen]);
 
-  // Handle adding a new offer
-  const handleAddOffer = () => {
-    const validationErrors = validateOffer(newOffer);
-    setErrors(validationErrors);
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    if (Object.keys(validationErrors).length > 0) {
+    // Validate file type and size
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSize = 2 * 1024 * 1024; // 2MB
+
+    if (!validTypes.includes(file.type)) {
+      setErrors({
+        ...errors,
+        image: "Only JPG, PNG, or WEBP images are allowed",
+      });
       return;
     }
 
-    const newId = (
-      Math.max(...offers.map((o) => Number.parseInt(o._id))) + 1
-    ).toString();
-    const offerToAdd = {
-      ...newOffer,
-      id: newId,
-      couponCode: newOffer.couponCode.toUpperCase(),
-      createdAt: new Date(),
+    if (file.size > maxSize) {
+      setErrors({ ...errors, image: "Image size must be less than 2MB" });
+      return;
+    }
+
+    setImageFile(file);
+    setIsUploading(true);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setNewOffer({
+        ...newOffer,
+        image: e.target.result,
+      });
+      setIsUploading(false);
     };
+    reader.onerror = () => {
+      setIsUploading(false);
+      setErrors({ ...errors, image: "Failed to read image file" });
+    };
+    reader.readAsDataURL(file);
+  };
 
-    setOffers([...offers, offerToAdd]);
-    setIsAddModalOpen(false);
-    setNewOffer({
-      title: "",
-      description: "",
-      couponCode: "",
-      discountPercentage: 10,
-      validFrom: new Date(),
-      validUntil: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-      minOrderAmount: 0,
-      maxDiscountAmount: null,
-      applicableCategories: [],
-      applicableMenuItems: [],
-      isActive: true,
-      usageLimit: null,
-      currentUsage: 0,
-      image: "",
-    });
-    setErrors({});
+  // Handle adding a new offer
+  const handleAddOffer = async () => {
+    if (!newOffer.title.trim()) {
+      setAlertStatus({
+        type: false,
+        message: "Offer title is required",
+      });
+      return;
+    }
+    if (!newOffer.description.trim()) {
+      setAlertStatus({
+        type: false,
+        message: "Offer description is required",
+      });
+      return;
+    }
+    if (!newOffer.couponCode.trim()) {
+      setAlertStatus({
+        type: false,
+        message: "Coupon code is required",
+      });
+      return;
+    }
+    if (newOffer.discountPercentage < 1) {
+      setAlertStatus({
+        type: false,
+        message: "Discount percentage must be at least 1%",
+      });
+      return;
+    }
+    if (newOffer.discountPercentage > 100) {
+      setAlertStatus({
+        type: false,
+        message: "Discount percentage cannot exceed 100%",
+      });
+      return;
+    }
+    if (!newOffer.validFrom) {
+      setAlertStatus({
+        type: false,
+        message: "Start date is required",
+      });
+      return;
+    }
+    if (!newOffer.validUntil) {
+      setAlertStatus({
+        type: false,
+        message: "End date is required",
+      });
+      return;
+    }
+    if (newOffer.validUntil <= newOffer.validFrom) {
+      setAlertStatus({
+        type: false,
+        message: "End date must be after start date",
+      });
+      return;
+    }
+    if (newOffer.minOrderAmount < 0) {
+      setAlertStatus({
+        type: false,
+        message: "Minimum order amount cannot be negative",
+      });
+      return;
+    }
+    if (newOffer.maxDiscountAmount !== null && newOffer.maxDiscountAmount < 0) {
+      setAlertStatus({
+        type: false,
+        message: "Maximum discount amount cannot be negative",
+      });
+      return;
+    }
+    if (newOffer.usageLimit !== null && newOffer.usageLimit < 0) {
+      setAlertStatus({
+        type: false,
+        message: "Usage limit cannot be negative",
+      });
+      return;
+    }
+    if (!newOffer.image) {
+      setAlertStatus({
+        type: false,
+        message: "Image is required",
+      });
+      return;
+    }
 
-    toast({
-      title: "Offer Added Successfully",
-      description: `${offerToAdd.title} has been added with code ${offerToAdd.couponCode}.`,
-      variant: "success",
-    });
+    try {
+      const offerToAdd = {
+        ...newOffer,
+        couponCode: newOffer.couponCode.toUpperCase(),
+      };
+
+      const formData = new FormData();
+
+      // Append all offer fields to formData
+      formData.append("title", offerToAdd.title);
+      formData.append("description", offerToAdd.description);
+      formData.append("couponCode", offerToAdd.couponCode);
+      formData.append(
+        "discountPercentage",
+        offerToAdd.discountPercentage.toString()
+      );
+      formData.append("validFrom", offerToAdd.validFrom.toISOString());
+      formData.append("validUntil", offerToAdd.validUntil.toISOString());
+      formData.append("minOrderAmount", offerToAdd.minOrderAmount.toString());
+
+      if (offerToAdd.maxDiscountAmount !== null) {
+        formData.append(
+          "maxDiscountAmount",
+          offerToAdd.maxDiscountAmount.toString()
+        );
+      }
+
+      formData.append(
+        "applicableCategories",
+        JSON.stringify(offerToAdd.applicableCategories)
+      );
+      formData.append(
+        "applicableMenuItems",
+        JSON.stringify(offerToAdd.applicableMenuItems)
+      );
+      formData.append("isActive", offerToAdd.isActive.toString());
+      if (imageFile) {
+        formData.append("image", imageFile);
+      } else {
+        formData.append("image", offerToAdd.image);
+      }
+
+      if (offerToAdd.usageLimit !== null) {
+        formData.append("usageLimit", offerToAdd.usageLimit.toString());
+      }
+
+      // Use formData with the API call
+      const res = await offersAPI.createOffer(formData);
+      console.log(res);
+
+      if (res.success) {
+        setShowOffers([...showOffers, res.data]);
+        setIsAddModalOpen(false);
+        setNewOffer({
+          title: "",
+          description: "",
+          couponCode: "",
+          discountPercentage: 10,
+          validFrom: new Date(),
+          validUntil: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+          minOrderAmount: 0,
+          maxDiscountAmount: null,
+          applicableCategories: [],
+          applicableMenuItems: [],
+          isActive: true,
+          usageLimit: null,
+          currentUsage: 0,
+          image: "",
+        });
+        setErrors({});
+      }
+    } catch (error) {
+      console.error("Error adding offer:", error);
+    }
   };
 
   // Handle updating an offer
-  const handleUpdateOffer = () => {
-    const validationErrors = validateOffer(selectedOffer);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
+  const handleUpdateOffer = async () => {
+    // Validation checks
+    if (!selectedOffer.title.trim()) {
+      setAlertStatus({
+        type: false,
+        message: "Offer title is required",
+      });
+      return;
+    }
+    if (!selectedOffer.description.trim()) {
+      setAlertStatus({
+        type: false,
+        message: "Offer description is required",
+      });
+      return;
+    }
+    if (!selectedOffer.couponCode.trim()) {
+      setAlertStatus({
+        type: false,
+        message: "Coupon code is required",
+      });
+      return;
+    }
+    if (selectedOffer.discountPercentage < 1) {
+      setAlertStatus({
+        type: false,
+        message: "Discount percentage must be at least 1%",
+      });
+      return;
+    }
+    if (selectedOffer.discountPercentage > 100) {
+      setAlertStatus({
+        type: false,
+        message: "Discount percentage cannot exceed 100%",
+      });
+      return;
+    }
+    if (!selectedOffer.validFrom) {
+      setAlertStatus({
+        type: false,
+        message: "Start date is required",
+      });
+      return;
+    }
+    if (!selectedOffer.validUntil) {
+      setAlertStatus({
+        type: false,
+        message: "End date is required",
+      });
+      return;
+    }
+    if (selectedOffer.validUntil <= selectedOffer.validFrom) {
+      setAlertStatus({
+        type: false,
+        message: "End date must be after start date",
+      });
+      return;
+    }
+    if (selectedOffer.minOrderAmount < 0) {
+      setAlertStatus({
+        type: false,
+        message: "Minimum order amount cannot be negative",
+      });
+      return;
+    }
+    if (
+      selectedOffer.maxDiscountAmount !== null &&
+      selectedOffer.maxDiscountAmount < 0
+    ) {
+      setAlertStatus({
+        type: false,
+        message: "Maximum discount amount cannot be negative",
+      });
+      return;
+    }
+    if (selectedOffer.usageLimit !== null && selectedOffer.usageLimit < 0) {
+      setAlertStatus({
+        type: false,
+        message: "Usage limit cannot be negative",
+      });
+      return;
+    }
+    if (selectedOffer.applicableCategories.length === 0) {
+      setAlertStatus({
+        type: false,
+        message: "At least one category is required",
+      });
+      return;
+    }
+    if (selectedOffer.applicableMenuItems.length === 0) {
+      setAlertStatus({
+        type: false,
+        message: "At least one menu item is required",
+      });
       return;
     }
 
-    const updatedOffers = offers.map((offer) =>
-      offer._id === selectedOffer._id
-        ? {
-            ...selectedOffer,
-            couponCode: selectedOffer.couponCode.toUpperCase(),
-          }
-        : offer
-    );
+    try {
+      const offerToUpdate = {
+        ...selectedOffer,
+        couponCode: selectedOffer.couponCode.toUpperCase(),
+      };
 
-    setOffers(updatedOffers);
-    setIsUpdateModalOpen(false);
-    setSelectedOffer(null);
-    setErrors({});
+      const formData = new FormData();
 
-    toast({
-      title: "Offer Updated Successfully",
-      description: `${selectedOffer.title} has been updated.`,
-      variant: "success",
-    });
+      // Append all offer fields to formData
+      formData.append("title", offerToUpdate.title);
+      formData.append("description", offerToUpdate.description);
+      formData.append("couponCode", offerToUpdate.couponCode);
+      formData.append(
+        "discountPercentage",
+        offerToUpdate.discountPercentage.toString()
+      );
+      formData.append("validFrom", offerToUpdate.validFrom.toISOString());
+      formData.append("validUntil", offerToUpdate.validUntil.toISOString());
+      formData.append(
+        "minOrderAmount",
+        offerToUpdate.minOrderAmount.toString()
+      );
+
+      if (offerToUpdate.maxDiscountAmount !== null) {
+        formData.append(
+          "maxDiscountAmount",
+          offerToUpdate.maxDiscountAmount.toString()
+        );
+      }
+
+      formData.append(
+        "applicableCategories",
+        JSON.stringify(offerToUpdate.applicableCategories)
+      );
+      formData.append(
+        "applicableMenuItems",
+        JSON.stringify(offerToUpdate.applicableMenuItems)
+      );
+      formData.append("isActive", offerToUpdate.isActive.toString());
+
+      // Only append image if it's a new file or if we're keeping the existing one
+      if (imageFile) {
+        formData.append("image", imageFile);
+      } else if (offerToUpdate.image) {
+        // If no new image file but existing image path, append it
+        formData.append("image", offerToUpdate.image);
+      }
+
+      if (offerToUpdate.usageLimit !== null) {
+        formData.append("usageLimit", offerToUpdate.usageLimit.toString());
+      }
+
+      // Append the offer ID for the update
+      formData.append("id", offerToUpdate._id);
+
+      // Use formData with the API call
+      const res = await offersAPI.updateOffer(formData);
+      console.log(res);
+
+      if (res.success) {
+        // Update the offers list with the new data
+        setShowOffers(
+          showOffers.map((offer) =>
+            offer._id === res.data._id ? res.data : offer
+          )
+        );
+
+        setIsUpdateModalOpen(false);
+        setSelectedOffer(null);
+        setImageFile(null);
+        setErrors({});
+
+        toast({
+          title: "Offer Updated Successfully",
+          description: `${res.data.title} has been updated.`,
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating offer:", error);
+      setAlertStatus({
+        type: false,
+        message: "Failed to update offer. Please try again.",
+      });
+    }
   };
 
   // Handle deleting an offer
-  const handleDeleteOffer = () => {
-    const updatedOffers = offers.filter(
-      (offer) => offer._id !== selectedOffer._id
-    );
-    const offerTitle = selectedOffer.title;
+  const handleDeleteOffer = async () => {
+    try {
+      const res = await offersAPI.deleteOffer(selectedOffer._id);
+      if (res.success) {
+        const updatedOffers = showOffers.filter(
+          (offer) => offer._id !== selectedOffer._id
+        );
 
-    setOffers(updatedOffers);
-    setIsDeleteModalOpen(false);
-    setSelectedOffer(null);
-
-    toast({
-      title: "Offer Deleted",
-      description: `${offerTitle} has been removed.`,
-      variant: "destructive",
-    });
+        setShowOffers(updatedOffers);
+        setIsDeleteModalOpen(false);
+        setSelectedOffer(null);
+      }
+    } catch (error) {
+      console.error("Error deleting offer:", error);
+    }
   };
 
   // Modify the handleToggleStatus function to actually toggle the status and set the animation state
@@ -471,7 +778,7 @@ export default function OffersManagement() {
   const handleAddMenuItem = () => {
     if (!selectedMenuItem) return;
 
-    const menuItem = SAMPLE_MENU_ITEMS.find(
+    const menuItem = menu.find(
       (item) => item._id === selectedMenuItem
     );
     if (!menuItem) return;
@@ -518,48 +825,6 @@ export default function OffersManagement() {
         ),
       });
     }
-  };
-
-  // Handle image upload
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      setErrors({
-        ...errors,
-        image: "Please upload a valid image file (JPG, PNG, or WEBP)",
-      });
-      return;
-    }
-
-    setIsUploading(true);
-
-    // Simulate upload delay
-    setTimeout(() => {
-      // Create a fake URL for demo purposes
-      const fakeUrl = URL.createObjectURL(file);
-
-      if (isUpdateModalOpen && selectedOffer) {
-        setSelectedOffer({
-          ...selectedOffer,
-          image: fakeUrl,
-        });
-      } else {
-        setNewOffer({
-          ...newOffer,
-          image: fakeUrl,
-        });
-      }
-
-      setIsUploading(false);
-      setErrors({
-        ...errors,
-        image: null,
-      });
-    }, 1500);
   };
 
   // Reset form when closing modals
@@ -619,6 +884,7 @@ export default function OffersManagement() {
   const getOffers = async () => {
     const token = localStorage.getItem("token");
     try {
+      setLoading(true);
       const response = await fetch(`${API_BASE_URL}/offers`, {
         method: "GET",
         headers: {
@@ -627,16 +893,73 @@ export default function OffersManagement() {
         },
       });
       const data = await response.json();
-      console.log(data);
+      console.log(data.data);
       setShowOffers(data.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getMenuItems = async () => {
+    setLoading(true);
+    try {
+      const data = await menuAPI.getItems({
+        page: 1,
+        limit: 10,
+        available: true,
+      });
+      setMenu(data.data);
+      console.log(data.data);
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategories = async () => {
+    setLoading(true);
+    try {
+      const data = await categoryAPI.getPaginatedCategories({
+        page: 1,
+        limit: 10,
+        active: true,
+      });
+      setCategories(data.data);
+      console.log(data.data);
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     getOffers();
+    getMenuItems();
+    getCategories();
   }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (Object.keys(alertStatus).length > 0) {
+      setIsExiting(false);
+      timer = setTimeout(() => {
+        setIsExiting(true);
+        setTimeout(() => {
+          setAlertStatus({});
+          setIsExiting(false);
+        }, 300); // Match this with your slideOut animation duration
+      }, 3000); // Display duration
+    }
+    return () => clearTimeout(timer);
+  }, [alertStatus]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="space-y-6 bg-[#121212] text-white min-h-screen">
@@ -1152,9 +1475,7 @@ export default function OffersManagement() {
                 <Input
                   id="title"
                   placeholder="e.g. Summer Special, Weekend Discount"
-                  className={`bg-[#252525] border-[#333] ${
-                    errors.title ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] `}
                   value={newOffer.title}
                   onChange={(e) => {
                     setNewOffer({ ...newOffer, title: e.target.value });
@@ -1164,12 +1485,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.title && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.title}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1179,9 +1494,7 @@ export default function OffersManagement() {
                 <Textarea
                   id="description"
                   placeholder="Describe the offer details"
-                  className={`bg-[#252525] border-[#333] min-h-[100px] ${
-                    errors.description ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] min-h-[100px] `}
                   value={newOffer.description}
                   onChange={(e) => {
                     setNewOffer({ ...newOffer, description: e.target.value });
@@ -1195,12 +1508,6 @@ export default function OffersManagement() {
                   <span>{newOffer.description.length} characters</span>
                   <span>Max 500 characters</span>
                 </div>
-                {errors.description && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.description}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1210,9 +1517,7 @@ export default function OffersManagement() {
                 <Input
                   id="couponCode"
                   placeholder="e.g. SUMMER20, WEEKEND15"
-                  className={`bg-[#252525] border-[#333] uppercase ${
-                    errors.couponCode ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] uppercase `}
                   value={newOffer.couponCode}
                   onChange={(e) => {
                     setNewOffer({ ...newOffer, couponCode: e.target.value });
@@ -1222,12 +1527,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.couponCode && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.couponCode}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1280,12 +1579,6 @@ export default function OffersManagement() {
                     </p>
                   </div>
                 </div>
-                {errors.image && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.image}
-                  </p>
-                )}
               </div>
             </TabsContent>
 
@@ -1311,9 +1604,6 @@ export default function OffersManagement() {
                         setErrors(rest);
                       }
                     }}
-                    className={
-                      errors.discountPercentage ? "border-red-500" : ""
-                    }
                   />
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-orange-500">
@@ -1341,12 +1631,6 @@ export default function OffersManagement() {
                     />
                   </div>
                 </div>
-                {errors.discountPercentage && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.discountPercentage}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1356,9 +1640,7 @@ export default function OffersManagement() {
                 <Input
                   id="validFrom"
                   type="date"
-                  className={`bg-[#252525] border-[#333] ${
-                    errors.validFrom ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] `}
                   value={
                     newOffer.validFrom
                       ? new Date(newOffer.validFrom).toISOString().split("T")[0]
@@ -1375,12 +1657,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.validFrom && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.validFrom}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1390,9 +1666,7 @@ export default function OffersManagement() {
                 <Input
                   id="validUntil"
                   type="date"
-                  className={`bg-[#252525] border-[#333] ${
-                    errors.validUntil ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] `}
                   value={
                     newOffer.validUntil
                       ? new Date(newOffer.validUntil)
@@ -1411,12 +1685,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.validUntil && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.validUntil}
-                  </p>
-                )}
               </div>
             </TabsContent>
 
@@ -1432,13 +1700,13 @@ export default function OffersManagement() {
                     onChange={(e) => setNewCategory(e.target.value)}
                   >
                     <option value="">Select a category</option>
-                    {SAMPLE_CATEGORIES.filter(
-                      (cat) => !newOffer.applicableCategories.includes(cat)
-                    ).map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
+                    {categories
+  .filter((cat) => !newOffer.applicableCategories.includes(cat))
+  .map((category) => (
+    <option key={category._id} value={category._id}>
+      {category.name}
+    </option>
+))}
                   </select>
                   <Button
                     type="button"
@@ -1486,16 +1754,20 @@ export default function OffersManagement() {
                     onChange={(e) => setSelectedMenuItem(e.target.value)}
                   >
                     <option value="">Select a menu item</option>
-                    {SAMPLE_MENU_ITEMS.filter(
-                      (item) =>
-                        !newOffer.applicableMenuItems.some(
-                          (i) => i._id === item._id
-                        )
-                    ).map((item) => (
-                      <option key={item._id} value={item._id}>
-                        {item.name}
-                      </option>
-                    ))}
+                    {menu
+                      ? menu
+                          .filter(
+                            (item) =>
+                              !newOffer.applicableMenuItems.some(
+                                (i) => i._id === item._id
+                              )
+                          )
+                          .map((item) => (
+                            <option key={item._id} value={item._id}>
+                              {item.name}
+                            </option>
+                          ))
+                      : null}
                   </select>
                   <Button
                     type="button"
@@ -1541,9 +1813,7 @@ export default function OffersManagement() {
                   type="number"
                   min="0"
                   step="0.01"
-                  className={`bg-[#252525] border-[#333] ${
-                    errors.minOrderAmount ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] `}
                   value={newOffer.minOrderAmount}
                   onChange={(e) => {
                     setNewOffer({
@@ -1556,12 +1826,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.minOrderAmount && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.minOrderAmount}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1574,9 +1838,7 @@ export default function OffersManagement() {
                   min="0"
                   step="0.01"
                   placeholder="Leave empty for no limit"
-                  className={`bg-[#252525] border-[#333] ${
-                    errors.maxDiscountAmount ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] `}
                   value={
                     newOffer.maxDiscountAmount === null
                       ? ""
@@ -1594,12 +1856,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.maxDiscountAmount && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.maxDiscountAmount}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1609,9 +1865,7 @@ export default function OffersManagement() {
                   type="number"
                   min="0"
                   placeholder="Leave empty for unlimited usage"
-                  className={`bg-[#252525] border-[#333] ${
-                    errors.usageLimit ? "border-red-500" : ""
-                  }`}
+                  className={`bg-[#252525] border-[#333] `}
                   value={
                     newOffer.usageLimit === null ? "" : newOffer.usageLimit
                   }
@@ -1627,12 +1881,6 @@ export default function OffersManagement() {
                     }
                   }}
                 />
-                {errors.usageLimit && (
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.usageLimit}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -1660,7 +1908,7 @@ export default function OffersManagement() {
               {Object.keys(errors).length > 0 ? (
                 <p className="text-red-500 text-sm flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
-                  Please fix the errors before submitting
+                  Please fill the required fields
                 </p>
               ) : (
                 <p className="text-green-500 text-sm flex items-center">
@@ -1757,9 +2005,7 @@ export default function OffersManagement() {
                     <Input
                       id="update-title"
                       placeholder="e.g. Summer Special, Weekend Discount"
-                      className={`bg-[#252525] border-[#333] ${
-                        errors.title ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] `}
                       value={selectedOffer.title}
                       onChange={(e) => {
                         setSelectedOffer({
@@ -1772,12 +2018,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.title && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.title}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -1787,9 +2027,7 @@ export default function OffersManagement() {
                     <Textarea
                       id="update-description"
                       placeholder="Describe the offer details"
-                      className={`bg-[#252525] border-[#333] min-h-[100px] ${
-                        errors.description ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] min-h-[100px] `}
                       value={selectedOffer.description}
                       onChange={(e) => {
                         setSelectedOffer({
@@ -1806,12 +2044,6 @@ export default function OffersManagement() {
                       <span>{selectedOffer.description.length} characters</span>
                       <span>Max 500 characters</span>
                     </div>
-                    {errors.description && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.description}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -1821,9 +2053,7 @@ export default function OffersManagement() {
                     <Input
                       id="update-couponCode"
                       placeholder="e.g. SUMMER20, WEEKEND15"
-                      className={`bg-[#252525] border-[#333] uppercase ${
-                        errors.couponCode ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] uppercase `}
                       value={selectedOffer.couponCode}
                       onChange={(e) => {
                         setSelectedOffer({
@@ -1836,12 +2066,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.couponCode && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.couponCode}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -1896,12 +2120,6 @@ export default function OffersManagement() {
                         </p>
                       </div>
                     </div>
-                    {errors.image && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.image}
-                      </p>
-                    )}
                   </div>
                 </TabsContent>
 
@@ -1930,11 +2148,6 @@ export default function OffersManagement() {
                             setErrors(rest);
                           }
                         }}
-                        className={
-                          errors.discountPercentage
-                            ? "border-red-500 "
-                            : "bg-white rounded-full"
-                        }
                       />
                       <div className="flex justify-between items-center">
                         <span className="text-2xl font-bold text-orange-500">
@@ -1962,12 +2175,6 @@ export default function OffersManagement() {
                         />
                       </div>
                     </div>
-                    {errors.discountPercentage && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.discountPercentage}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -1977,9 +2184,7 @@ export default function OffersManagement() {
                     <Input
                       id="update-validFrom"
                       type="date"
-                      className={`bg-[#252525] border-[#333] ${
-                        errors.validFrom ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] `}
                       value={
                         selectedOffer.validFrom
                           ? new Date(selectedOffer.validFrom)
@@ -1998,12 +2203,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.validFrom && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.validFrom}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -2013,9 +2212,7 @@ export default function OffersManagement() {
                     <Input
                       id="update-validUntil"
                       type="date"
-                      className={`bg-[#252525] border-[#333] ${
-                        errors.validUntil ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] `}
                       value={
                         selectedOffer.validUntil
                           ? new Date(selectedOffer.validUntil)
@@ -2034,12 +2231,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.validUntil && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.validUntil}
-                      </p>
-                    )}
                   </div>
                 </TabsContent>
 
@@ -2055,7 +2246,7 @@ export default function OffersManagement() {
                         onChange={(e) => setNewCategory(e.target.value)}
                       >
                         <option value="">Select a category</option>
-                        {SAMPLE_CATEGORIES.filter(
+                        {categories.filter(
                           (cat) =>
                             !selectedOffer.applicableCategories.includes(cat)
                         ).map((category) => (
@@ -2112,16 +2303,18 @@ export default function OffersManagement() {
                         onChange={(e) => setSelectedMenuItem(e.target.value)}
                       >
                         <option value="">Select a menu item</option>
-                        {SAMPLE_MENU_ITEMS.filter(
-                          (item) =>
-                            !selectedOffer.applicableMenuItems.some(
-                              (i) => i._id === item._id
-                            )
-                        ).map((item) => (
-                          <option key={item._id} value={item._id}>
-                            {item.name}
-                          </option>
-                        ))}
+                        {menu
+                          .filter(
+                            (item) =>
+                              !selectedOffer.applicableMenuItems.some(
+                                (i) => i._id === item._id
+                              )
+                          )
+                          .map((item) => (
+                            <option key={item._id} value={item._id}>
+                              {item.name}
+                            </option>
+                          ))}
                       </select>
                       <Button
                         type="button"
@@ -2169,9 +2362,7 @@ export default function OffersManagement() {
                       type="number"
                       min="0"
                       step="0.01"
-                      className={`bg-[#252525] border-[#333] ${
-                        errors.minOrderAmount ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] `}
                       value={selectedOffer.minOrderAmount}
                       onChange={(e) => {
                         setSelectedOffer({
@@ -2185,12 +2376,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.minOrderAmount && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.minOrderAmount}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -2203,9 +2388,7 @@ export default function OffersManagement() {
                       min="0"
                       step="0.01"
                       placeholder="Leave empty for no limit"
-                      className={`bg-[#252525] border-[#333] ${
-                        errors.maxDiscountAmount ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] `}
                       value={
                         selectedOffer.maxDiscountAmount === null
                           ? ""
@@ -2226,12 +2409,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.maxDiscountAmount && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.maxDiscountAmount}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -2241,9 +2418,7 @@ export default function OffersManagement() {
                       type="number"
                       min="0"
                       placeholder="Leave empty for unlimited usage"
-                      className={`bg-[#252525] border-[#333] ${
-                        errors.usageLimit ? "border-red-500" : ""
-                      }`}
+                      className={`bg-[#252525] border-[#333] `}
                       value={
                         selectedOffer.usageLimit === null
                           ? ""
@@ -2264,12 +2439,6 @@ export default function OffersManagement() {
                         }
                       }}
                     />
-                    {errors.usageLimit && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {errors.usageLimit}
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -2337,7 +2506,7 @@ export default function OffersManagement() {
                   {Object.keys(errors).length > 0 ? (
                     <p className="text-red-500 text-sm flex items-center">
                       <AlertCircle className="h-4 w-4 mr-1" />
-                      Please fix the errors before submitting
+                      Please fill the required fields
                     </p>
                   ) : (
                     <p className="text-green-500 text-sm flex items-center">
@@ -2503,6 +2672,21 @@ export default function OffersManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Alert Status */}
+      {Object.keys(alertStatus).length > 0 && (
+        <div
+          className={`fixed z-[100] w-fit bottom-5 right-5 ${
+            alertStatus.type
+              ? "border-[#179417] bg-[#1b3f07]"
+              : "border-[#941717] bg-[#3f0707]"
+          } text-center py-4 px-4 border-2 rounded-xl text-gray-400 ${
+            isExiting ? "animate-slideOut" : "animate-slideIn"
+          }`}
+        >
+          {alertStatus.message}
+        </div>
+      )}
     </div>
   );
 }
