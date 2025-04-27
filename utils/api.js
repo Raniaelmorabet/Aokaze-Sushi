@@ -1,8 +1,8 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-// export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-export const API_BASE_URL = "http://localhost:5000/api";
+export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+// export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
