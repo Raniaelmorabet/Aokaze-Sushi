@@ -157,6 +157,7 @@ export default function ProfilePage() {
             console.error(error)
         }
     }
+
     const ShowUser = async () => {
         const token = localStorage.getItem("token")
         try {
@@ -198,6 +199,7 @@ export default function ProfilePage() {
         ShowOrders()
         ShowUser()
     }, [])
+
     return (
         <div className="bg-[#121212] text-white min-h-screen">
             {/* Header */}
@@ -224,12 +226,10 @@ export default function ProfilePage() {
                             <div className="p-6 border-b border-gray-800">
                                 <div className="flex flex-col items-center text-center">
                                     <div className="w-24 h-24 rounded-full overflow-hidden mb-4">
-                                        <Image
+                                        <img
                                             src={getuser.image || "/placeholder.svg"}
-                                            alt={getuser.name}
-                                            width={96}
-                                            height={96}
-                                            className="object-cover"
+                                            alt={getuser.name || "/placeholder.svg"}
+                                            className="object-cover w-full h-full"
                                         />
                                     </div>
                                     <h2 className="text-xl font-bold">{getuser.name}</h2>
@@ -542,7 +542,7 @@ export default function ProfilePage() {
                                             <img
                                                 src={user.image || "/placeholder.svg"}
                                                 alt={user.name}
-                                                className="object-cover rounded-full"
+                                                className="object-cover w-full h-full rounded-full"
                                             />
                                             <button
                                                 className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors">
