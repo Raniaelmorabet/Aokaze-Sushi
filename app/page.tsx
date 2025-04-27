@@ -45,6 +45,7 @@ import { OrderCart } from "@/components/order-cart";
 import { useLanguage } from "@/context/language-context";
 import pic from "../public/ig.jpg";
 import {
+  API_BASE_URL,
   categoryAPI,
   chefSpecialtiesAPI,
   galleryAPI,
@@ -263,7 +264,7 @@ export default function Home() {
       const token = localStorage.getItem("token");
       try {
         const response = await fetch(
-          "https://aokaze-sushi.vercel.app/api/chefs",
+          `${API_BASE_URL}/chefs`,
           {
             headers: {
               "Content-Type": "application/json",
