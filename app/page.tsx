@@ -227,6 +227,8 @@ export default function Home() {
         available: true,
       });
       setMenu(data.data);
+      console.log(data.data);
+      
     } catch (error) {
       console.log(error.message);
     } finally {
