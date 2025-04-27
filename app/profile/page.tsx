@@ -30,17 +30,8 @@ export default function ProfilePage() {
     const [getorders, setGetOrders] = useState([])
     const [getuser, setGetUser] = useState([])
     const [searchQuery, setSearchQuery] = useState("")
+    const [user, setUser] = useState()
 
-    // Mock user data
-    const user = {
-        name: "John Doe",
-        email: "john.doe@example.com",
-        phone: "+62 8914 2014",
-        address: "123 Sushi Street, Cijeruk, Indonesia",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
-        memberSince: "January 2023",
-        loyaltyPoints: 245,
-    }
     // Mock reservations data
     const reservations = [
         {
@@ -127,6 +118,27 @@ export default function ProfilePage() {
         }
     }
 
+    const handleSaveUser = async () => {
+        const token = localStorage.getItem("token")
+        try {
+            const response = await fetch("https://aokaze-sushi.vercel.app/api/auth/updatedetails", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: user.name,
+                    phone: user.phone
+                })
+            })
+            if (response.success) {
+                setGetUser(response.data)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
     const ShowOrders = async () => {
         const token = localStorage.getItem("token")
         try {
@@ -157,6 +169,7 @@ export default function ProfilePage() {
             const data = await response.json()
             console.log(data.data)
             setGetUser(data.data)
+            setUser(data.data)
         } catch (error) {
             console.error(error)
         }
@@ -184,7 +197,6 @@ export default function ProfilePage() {
         ShowOrders()
         ShowUser()
     }, [])
-
     return (
         <div className="bg-[#121212] text-white min-h-screen">
             {/* Header */}
@@ -422,7 +434,7 @@ export default function ProfilePage() {
                                                     <h4 className="font-medium mb-4">Order Items</h4>
                                                     <div className="space-y-4">
                                                         {order.items.map((item) => (
-                                                            <div key={item.id} className="flex gap-4">
+                                                            <div key={item._id} className="flex gap-4">
                                                                 <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                                                                     <Image
                                                                         src={item.image || "/placeholder.svg"}
@@ -524,13 +536,25 @@ export default function ProfilePage() {
                                 <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
 
                                 <div className="bg-[#1E1E1E] rounded-xl p-6 mb-6">
-                                    <h2 className="text-xl font-medium mb-4">Personal Information</h2>
-
+                                    <div className="flex justify-center items-center mx-auto mt-3 mb-10">
+                                        <div className="relative w-44 h-44">
+                                            <img
+                                                src={user.image || "/placeholder.svg"}
+                                                alt={user.name}
+                                                className="object-cover rounded-full"
+                                            />
+                                            <button
+                                                className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors">
+                                                <Edit size={18}/>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                         <div>
                                             <label className="block text-sm text-gray-400 mb-1">Full Name</label>
                                             <input
                                                 type="text"
+                                                onChange={(e) => setUser({...user, name: e.target.value})}
                                                 defaultValue={user.name}
                                                 className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
                                             />
@@ -540,6 +564,7 @@ export default function ProfilePage() {
                                             <label className="block text-sm text-gray-400 mb-1">Email Address</label>
                                             <input
                                                 type="email"
+                                                disabled
                                                 defaultValue={user.email}
                                                 className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
                                             />
@@ -549,6 +574,7 @@ export default function ProfilePage() {
                                             <label className="block text-sm text-gray-400 mb-1">Phone Number</label>
                                             <input
                                                 type="tel"
+                                                onChange={(e) => setUser({...user, phone: e.target.value})}
                                                 defaultValue={user.phone}
                                                 className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
                                             />
@@ -558,67 +584,54 @@ export default function ProfilePage() {
                                             <label className="block text-sm text-gray-400 mb-1">Member Since</label>
                                             <input
                                                 type="text"
-                                                defaultValue={user.memberSince}
+                                                defaultValue={formatDate(user.createdAt)}
                                                 className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg"
                                                 disabled
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="mb-6">
-                                        <label className="block text-sm text-gray-400 mb-1">Address</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                defaultValue={user.address}
-                                                className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
-                                            />
-                                            <button className="bg-[#2a2a2a] hover:bg-[#333] text-white p-2 rounded-lg transition-colors">
-                                                <MapPin size={18} />
-                                            </button>
-                                        </div>
-                                    </div>
-
                                     <div className="flex justify-end">
-                                        <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                            <Save size={18} />
+                                        <button onClick={() => handleSaveUser()}
+                                                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                            <Save size={18}/>
                                             Save Changes
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="bg-[#1E1E1E] rounded-xl p-6">
-                                    <h2 className="text-xl font-medium mb-4">Profile Picture</h2>
+                                {/*<div className="bg-[#1E1E1E] rounded-xl p-6">*/}
+                                {/*    <h2 className="text-xl font-medium mb-4">Profile Picture</h2>*/}
 
-                                    <div className="flex flex-col md:flex-row items-center gap-6">
-                                        <div className="relative">
-                                            <div className="w-32 h-32 rounded-full overflow-hidden">
-                                                <Image
-                                                    src={user.avatar || "/placeholder.svg"}
-                                                    alt={user.name}
-                                                    width={128}
-                                                    height={128}
-                                                    className="object-cover"
-                                                />
-                                            </div>
-                                            <button className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors">
-                                                <Edit size={16} />
-                                            </button>
-                                        </div>
+                                {/*    <div className="flex flex-col md:flex-row items-center gap-6">*/}
+                                {/*        <div className="relative">*/}
+                                {/*            <div className="w-32 h-32 rounded-full overflow-hidden">*/}
+                                {/*                <Image*/}
+                                {/*                    src={user.image || "/placeholder.svg"}*/}
+                                {/*                    alt={user.name}*/}
+                                {/*                    width={128}*/}
+                                {/*                    height={128}*/}
+                                {/*                    className="object-cover"*/}
+                                {/*                />*/}
+                                {/*            </div>*/}
+                                {/*            <button className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors">*/}
+                                {/*                <Edit size={16} />*/}
+                                {/*            </button>*/}
+                                {/*        </div>*/}
 
-                                        <div className="flex-1">
-                                            <p className="text-gray-400 mb-4">Upload a new profile picture. JPG, PNG or GIF, maximum 5MB.</p>
-                                            <div className="flex flex-col gap-4">
-                                                <button className="bg-[#2a2a2a] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors">
-                                                    Upload New Picture
-                                                </button>
-                                                <button className="bg-red-500/20 hover:bg-red-500/30 text-red-500 px-4 py-2 rounded-lg transition-colors">
-                                                    Remove Picture
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                {/*        <div className="flex-1">*/}
+                                {/*            <p className="text-gray-400 mb-4">Upload a new profile picture. JPG, PNG or GIF, maximum 5MB.</p>*/}
+                                {/*            <div className="flex flex-col gap-4">*/}
+                                {/*                <button className="bg-[#2a2a2a] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors">*/}
+                                {/*                    Upload New Picture*/}
+                                {/*                </button>*/}
+                                {/*                <button className="bg-red-500/20 hover:bg-red-500/30 text-red-500 px-4 py-2 rounded-lg transition-colors">*/}
+                                {/*                    Remove Picture*/}
+                                {/*                </button>*/}
+                                {/*            </div>*/}
+                                {/*        </div>*/}
+                                {/*    </div>*/}
+                                {/*</div>*/}
                             </div>
                         )}
 
