@@ -142,6 +142,39 @@ const SAMPLE_CATEGORIES = [
   "All",
 ];
 
+const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const duration = dur || 2000;
+    const start = 0;
+    const end = value;
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+      const currentValue = Math.floor(progress * (end - start) + start);
+
+      setDisplayValue(currentValue);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [value]);
+
+  return (
+    <span>
+      {prefix}
+      {displayValue.toLocaleString()}
+      {suffix}
+    </span>
+  );
+};
+
 
 export default function OffersManagement() {
   const { toast } = useToast();
@@ -257,7 +290,7 @@ export default function OffersManagement() {
 
   // Filter offers based on search query and status filter
   useEffect(() => {
-    let filtered = offers.filter(
+    let filtered = showOffers.filter(
       (offer) =>
         offer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -289,7 +322,7 @@ export default function OffersManagement() {
     });
 
     setFilteredOffers(sorted);
-  }, [offers, searchQuery, sortOrder, sortField, statusFilter]);
+  }, [showOffers, searchQuery, sortOrder, sortField, statusFilter]);
 
   // Validate form on change to provide real-time feedback
   useEffect(() => {
@@ -369,6 +402,26 @@ export default function OffersManagement() {
       });
       return;
     }
+    const isTitleExists = showOffers.some(
+        offer => offer.title.toLowerCase() === newOffer.title.trim().toLowerCase()
+    );
+    const isCouponExists = showOffers.some(
+        offer => offer.couponCode.toLowerCase() === newOffer.couponCode.trim().toLowerCase()
+    );
+    if (isTitleExists) {
+      setAlertStatus({
+          type: false,
+          message: "An offer with this title already exists",
+      });
+      return;
+    }
+    if (isCouponExists) {
+      setAlertStatus({
+          type: false,
+          message: "An offer with this coupon code already exists",
+      });
+      return;
+    }
     if (newOffer.discountPercentage < 1) {
       setAlertStatus({
         type: false,
@@ -438,6 +491,7 @@ export default function OffersManagement() {
         ...newOffer,
         couponCode: newOffer.couponCode.toUpperCase(),
       };
+      
 
       const formData = new FormData();
 
@@ -460,14 +514,18 @@ export default function OffersManagement() {
         );
       }
 
+      // For applicableCategories (array of IDs)
       formData.append(
-        "applicableCategories",
-        JSON.stringify(offerToAdd.applicableCategories)
+        "applicableCategories", 
+        JSON.stringify(offerToAdd.applicableCategories.map(cat => cat._id || cat))
       );
+
+      // For applicableMenuItems (array of objects, but we only need IDs)
       formData.append(
         "applicableMenuItems",
-        JSON.stringify(offerToAdd.applicableMenuItems)
+        JSON.stringify(offerToAdd.applicableMenuItems.map(item => item._id || item))
       );
+
       formData.append("isActive", offerToAdd.isActive.toString());
       if (imageFile) {
         formData.append("image", imageFile);
@@ -477,6 +535,10 @@ export default function OffersManagement() {
 
       if (offerToAdd.usageLimit !== null) {
         formData.append("usageLimit", offerToAdd.usageLimit.toString());
+      }
+
+      for (const [key, value] of formData.entries()) {
+        console.log(key, value);
       }
 
       // Use formData with the API call
@@ -513,186 +575,225 @@ export default function OffersManagement() {
   const handleUpdateOffer = async () => {
     // Validation checks
     if (!selectedOffer.title.trim()) {
-      setAlertStatus({
-        type: false,
-        message: "Offer title is required",
-      });
-      return;
-    }
-    if (!selectedOffer.description.trim()) {
-      setAlertStatus({
-        type: false,
-        message: "Offer description is required",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Offer title is required",
+        });
+        return;
     }
     if (!selectedOffer.couponCode.trim()) {
-      setAlertStatus({
-        type: false,
-        message: "Coupon code is required",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Coupon code is required",
+        });
+        return;
+    }
+
+    // Check for unique title (excluding current offer)
+    const isTitleExists = showOffers.some(
+        offer => 
+            offer._id !== selectedOffer._id &&
+            offer.title.toLowerCase() === selectedOffer.title.trim().toLowerCase()
+    );
+    
+    if (isTitleExists) {
+        setAlertStatus({
+            type: false,
+            message: "An offer with this title already exists",
+        });
+        return;
+    }
+
+    // Check for unique coupon code (excluding current offer)
+    const isCouponExists = showOffers.some(
+        offer => 
+            offer._id !== selectedOffer._id &&
+            offer.couponCode.toLowerCase() === selectedOffer.couponCode.trim().toLowerCase()
+    );
+
+    if (isCouponExists) {
+        setAlertStatus({
+            type: false,
+            message: "An offer with this coupon code already exists",
+        });
+        return;
+    }
+
+    // Convert dates to Date objects if they aren't already
+    const validFrom = selectedOffer.validFrom instanceof Date 
+        ? selectedOffer.validFrom 
+        : new Date(selectedOffer.validFrom);
+    const validUntil = selectedOffer.validUntil instanceof Date 
+        ? selectedOffer.validUntil 
+        : new Date(selectedOffer.validUntil);
+
+    if (!validFrom || isNaN(validFrom.getTime())) {
+        setAlertStatus({
+            type: false,
+            message: "Invalid start date",
+        });
+        return;
+    }
+    if (!validUntil || isNaN(validUntil.getTime())) {
+        setAlertStatus({
+            type: false,
+            message: "Invalid end date",
+        });
+        return;
+    }
+    if (validUntil <= validFrom) {
+        setAlertStatus({
+            type: false,
+            message: "End date must be after start date",
+        });
+        return;
+    }
+
+    if (!selectedOffer.description.trim()) {
+        setAlertStatus({
+            type: false,
+            message: "Offer description is required",
+        });
+        return;
     }
     if (selectedOffer.discountPercentage < 1) {
-      setAlertStatus({
-        type: false,
-        message: "Discount percentage must be at least 1%",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Discount percentage must be at least 1%",
+        });
+        return;
     }
     if (selectedOffer.discountPercentage > 100) {
-      setAlertStatus({
-        type: false,
-        message: "Discount percentage cannot exceed 100%",
-      });
-      return;
-    }
-    if (!selectedOffer.validFrom) {
-      setAlertStatus({
-        type: false,
-        message: "Start date is required",
-      });
-      return;
-    }
-    if (!selectedOffer.validUntil) {
-      setAlertStatus({
-        type: false,
-        message: "End date is required",
-      });
-      return;
-    }
-    if (selectedOffer.validUntil <= selectedOffer.validFrom) {
-      setAlertStatus({
-        type: false,
-        message: "End date must be after start date",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Discount percentage cannot exceed 100%",
+        });
+        return;
     }
     if (selectedOffer.minOrderAmount < 0) {
-      setAlertStatus({
-        type: false,
-        message: "Minimum order amount cannot be negative",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Minimum order amount cannot be negative",
+        });
+        return;
     }
     if (
-      selectedOffer.maxDiscountAmount !== null &&
-      selectedOffer.maxDiscountAmount < 0
+        selectedOffer.maxDiscountAmount !== null &&
+        selectedOffer.maxDiscountAmount < 0
     ) {
-      setAlertStatus({
-        type: false,
-        message: "Maximum discount amount cannot be negative",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Maximum discount amount cannot be negative",
+        });
+        return;
     }
     if (selectedOffer.usageLimit !== null && selectedOffer.usageLimit < 0) {
-      setAlertStatus({
-        type: false,
-        message: "Usage limit cannot be negative",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "Usage limit cannot be negative",
+        });
+        return;
     }
     if (selectedOffer.applicableCategories.length === 0) {
-      setAlertStatus({
-        type: false,
-        message: "At least one category is required",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "At least one category is required",
+        });
+        return;
     }
     if (selectedOffer.applicableMenuItems.length === 0) {
-      setAlertStatus({
-        type: false,
-        message: "At least one menu item is required",
-      });
-      return;
+        setAlertStatus({
+            type: false,
+            message: "At least one menu item is required",
+        });
+        return;
     }
 
     try {
-      const offerToUpdate = {
-        ...selectedOffer,
-        couponCode: selectedOffer.couponCode.toUpperCase(),
-      };
+        const offerToUpdate = {
+            ...selectedOffer,
+            couponCode: selectedOffer.couponCode.toUpperCase(),
+            validFrom,
+            validUntil
+        };
 
-      const formData = new FormData();
+        const formData = new FormData();
 
-      // Append all offer fields to formData
-      formData.append("title", offerToUpdate.title);
-      formData.append("description", offerToUpdate.description);
-      formData.append("couponCode", offerToUpdate.couponCode);
-      formData.append(
-        "discountPercentage",
-        offerToUpdate.discountPercentage.toString()
-      );
-      formData.append("validFrom", offerToUpdate.validFrom.toISOString());
-      formData.append("validUntil", offerToUpdate.validUntil.toISOString());
-      formData.append(
-        "minOrderAmount",
-        offerToUpdate.minOrderAmount.toString()
-      );
-
-      if (offerToUpdate.maxDiscountAmount !== null) {
+        // Append all offer fields to formData
+        formData.append("title", offerToUpdate.title);
+        formData.append("description", offerToUpdate.description);
+        formData.append("couponCode", offerToUpdate.couponCode);
         formData.append(
-          "maxDiscountAmount",
-          offerToUpdate.maxDiscountAmount.toString()
+            "discountPercentage",
+            offerToUpdate.discountPercentage.toString()
         );
-      }
-
-      formData.append(
-        "applicableCategories",
-        JSON.stringify(offerToUpdate.applicableCategories)
-      );
-      formData.append(
-        "applicableMenuItems",
-        JSON.stringify(offerToUpdate.applicableMenuItems)
-      );
-      formData.append("isActive", offerToUpdate.isActive.toString());
-
-      // Only append image if it's a new file or if we're keeping the existing one
-      if (imageFile) {
-        formData.append("image", imageFile);
-      } else if (offerToUpdate.image) {
-        // If no new image file but existing image path, append it
-        formData.append("image", offerToUpdate.image);
-      }
-
-      if (offerToUpdate.usageLimit !== null) {
-        formData.append("usageLimit", offerToUpdate.usageLimit.toString());
-      }
-
-      // Append the offer ID for the update
-      formData.append("id", offerToUpdate._id);
-
-      // Use formData with the API call
-      const res = await offersAPI.updateOffer(formData);
-      console.log(res);
-
-      if (res.success) {
-        // Update the offers list with the new data
-        setShowOffers(
-          showOffers.map((offer) =>
-            offer._id === res.data._id ? res.data : offer
-          )
+        formData.append("validFrom", offerToUpdate.validFrom.toISOString());
+        formData.append("validUntil", offerToUpdate.validUntil.toISOString());
+        formData.append(
+            "minOrderAmount",
+            offerToUpdate.minOrderAmount.toString()
         );
 
-        setIsUpdateModalOpen(false);
-        setSelectedOffer(null);
-        setImageFile(null);
-        setErrors({});
+        if (offerToUpdate.maxDiscountAmount !== null && offerToUpdate.maxDiscountAmount !== undefined) {
+          formData.append("maxDiscountAmount", offerToUpdate.maxDiscountAmount.toString())
+        } else {
+          formData.append("maxDiscountAmount", "1")
+        }
 
-        toast({
-          title: "Offer Updated Successfully",
-          description: `${res.data.title} has been updated.`,
-          variant: "success",
-        });
-      }
+        formData.append(
+            "applicableCategories",
+            JSON.stringify(offerToUpdate.applicableCategories)
+        );
+        formData.append(
+            "applicableMenuItems",
+            JSON.stringify(offerToUpdate.applicableMenuItems)
+        );
+        formData.append("isActive", offerToUpdate.isActive.toString());
+
+        // Handle image upload
+        if (imageFile) {
+            formData.append("image", imageFile);
+        } else if (offerToUpdate.image) {
+            formData.append("image", offerToUpdate.image);
+        }
+
+        if (offerToUpdate.usageLimit !== null) {
+            formData.append("usageLimit", offerToUpdate.usageLimit);
+        }
+        for (const [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
+
+        // API call
+        const res = await offersAPI.updateOffer(selectedOffer._id, formData);
+        console.log(res);
+        
+        if (res.success) {
+            // Update offers list
+            setShowOffers(
+                showOffers.map((offer) =>
+                    offer._id === res.data._id ? res.data : offer
+                )
+            );
+
+            // Reset state
+            setIsUpdateModalOpen(false);
+            setSelectedOffer(null);
+            setImageFile(null);
+            setErrors({});
+            setAlertStatus({
+              type: true,
+              message: "Offer Updated Successfully",
+          });
+        }
     } catch (error) {
-      console.error("Error updating offer:", error);
-      setAlertStatus({
-        type: false,
-        message: "Failed to update offer. Please try again.",
-      });
+        console.error("Error updating offer:", error);
+        setAlertStatus({
+            type: false,
+            message: error || "Failed to update offer. Please try again.",
+        });
     }
-  };
+};
 
   // Handle deleting an offer
   const handleDeleteOffer = async () => {
@@ -732,26 +833,28 @@ export default function OffersManagement() {
   // Handle adding a category
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
-
-    if (isUpdateModalOpen && selectedOffer) {
-      if (!selectedOffer.applicableCategories.includes(newCategory)) {
-        setSelectedOffer({
-          ...selectedOffer,
-          applicableCategories: [
-            ...selectedOffer.applicableCategories,
-            newCategory,
-          ],
-        });
-      }
-    } else {
-      if (!newOffer.applicableCategories.includes(newCategory)) {
-        setNewOffer({
-          ...newOffer,
-          applicableCategories: [...newOffer.applicableCategories, newCategory],
-        });
+  
+    // Find the full category object from categories list
+    const categoryToAdd = categories.find((cat) => cat._id === newCategory);
+    
+    if (categoryToAdd) {
+      if (isUpdateModalOpen && selectedOffer) {
+        if (!selectedOffer.applicableCategories.some(cat => cat._id === categoryToAdd._id)) {
+          setSelectedOffer({
+            ...selectedOffer,
+            applicableCategories: [...selectedOffer.applicableCategories, categoryToAdd],
+          });
+        }
+      } else {
+        if (!newOffer.applicableCategories.some(cat => cat._id === categoryToAdd._id)) {
+          setNewOffer({
+            ...newOffer,
+            applicableCategories: [...newOffer.applicableCategories, categoryToAdd],
+          });
+        }
       }
     }
-
+    
     setNewCategory("");
   };
 
@@ -894,7 +997,14 @@ export default function OffersManagement() {
       });
       const data = await response.json();
       console.log(data.data);
-      setShowOffers(data.data);
+      const normalizedOffers = data.data.map(offer => ({
+        ...offer,
+        applicableCategories: offer.applicableCategories || [],
+        applicableMenuItems: offer.applicableMenuItems || []
+      }));
+  
+      setShowOffers(normalizedOffers);
+      setFilteredOffers(normalizedOffers);
     } catch (error) {
       console.error(error);
     } finally {
@@ -1010,7 +1120,7 @@ export default function OffersManagement() {
             Total Offers
           </h3>
           <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            {showOffers.length}
+            <AnimatedCounter value={showOffers.length} dur={1000} />
           </p>
         </motion.div>
 
@@ -1030,7 +1140,7 @@ export default function OffersManagement() {
             Active Offers
           </h3>
           <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            {showOffers.filter((offer) => offer.isActive).length}
+            <AnimatedCounter value={showOffers.filter((offer) => offer.isActive).length} dur={1000} />
           </p>
         </motion.div>
 
@@ -1050,12 +1160,12 @@ export default function OffersManagement() {
             Avg. Discount
           </h3>
           <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            {Math.round(
+            <AnimatedCounter value={Math.round(
               showOffers.reduce(
-                (sum, offer) => sum + showOffers.discountPercentage,
+                (sum, offer) => sum + offer.discountPercentage,
                 0
               ) / showOffers.length
-            )}
+            )} dur={1000} />
             %
           </p>
         </motion.div>
@@ -1076,7 +1186,7 @@ export default function OffersManagement() {
             Total Redemptions
           </h3>
           <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            {showOffers.reduce((sum, offer) => sum + offer.currentUsage, 0)}
+            <AnimatedCounter value={showOffers.reduce((sum, offer) => sum + offer.currentUsage, 0)} dur={1000} />
           </p>
         </motion.div>
       </div>
@@ -1177,7 +1287,7 @@ export default function OffersManagement() {
       {/* Offers List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 pb-6">
         <AnimatePresence>
-          {showOffers.map((offer, index) => (
+          {filteredOffers.map((offer, index) => (
             <motion.div
               key={offer._id}
               className={`bg-gradient-to-br from-[#1E1E1E] to-[#252525] rounded-xl overflow-hidden shadow-lg border border-[#333] group relative ${
@@ -1328,18 +1438,20 @@ export default function OffersManagement() {
                 <div className="mb-4">
                   <p className="text-xs text-gray-400 mb-1">Applicable to:</p>
                   <div className="flex flex-wrap gap-1">
-                    {offer.applicableCategories.length > 0 ? (
-                      offer.applicableCategories.map((category, i) => (
-                        <span
-                          key={i}
-                          className="bg-[#2a2a2a] text-xs px-2 py-1 rounded-full border border-[#333]"
-                        >
-                          {category}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-gray-500">All items</span>
-                    )}
+                  {offer?.applicableCategories?.length > 0 ? (
+                    offer.applicableCategories.map((category, i) => (
+                      <span
+                        key={i}
+                        className="bg-[#2a2a2a] text-xs px-2 py-1 rounded-full border border-[#333]"
+                      >
+                        {category.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      {offer?.applicableCategories ? "No categories selected" : "All items"}
+                    </span>
+                  )}
                   </div>
                 </div>
 
@@ -1700,13 +1812,13 @@ export default function OffersManagement() {
                     onChange={(e) => setNewCategory(e.target.value)}
                   >
                     <option value="">Select a category</option>
-                    {categories
-  .filter((cat) => !newOffer.applicableCategories.includes(cat))
-  .map((category) => (
-    <option key={category._id} value={category._id}>
-      {category.name}
-    </option>
-))}
+                    {Array.isArray(categories) && categories
+                      .filter((cat) => !newOffer.applicableCategories.includes(cat))
+                      .map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                    ))}
                   </select>
                   <Button
                     type="button"
@@ -1723,7 +1835,7 @@ export default function OffersManagement() {
                       key={index}
                       className="bg-[#252525] hover:bg-[#303030] text-white"
                     >
-                      {category}
+                      {category.name}
                       <button
                         type="button"
                         className="ml-1 text-gray-400 hover:text-white"
@@ -2251,7 +2363,7 @@ export default function OffersManagement() {
                             !selectedOffer.applicableCategories.includes(cat)
                         ).map((category) => (
                           <option key={category} value={category}>
-                            {category}
+                            {category.name}
                           </option>
                         ))}
                       </select>
