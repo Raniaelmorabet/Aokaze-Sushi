@@ -740,14 +740,14 @@ export default function OffersManagement() {
           formData.append("maxDiscountAmount", "1")
         }
 
-        formData.append(
-            "applicableCategories",
-            JSON.stringify(offerToUpdate.applicableCategories)
-        );
-        formData.append(
-            "applicableMenuItems",
-            JSON.stringify(offerToUpdate.applicableMenuItems)
-        );
+        offerToUpdate.applicableCategories.forEach((category, index) => {
+          formData.append(`applicableCategories[${index}]`, category._id);
+        });
+
+        offerToUpdate.applicableMenuItems.forEach((item, index) => {
+          formData.append(`applicableMenuItems[${index}]`, item._id);
+        });
+        
         formData.append("isActive", offerToUpdate.isActive.toString());
 
         // Handle image upload
@@ -1482,7 +1482,11 @@ export default function OffersManagement() {
                       size="sm"
                       className="border-[#333] hover:bg-[#252525] transition-colors"
                       onClick={() => {
-                        setSelectedOffer(offer);
+                        setSelectedOffer({
+                          ...offer,
+                          applicableCategories: offer.applicableCategories || [],
+                          applicableMenuItems: offer.applicableMenuItems || []
+                        });
                         setIsUpdateModalOpen(true);
                       }}
                     >
@@ -2358,14 +2362,15 @@ export default function OffersManagement() {
                         onChange={(e) => setNewCategory(e.target.value)}
                       >
                         <option value="">Select a category</option>
-                        {categories.filter(
-                          (cat) =>
-                            !selectedOffer.applicableCategories.includes(cat)
-                        ).map((category) => (
-                          <option key={category} value={category}>
-                            {category.name}
-                          </option>
-                        ))}
+                        {categories?.filter((cat) => 
+  !selectedOffer.applicableCategories?.some(
+    selectedCat => selectedCat._id === cat._id
+  )
+).map((category) => (
+  <option key={category._id} value={category._id}>
+    {category.name}
+  </option>
+))}
                       </select>
                       <Button
                         type="button"
@@ -2383,7 +2388,7 @@ export default function OffersManagement() {
                             key={index}
                             className="bg-[#252525] hover:bg-[#303030] text-white"
                           >
-                            {category}
+                            {category.name}
                             <button
                               type="button"
                               className="ml-1 text-gray-400 hover:text-white"
