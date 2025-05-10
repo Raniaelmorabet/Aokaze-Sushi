@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import logo from "@/public/logo.png";
-import { API_BASE_URL } from "@/utils/api";
+import { API_BASE_URL, authAPI } from "@/utils/api";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
@@ -220,6 +220,39 @@ export default function ProfilePage() {
     }
   };
 
+const handleLogout = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/logout`);
+    const ress = await res.json();
+    console.log(ress);
+    
+    if (ress.success) {
+      // Clear token and user data
+      localStorage.removeItem("token");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("email");
+      localStorage.removeItem("orders");
+      localStorage.removeItem("cart");
+      
+      // Clear session storage if used
+      sessionStorage.clear();
+      
+      // Replace current history entry and redirect
+      window.history.replaceState(null, "", "/");
+      window.location.href = "/";
+      
+      // Optional: Force reload to clear any in-memory state
+      window.location.reload();
+    } else {
+      console.error("Logout failed");
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Optional: Show error message to user
+    // setError("Failed to logout. Please try again.");
+  }
+};
+
   return (
     <div className="bg-[#121212] text-white min-h-screen">
       {/* Header */}
@@ -315,7 +348,7 @@ export default function ProfilePage() {
               </nav>
 
               <div className="p-4 border-t border-gray-800">
-                <button className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
+                <button onClick={() => handleLogout()} className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
                   <LogOut size={18} />
                   <span>Logout</span>
                 </button>
