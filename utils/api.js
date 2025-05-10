@@ -784,3 +784,114 @@ export const chefsAPI = {
     return await apiRequest(`/chefs?sort=${sortOrder}`, "GET");
   },
 };
+
+
+/**
+ * Cart API functions
+ */
+export const cartAPI = {
+  /**
+   * Get the user's cart with all items
+   * @returns {Promise<Object>} The cart object with items and total
+   */
+  getCart: async () => {
+    return await apiRequest("/cart", "GET", null, true);
+  },
+
+  /**
+   * Add an item to the cart
+   * @param {string} menu_item_id - ID of the menu item to add
+   * @param {number} quantity - Quantity to add
+   * @returns {Promise<Object>} Updated cart
+   */
+  addToCart: async (menu_item_id, quantity) => {
+    return await apiRequest(
+      "/cart",
+      "POST",
+      { menu_item_id, quantity },
+      true
+    );
+  },
+
+  /**
+   * Update an item's quantity in the cart
+   * @param {string} menu_item_id - ID of the menu item to update
+   * @param {number} quantity - New quantity
+   * @returns {Promise<Object>} Updated cart
+   */
+  updateCartItem: async (menu_item_id, quantity) => {
+    return await apiRequest(
+      "/cart",
+      "PUT",
+      { menu_item_id, quantity },
+      true
+    );
+  },
+
+  /**
+   * Remove an item from the cart
+   * @param {string} item_id - ID of the cart item to remove
+   * @returns {Promise<Object>} Success message
+   */
+  removeFromCart: async (item_id) => {
+    return await apiRequest(`/cart/item/${item_id}`, "DELETE", null, true);
+  },
+
+  /**
+   * Clear the entire cart (Admin only)
+   * @param {string} user_id - ID of the user whose cart to clear
+   * @returns {Promise<Object>} Success message
+   */
+  clearCart: async (user_id) => {
+    return await apiRequest(`/cart/${user_id}`, "DELETE", null, true);
+  },
+
+  /**
+   * Get cart total price
+   * @returns {Promise<Object>} Object containing total price
+   */
+  getCartTotal: async () => {
+    const cart = await apiRequest("/cart", "GET", null, true);
+    return {
+      total: cart.items.reduce(
+        (sum, item) => sum + item.menu_item_id.price * item.quantity,
+        0
+      ),
+    };
+  },
+
+  /**
+   * Get cart item count
+   * @returns {Promise<Object>} Object containing item count
+   */
+  getCartItemCount: async () => {
+    const cart = await apiRequest("/cart", "GET", null, true);
+    return {
+      count: cart.items.reduce((sum, item) => sum + item.quantity, 0),
+    };
+  },
+
+  /**
+   * Check if an item exists in the cart
+   * @param {string} menu_item_id - ID of the menu item to check
+   * @returns {Promise<Object>} Object with exists boolean and quantity if exists
+   */
+  checkItemInCart: async (menu_item_id) => {
+    const cart = await apiRequest("/cart", "GET", null, true);
+    const item = cart.items.find(
+      (item) => item.menu_item_id._id === menu_item_id
+    );
+    return item
+      ? { exists: true, quantity: item.quantity }
+      : { exists: false };
+  },
+
+  /**
+   * Merge local cart with server cart
+   * @param {Array} localItems - Array of local cart items
+   * @returns {Promise<Object>} Merged cart
+   */
+  mergeCart: async (localItems) => {
+    return await apiRequest("/cart/merge", "POST", { items: localItems }, true);
+  },
+};
