@@ -120,6 +120,7 @@ export function OrderCart({ items, onClose, onRemoveItem }) {
           <Link
             href="/checkout"
             className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+            onClick={() => localStorage.setItem("cart", JSON.stringify(items))}
           >
             Checkout <ArrowRight size={16} />
           </Link>
