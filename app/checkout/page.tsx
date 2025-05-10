@@ -1,101 +1,156 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { ChevronLeft, CreditCard, MapPin, Truck, Check, Shield, Clock, AlertCircle } from "lucide-react"
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  ChevronLeft,
+  CreditCard,
+  MapPin,
+  Truck,
+  Check,
+  Shield,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import logo from "@/public/logo.png";
+import { API_BASE_URL, orderAPI } from "@/utils/api";
 
 export default function Checkout() {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Shipping info
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    zipCode: "",
-    country: "Indonesia",
+    deliveryAddress: {
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "Indonesia",
+    },
+    deliveryInstructions: "",
     // Payment info
     cardName: "",
     cardNumber: "",
     expiryDate: "",
     cvv: "",
     savePaymentInfo: false,
-  })
-  const [orderPlaced, setOrderPlaced] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  // Mock cart items
-  const cartItems = [
-    {
-      id: 1,
-      name: "Salmon Nigiri",
-      price: 8.5,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Dragon Roll",
-      price: 12.95,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=600&auto=format&fit=crop",
-    },
-  ]
+    paymentMethod: "credit_card",
+    deliveryType: "delivery",
+  });
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [cartItems, setCartItems] = useState([]);
+  const [resData, setResData] = useState();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    })
-  }
+    const { name, value, type, checked } = e.target;
+
+    // Check if the field is part of deliveryAddress
+    if (name in formData.deliveryAddress) {
+      setFormData({
+        ...formData,
+        deliveryAddress: {
+          ...formData.deliveryAddress,
+          [name]: type === "checkbox" ? checked : value,
+        },
+      });
+    } else {
+      // Handle top-level fields
+      setFormData({
+        ...formData,
+        [name]: type === "checkbox" ? checked : value,
+      });
+    }
+  };
 
   const nextStep = () => {
-    setStep(step + 1)
-    window.scrollTo(0, 0)
-  }
+    setStep(step + 1);
+    window.scrollTo(0, 0);
+    console.log("stepone", formData);
+  };
 
   const prevStep = () => {
-    setStep(step - 1)
-    window.scrollTo(0, 0)
-  }
+    setStep(step - 1);
+    window.scrollTo(0, 0);
+  };
 
   const placeOrder = async () => {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setOrderPlaced(true)
-      setStep(3)
+      // Prepare order data from your form/state
+      const orderData = {
+        paymentMethod: "credit_card",
+        deliveryType: "delivery",
+        deliveryAddress: formData.deliveryAddress,
+        deliveryInstructions: formData.deliveryInstructions,
+      };
+      console.log("orderData", orderData);
+
+      // Call the API to place the order
+      const response = await fetch(`${API_BASE_URL}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+      const responseData = await response.json();
+      console.log("Order response:", responseData.data);
+      setResData(responseData.data);
+      if (response.ok) {
+        setOrderPlaced(true);
+        setStep(3);
+        // You might want to store the order details in state
+        // setOrderDetails(response.data);
+      } else {
+        // Handle API validation errors
+        if (response.errors) {
+          const errorMessages = response.errors
+            .map((err) => err.msg)
+            .join(", ");
+          setError(errorMessages);
+        } else {
+          setError(
+            response.message || "There was an error processing your order."
+          );
+        }
+      }
     } catch (err) {
-      setError("There was an error processing your payment. Please try again.")
+      console.error("Order error:", err);
+      setError("There was an error processing your order. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  }
+    return cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
+  };
 
   const calculateTax = () => {
-    return calculateSubtotal() * 0.1
-  }
+    return calculateSubtotal() * 0.1;
+  };
 
   const calculateShipping = () => {
-    return 5.0
-  }
+    return 5.0;
+  };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax() + calculateShipping()
-  }
+    return calculateSubtotal() + calculateTax() + calculateShipping();
+  };
+
+  useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    setCartItems(savedCart);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -103,11 +158,14 @@ export default function Checkout() {
       <header className="bg-[#1a1a1a] py-4 shadow-md">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Image src={logo} alt={logo} className='w-24'></Image>
+            <Image src={logo} alt={logo} className="w-24"></Image>
           </Link>
 
           <div className="flex items-center gap-2">
-            <Link href="/" className="text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+            <Link
+              href="/"
+              className="text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+            >
               <ChevronLeft size={16} />
               <span>Back to Shopping</span>
             </Link>
@@ -121,33 +179,71 @@ export default function Checkout() {
           <div className="flex justify-between">
             <div className="flex flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 1 ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step >= 1
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-700 text-gray-400"
+                }`}
               >
                 <MapPin size={20} />
               </div>
-              <span className={`mt-2 text-sm ${step >= 1 ? "text-white" : "text-gray-400"}`}>Shipping</span>
+              <span
+                className={`mt-2 text-sm ${
+                  step >= 1 ? "text-white" : "text-gray-400"
+                }`}
+              >
+                Shipping
+              </span>
             </div>
             <div className="flex-1 flex items-center">
-              <div className={`h-1 w-full ${step >= 2 ? "bg-orange-500" : "bg-gray-700"}`}></div>
+              <div
+                className={`h-1 w-full ${
+                  step >= 2 ? "bg-orange-500" : "bg-gray-700"
+                }`}
+              ></div>
             </div>
             <div className="flex flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 2 ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step >= 2
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-700 text-gray-400"
+                }`}
               >
                 <CreditCard size={20} />
               </div>
-              <span className={`mt-2 text-sm ${step >= 2 ? "text-white" : "text-gray-400"}`}>Payment</span>
+              <span
+                className={`mt-2 text-sm ${
+                  step >= 2 ? "text-white" : "text-gray-400"
+                }`}
+              >
+                Payment
+              </span>
             </div>
             <div className="flex-1 flex items-center">
-              <div className={`h-1 w-full ${step >= 3 ? "bg-orange-500" : "bg-gray-700"}`}></div>
+              <div
+                className={`h-1 w-full ${
+                  step >= 3 ? "bg-orange-500" : "bg-gray-700"
+                }`}
+              ></div>
             </div>
             <div className="flex flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 3 ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step >= 3
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-700 text-gray-400"
+                }`}
               >
                 <Check size={20} />
               </div>
-              <span className={`mt-2 text-sm ${step >= 3 ? "text-white" : "text-gray-400"}`}>Confirmation</span>
+              <span
+                className={`mt-2 text-sm ${
+                  step >= 3 ? "text-white" : "text-gray-400"
+                }`}
+              >
+                Confirmation
+              </span>
             </div>
           </div>
         </div>
@@ -155,6 +251,7 @@ export default function Checkout() {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Main Content */}
           <div className="md:col-span-2">
+            {/* Shipping */}
             {step === 1 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -162,26 +259,19 @@ export default function Checkout() {
                 transition={{ duration: 0.3 }}
                 className="bg-[#1E1E1E] rounded-xl p-6 shadow-xl"
               >
-                <h2 className="text-2xl font-bold mb-6">Shipping Information</h2>
+                <h2 className="text-2xl font-bold mb-6">
+                  Shipping Information
+                </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1  gap-4 mb-6">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Full Name</label>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Street
+                    </label>
                     <input
                       type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
+                      name="street"
+                      value={formData.deliveryAddress.street}
                       onChange={handleChange}
                       className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       required
@@ -190,11 +280,13 @@ export default function Checkout() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">Phone Number</label>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    City
+                  </label>
                   <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    type="text"
+                    name="city"
+                    value={formData.deliveryAddress.city}
                     onChange={handleChange}
                     className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     required
@@ -202,11 +294,27 @@ export default function Checkout() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">Address</label>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    State
+                  </label>
                   <input
                     type="text"
-                    name="address"
-                    value={formData.address}
+                    name="state"
+                    value={formData.deliveryAddress.state}
+                    onChange={handleChange}
+                    className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Delivery Instructions
+                  </label>
+                  <input
+                    type="text"
+                    name="deliveryInstructions"
+                    value={formData.deliveryAddress.deliveryInstructions}
                     onChange={handleChange}
                     className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     required
@@ -214,33 +322,13 @@ export default function Checkout() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">Zip Code</label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">Country</label>
+                  <div className="col-span-2">
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Country
+                    </label>
                     <select
                       name="country"
-                      value={formData.country}
+                      value={formData.deliveryAddress.country}
                       onChange={handleChange}
                       className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none"
                       required
@@ -251,6 +339,19 @@ export default function Checkout() {
                       <option value="Malaysia">Malaysia</option>
                       <option value="Thailand">Thailand</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Zip Code
+                    </label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={formData.deliveryAddress.zipCode}
+                      onChange={handleChange}
+                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -264,7 +365,7 @@ export default function Checkout() {
                 </div>
               </motion.div>
             )}
-
+            {/* Payment */}
             {step === 2 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -275,7 +376,9 @@ export default function Checkout() {
                 <h2 className="text-2xl font-bold mb-6">Payment Information</h2>
 
                 <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">Name on Card</label>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Name on Card
+                  </label>
                   <input
                     type="text"
                     name="cardName"
@@ -287,7 +390,9 @@ export default function Checkout() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">Card Number</label>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Card Number
+                  </label>
                   <input
                     type="text"
                     name="cardNumber"
@@ -301,7 +406,9 @@ export default function Checkout() {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Expiry Date</label>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Expiry Date
+                    </label>
                     <input
                       type="text"
                       name="expiryDate"
@@ -313,7 +420,9 @@ export default function Checkout() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">CVV</label>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      CVV
+                    </label>
                     <input
                       type="text"
                       name="cvv"
@@ -335,14 +444,18 @@ export default function Checkout() {
                       onChange={handleChange}
                       className="w-4 h-4 accent-orange-500"
                     />
-                    <span className="text-gray-300">Save payment information for future orders</span>
+                    <span className="text-gray-300">
+                      Save payment information for future orders
+                    </span>
                   </label>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                   <div className="flex items-center gap-2 text-gray-400">
                     <Shield size={20} />
-                    <span className="text-sm">Your payment information is secure and encrypted</span>
+                    <span className="text-sm">
+                      Your payment information is secure and encrypted
+                    </span>
                   </div>
 
                   <div className="flex gap-4">
@@ -396,7 +509,7 @@ export default function Checkout() {
                 )}
               </motion.div>
             )}
-
+            {/* Confirmation */}
             {step === 3 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -410,18 +523,15 @@ export default function Checkout() {
 
                 <h2 className="text-3xl font-bold mb-4">Order Confirmed!</h2>
                 <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                  Thank you for your order. We've sent a confirmation to your email. Your order will be prepared
-                  shortly.
+                  Thank you for your order. We've sent a confirmation to your
+                  email. Your order will be prepared shortly.
                 </p>
 
                 <div className="bg-[#2a2a2a] rounded-lg p-6 mb-8 max-w-md mx-auto">
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-400">Order Number:</span>
                     <span className="font-medium">
-                      #SB
-                      {Math.floor(Math.random() * 10000)
-                        .toString()
-                        .padStart(4, "0")}
+                      {resData.orderNumber || "123456789"}
                     </span>
                   </div>
                   <div className="flex justify-between mb-2">
@@ -430,7 +540,9 @@ export default function Checkout() {
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-400">Total:</span>
-                    <span className="font-medium">${calculateTotal().toFixed(2)}</span>
+                    <span className="font-medium">
+                      ${resData.totalPrice}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Estimated Delivery:</span>
@@ -449,7 +561,7 @@ export default function Checkout() {
                     Continue Shopping
                   </Link>
                   <Link
-                    href="/account/orders"
+                    href="/profile"
                     className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg transition-colors"
                   >
                     Track Order
@@ -466,7 +578,7 @@ export default function Checkout() {
 
               <div className="space-y-4 mb-6">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-3">
+                  <div key={item._id} className="flex gap-3">
                     <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                       <Image
                         src={item.image || "/placeholder.svg"}
@@ -478,8 +590,12 @@ export default function Checkout() {
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
-                      <p className="text-orange-500">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-sm text-gray-400">
+                        Qty: {item.quantity}
+                      </p>
+                      <p className="text-orange-500">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -509,7 +625,9 @@ export default function Checkout() {
 
               <div className="flex items-center gap-2 text-gray-400 mb-4">
                 <Truck size={18} />
-                <span className="text-sm">Free delivery for orders over $50</span>
+                <span className="text-sm">
+                  Free delivery for orders over $50
+                </span>
               </div>
 
               {step < 3 && (
@@ -524,5 +642,5 @@ export default function Checkout() {
         </div>
       </div>
     </div>
-  )
+  );
 }
