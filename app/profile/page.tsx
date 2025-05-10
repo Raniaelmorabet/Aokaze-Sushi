@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import logo from "@/public/logo.png";
-import { API_BASE_URL, authAPI } from "@/utils/api";
+import { API_BASE_URL } from "@/utils/api";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
