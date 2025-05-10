@@ -46,6 +46,8 @@ import { useLanguage } from "@/context/language-context";
 import pic from "../public/ig.jpg";
 import {
   API_BASE_URL,
+  authAPI,
+  cartAPI,
   categoryAPI,
   chefSpecialtiesAPI,
   galleryAPI,
@@ -82,6 +84,9 @@ export default function Home() {
   const heroRef = useRef(null);
   const [getChefs, setGetChefs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loadUser, setLoadUser] = useState(false);
   const aboutRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -136,9 +141,77 @@ export default function Home() {
     }
   };
 
-  const addToCart = (item: never) => {
-    setCartItems([...cartItems, item]);
+  const addToCart = async (item) => {
+    // Check if item already exists in cart
+    const existingItemIndex = cartItems.findIndex(
+      (cartItem) => cartItem._id === item._id
+    );
+
+    if (existingItemIndex >= 0) {
+      // Item exists - increase quantity
+      const updatedCartItems = [...cartItems];
+      updatedCartItems[existingItemIndex] = {
+        ...updatedCartItems[existingItemIndex],
+        quantity: updatedCartItems[existingItemIndex].quantity + 1,
+      };
+      console.log(item._id);
+      setCartItems(updatedCartItems);
+    } else {
+      setCartItems([...cartItems, { ...item, quantity: 1 }]);
+    }
+    if (localStorage.getItem("token")) {
+      console.log("addddding");
+      
+      try {
+        const res = await fetch(`${API_BASE_URL}/cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            menu_item_id: item._id,
+            quantity: 1,
+          }),
+        });
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("Failed to add item to cart:", errorData);
+          return;
+        }
+
+        const responseData = await res.json();
+        console.log("Item added to cart:", responseData);
+      } catch (error) {
+        console.error("Error adding item to cart:", error);
+      }
+    }
     setCartOpen(true);
+    console.log("Cart items:", cartItems);
+  };
+
+  const removeItemFromCart = async (id) => {
+    if (localStorage.getItem("token")) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/cart/item/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("Failed to remove item from cart:", errorData);
+          return;
+        }
+        console.log("Item removed from cart:", res);
+      } catch (error) {
+        console.error("Error removing item from cart:", error);
+      }
+    } else {
+      return;
+    }
   };
 
   const openCustomize = (item: SetStateAction<null>) => {
@@ -218,6 +291,25 @@ export default function Home() {
     }
   };
 
+  const getUser = async () => {
+    setLoadUser(true);
+    try {
+      if (!localStorage.getItem("token")) {
+        setLoadUser(false);
+        return;
+      }
+      const data = await authAPI.getCurrentUser();
+      if (data.success) {
+        setLoggedIn(true);
+        setUser(data.data);
+      }
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setLoadUser(false);
+    }
+  };
+
   const getMenuItems = async () => {
     setLoadingMenuItems(true);
     try {
@@ -227,12 +319,28 @@ export default function Home() {
         available: true,
       });
       setMenu(data.data);
-      console.log(data.data);
-      
     } catch (error) {
       console.log(error.message);
     } finally {
       setLoadingMenuItems(false);
+    }
+  };
+
+  const getCartItems = async () => {
+    if (localStorage.getItem("token")) {
+      console.log("getting cart items");
+      
+      try {
+        const data = await cartAPI.getCart();
+        console.log("server Cart items: ", data.items);
+        data.items.map((item) => {
+          setCartItems((prev) => [
+            { ...item.menu_item_id, quantity: item.quantity },
+          ]);
+        });
+      } catch (error) {
+        console.log(error.message);
+      }
     }
   };
 
@@ -252,36 +360,32 @@ export default function Home() {
     }
   };
 
+  const fetchChefs = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`${API_BASE_URL}/chefs`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      setGetChefs(result.data);
+    } catch (err) {
+      console.error("Failed to fetch chefs", err);
+    }
+  };
+
   useEffect(() => {
+    getUser();
     getOffers();
     getCategories();
     getMenuItems();
     getChefSpecialties();
     getGalleryImages();
     getTestimonials();
-  }, []);
-
-  useEffect(() => {
-    const fetchChefs = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/chefs`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const result = await response.json();
-        setGetChefs(result.data);
-      } catch (err) {
-        console.error("Failed to fetch chefs", err);
-      }
-    };
-
     fetchChefs();
+    getCartItems();
   }, []);
 
   const instagramPosts = [
@@ -400,13 +504,6 @@ export default function Home() {
               {t("nav.contact")}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
             </button>
-            <Link
-              href="/profile"
-              className="hover:text-orange-400 transition-colors relative group"
-            >
-              {t("Profile")}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
           </nav>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
@@ -421,13 +518,36 @@ export default function Home() {
                 </span>
               )}
             </button>
-            <Link
-              href="/auth/login"
-              className="bg-transparent border border-gray-600 rounded-full px-4 py-1 flex items-center gap-2 hover:bg-gray-800 transition-colors"
-            >
-              <User size={16} />
-              <span>{t("nav.login")}</span>
-            </Link>
+            <div className="hidden md:flex">
+              {!loadUser ? (
+                loggedIn ? (
+                  <Link
+                    href="/profile"
+                    className=" rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
+                  >
+                    <Image
+                      src={user?.image || logo}
+                      alt={user?.name || "User"}
+                      width={24}
+                      height={24}
+                      className="rounded-full w-full h-full hover:opacity-80 duration-200"
+                    />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    className="bg-transparent border border-gray-600 rounded-full px-4 py-1 flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                  >
+                    <User size={16} />
+                    <span>{t("nav.login")}</span>
+                  </Link>
+                )
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-gray-600 animate-pulse">
+                  .
+                </div>
+              )}
+            </div>
             <Link
               href="/reservation"
               className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors hidden md:block"
@@ -481,12 +601,34 @@ export default function Home() {
               >
                 {t("nav.contact")}
               </button>
-              <Link
-                href="/admin"
-                className="hover:text-orange-400 transition-colors"
-              >
-                {t("nav.admin")}
-              </Link>
+              {!loadUser ? (
+                loggedIn ? (
+                  <Link
+                    href="/profile"
+                    className=" rounded-full size-14 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
+                  >
+                    <Image
+                      src={user?.image || logo}
+                      alt={user?.name || "User"}
+                      width={24}
+                      height={24}
+                      className="rounded-full w-full h-full hover:opacity-80 duration-200"
+                    />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    className="bg-transparent border border-gray-600 rounded-full px-4 py-1 flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                  >
+                    <User size={16} />
+                    <span>{t("nav.login")}</span>
+                  </Link>
+                )
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-gray-600 animate-pulse">
+                  .
+                </div>
+              )}
               <button
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors mt-4"
                 onClick={() => {
@@ -1446,9 +1588,10 @@ export default function Home() {
             <OrderCart
               items={cartItems}
               onClose={() => setCartOpen(false)}
-              onRemoveItem={(id: any) =>
-                setCartItems(cartItems.filter((item) => item._id !== id))
-              }
+              onRemoveItem={(id: any) => {
+                setCartItems(cartItems.filter((item) => item._id !== id));
+                removeItemFromCart(id);
+              }}
             />
           </motion.div>
         )}
