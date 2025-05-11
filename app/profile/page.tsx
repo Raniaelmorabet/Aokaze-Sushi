@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import logo from "@/public/logo.png";
-import { API_BASE_URL } from "@/utils/api";
+import { API_BASE_URL, authAPI } from "@/utils/api";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
@@ -32,6 +32,13 @@ export default function ProfilePage() {
   const [getuser, setGetUser] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState();
+  const [alertStatus, setAlertStatus] = useState({});
+  const [isExiting, setIsExiting] = useState(false);
+  const [formDataForPassword, setFormDataForPassword] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   // Mock reservations data
   const reservations = [
@@ -220,38 +227,112 @@ export default function ProfilePage() {
     }
   };
 
-const handleLogout = async () => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/logout`);
-    const ress = await res.json();
-    console.log(ress);
-    
-    if (ress.success) {
-      // Clear token and user data
-      localStorage.removeItem("token");
-      localStorage.removeItem("userData");
-      localStorage.removeItem("email");
-      localStorage.removeItem("orders");
-      localStorage.removeItem("cart");
-      
-      // Clear session storage if used
-      sessionStorage.clear();
-      
-      // Replace current history entry and redirect
-      window.history.replaceState(null, "", "/");
-      window.location.href = "/";
-      
-      // Optional: Force reload to clear any in-memory state
-      window.location.reload();
-    } else {
-      console.error("Logout failed");
+  const handleLogout = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/logout`);
+      const ress = await res.json();
+      console.log(ress);
+
+      if (ress.success) {
+        // Clear token and user data
+        localStorage.removeItem("token");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("email");
+        localStorage.removeItem("orders");
+        localStorage.removeItem("cart");
+
+        // Clear session storage if used
+        sessionStorage.clear();
+
+        // Replace current history entry and redirect
+        window.history.replaceState(null, "", "/");
+        window.location.href = "/";
+
+        // Optional: Force reload to clear any in-memory state
+        window.location.reload();
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Optional: Show error message to user
+      // setError("Failed to logout. Please try again.");
     }
-  } catch (error) {
-    console.error("Logout error:", error);
-    // Optional: Show error message to user
-    // setError("Failed to logout. Please try again.");
-  }
-};
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setFormDataForPassword((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (
+      formDataForPassword.newPassword !== formDataForPassword.confirmPassword
+    ) {
+      setAlertStatus({
+        type: true,
+        message: "New passwords don't match!",
+      });
+      return;
+    }
+
+    if (formDataForPassword.newPassword.length < 8) {
+      alert();
+      setAlertStatus({
+        type: true,
+        message: "Password must be at least 8 characters long!",
+      });
+      return;
+    }
+
+    try {
+      const responce = await authAPI.updatePassword({currentPassword: formDataForPassword.currentPassword, newPassword: formDataForPassword.newPassword});
+      if (responce.success) {
+        setAlertStatus({
+          type: true,
+          message: "Password updated successfully!",
+        });
+      } else {
+        setAlertStatus({
+          type: true,
+          message: responce.message,
+        });
+      }
+    } catch (error) {
+      setAlertStatus({
+        type: true,
+        message: "Current Password is incorrect!",
+      });
+    }
+
+    // Reset form after submission
+    setFormDataForPassword({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+  };
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (Object.keys(alertStatus).length > 0) {
+      setIsExiting(false);
+      timer = setTimeout(() => {
+        setIsExiting(true);
+        setTimeout(() => {
+          setAlertStatus({});
+          setIsExiting(false);
+        }, 300); 
+      }, 3000); 
+    }
+    return () => clearTimeout(timer);
+  }, [alertStatus]);
 
   return (
     <div className="bg-[#121212] text-white min-h-screen">
@@ -348,7 +429,10 @@ const handleLogout = async () => {
               </nav>
 
               <div className="p-4 border-t border-gray-800">
-                <button onClick={() => handleLogout()} className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
+                <button
+                  onClick={() => handleLogout()}
+                  className="flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                >
                   <LogOut size={18} />
                   <span>Logout</span>
                 </button>
@@ -788,6 +872,9 @@ const handleLogout = async () => {
                       </label>
                       <input
                         type="password"
+                        name="currentPassword"
+                        value={formDataForPassword.currentPassword}
+                        onChange={handlePasswordChange}
                         placeholder="••••••••"
                         className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
                       />
@@ -799,6 +886,9 @@ const handleLogout = async () => {
                       </label>
                       <input
                         type="password"
+                        name="newPassword"
+                        value={formDataForPassword.newPassword}
+                        onChange={handlePasswordChange}
                         placeholder="••••••••"
                         className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
                       />
@@ -810,6 +900,9 @@ const handleLogout = async () => {
                       </label>
                       <input
                         type="password"
+                        name="confirmPassword"
+                        value={formDataForPassword.confirmPassword}
+                        onChange={handlePasswordChange}
                         placeholder="••••••••"
                         className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
                       />
@@ -817,7 +910,10 @@ const handleLogout = async () => {
                   </div>
 
                   <div className="flex justify-end">
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    <button
+                      onClick={handlePasswordSubmit}
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
+                    >
                       Update Password
                     </button>
                   </div>
@@ -848,6 +944,21 @@ const handleLogout = async () => {
           </div>
         </div>
       </div>
+
+      {/* Alert Status */}
+      {Object.keys(alertStatus).length > 0 && (
+        <div
+          className={`fixed w-fit bottom-5 right-5 ${
+            alertStatus.type
+              ? "border-[#179417] bg-[#1b3f07]"
+              : "border-[#941717] bg-[#3f0707]"
+          } text-center py-4 px-4 border-2 rounded-xl text-gray-400 ${
+            isExiting ? "animate-slideOut" : "animate-slideIn"
+          }`}
+        >
+          {alertStatus.message}
+        </div>
+      )}
     </div>
   );
 }
