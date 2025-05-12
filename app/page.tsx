@@ -53,6 +53,7 @@ import {
   chefSpecialtiesAPI,
   galleryAPI,
   menuAPI,
+  notificationAPI,
   offersAPI,
   testimonialAPI,
 } from "@/utils/api";
@@ -76,6 +77,7 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activePromotion, setActivePromotion] = useState(0);
   const [offers, setOffers] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [serverTestimonials, setServerTestimonials] = useState([]);
@@ -319,6 +321,21 @@ export default function Home() {
     }
   };
 
+  const getNotifications = async () => {
+    try {
+      if (!localStorage.getItem("token")) {
+        setLoadUser(false);
+        return;
+      }
+      const data = await notificationAPI.getNotifications();
+      if (data.success) {
+        setNotifications(data.data);
+        console.log("Notifications: ", data.data);
+      }
+    } catch (error) {
+      console.log(error.message);
+    } 
+  };
   const getUser = async () => {
     setLoadUser(true);
     try {
@@ -405,6 +422,7 @@ export default function Home() {
 
   useEffect(() => {
     getUser();
+    getNotifications();
     getOffers();
     getCategories();
     getMenuItems();
@@ -548,7 +566,7 @@ export default function Home() {
             <button className="flex md:hidden relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white">
               <Bell className="size-3 md:size-4" />
               <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
+                {notifications.length}
               </span>
             </button>
             <div className="hidden md:flex">
@@ -558,7 +576,7 @@ export default function Home() {
                     <button className="relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white">
                       <Bell size={17} />
                       <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        3
+                        {!notifications ? "0" : notifications.length}
                       </span>
                     </button>
                     <Link
