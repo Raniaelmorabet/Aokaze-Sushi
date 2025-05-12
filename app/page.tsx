@@ -618,30 +618,6 @@ export default function Home() {
               </button>
             </div>
             <div className="flex flex-col items-center justify-center h-full gap-8 text-2xl">
-              <button
-                onClick={() => scrollToSection("about")}
-                className="hover:text-orange-400 transition-colors"
-              >
-                {t("nav.about")}
-              </button>
-              <button
-                onClick={() => scrollToSection("menu")}
-                className="hover:text-orange-400 transition-colors"
-              >
-                {t("nav.menu")}
-              </button>
-              <button
-                onClick={() => scrollToSection("testimonials")}
-                className="hover:text-orange-400 transition-colors"
-              >
-                {t("nav.testimonials")}
-              </button>
-              <button
-                onClick={() => scrollToSection("contact")}
-                className="hover:text-orange-400 transition-colors"
-              >
-                {t("nav.contact")}
-              </button>
               {!loadUser ? (
                 loggedIn ? (
                   <Link
@@ -670,6 +646,31 @@ export default function Home() {
                   .
                 </div>
               )}
+              <button
+                onClick={() => scrollToSection("about")}
+                className="hover:text-orange-400 transition-colors"
+              >
+                {t("nav.about")}
+              </button>
+              <button
+                onClick={() => scrollToSection("menu")}
+                className="hover:text-orange-400 transition-colors"
+              >
+                {t("nav.menu")}
+              </button>
+              <button
+                onClick={() => scrollToSection("testimonials")}
+                className="hover:text-orange-400 transition-colors"
+              >
+                {t("nav.testimonials")}
+              </button>
+              <button
+                onClick={() => scrollToSection("contact")}
+                className="hover:text-orange-400 transition-colors"
+              >
+                {t("nav.contact")}
+              </button>
+              
               <button
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors mt-4"
                 onClick={() => {
