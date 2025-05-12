@@ -39,20 +39,20 @@ export function FoodCustomizer({ item, onAddToCart, onCancel, setCustomizeItem }
     return total.toFixed(2)
   }
 
-  const handleAddToCart = () => {
-    const customizedItem = {
-      ...item,
-      quantity,
-      selectedOptions,
-      specialInstructions,
-      totalPrice: calculateTotal(),
-    }
+const handleAddToCart = () => {
+  const customizedItem = {
+    ...item,
+    quantity,
+    selectedOptions: {
+      ...selectedOptions,
+      specialInstructions: specialInstructions.trim()
+    },
+    totalPrice: calculateTotal(),
+  };
 
-    onAddToCart(customizedItem)
-
-    console.log("Item added to cart:", customizedItem);
-    
-  }
+  onAddToCart(customizedItem);
+  console.log("Item added to cart2:", customizedItem);
+}
 
   // Example customization options
   const customizationOptions = {
