@@ -1,22 +1,37 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/Image"
-import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import {LayoutDashboard, ShoppingBag, Users, FileText, Settings, Menu, X, LogOut, Bell, Search, User, ChevronDown,} from "lucide-react"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/Image";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Users,
+  FileText,
+  Settings,
+  Menu,
+  X,
+  LogOut,
+  Bell,
+  Search,
+  User,
+  ChevronDown,
+} from "lucide-react";
 import { RiUserStarLine } from "react-icons/ri";
-import logo from "@/public/logo.png"
+import logo from "@/public/logo.png";
 import { RiGalleryFill } from "react-icons/ri";
 import { Tag } from "lucide-react";
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
-import { Toaster } from "sonner"
-import { API_BASE_URL } from "@/utils/api"
+import { Toaster } from "sonner";
+import { API_BASE_URL } from "@/utils/api";
 export default function AdminLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState();
+  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -25,40 +40,68 @@ export default function AdminLayout({ children }) {
     { name: "Customers", href: "/admin/customers", icon: Users },
     { name: "Testimonials", href: "/admin/testimonials", icon: RiUserStarLine },
     { name: "Gallery Management", href: "/admin/gallery", icon: RiGalleryFill },
-    { name: "Category", href: "/admin/category", icon: MdOutlineRestaurantMenu },
+    {
+      name: "Category",
+      href: "/admin/category",
+      icon: MdOutlineRestaurantMenu,
+    },
     { name: "Chef's Management", href: "/admin/chefs", icon: PiChefHat },
     { name: "Offers Management", href: "/admin/offers", icon: Tag },
     { name: "Settings", href: "/admin/settings", icon: Settings },
-  ]
+  ];
 
-    const handleLogout = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/logout`);
-        const ress = await res.json();
-        console.log(ress);
-  
-        if (ress.success) {
-          // Clear token and user data
-          localStorage.removeItem("token");
-          localStorage.removeItem("userData");
-          localStorage.removeItem("email");
-          localStorage.removeItem("orders");
-          localStorage.removeItem("cart");
-  
-          sessionStorage.clear();
-  
+  const handleLogout = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/logout`);
+      const ress = await res.json();
+      console.log(ress);
+
+      if (ress.success) {
+        // Clear token and user data
+        localStorage.removeItem("token");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("email");
+        localStorage.removeItem("orders");
+        localStorage.removeItem("cart");
+
+        sessionStorage.clear();
+
         window.history.replaceState(null, "", "/auth/login");
-          window.location.href = "/auth/login";
-  
-          window.location.reload();
-        } else {
-          console.error("Logout failed");
-        }
-      } catch (error) {
-        console.error("Logout error:", error);
+        window.location.href = "/auth/login";
 
+        window.location.reload();
+      } else {
+        console.error("Logout failed");
       }
-    };
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const ShowUser = async () => {
+    const token = localStorage.getItem("token");
+    setLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      console.log(data.data);
+      setUser(data.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    ShowUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -89,7 +132,7 @@ export default function AdminLayout({ children }) {
               <div className="flex items-center justify-between p-4 border-b border-gray-800">
                 <Link href="/admin" className="flex items-center gap-2">
                   <div className="text-white">
-                    <Image src={logo} alt='logo' className='w-20'/>
+                    <Image src={logo} alt="logo" className="w-20" />
                   </div>
                 </Link>
                 <button onClick={() => setSidebarOpen(false)}>
@@ -108,8 +151,8 @@ export default function AdminLayout({ children }) {
                         : "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
                     }`}
                   >
-                    {item.icon && <item.icon size={20}/>}
-                    {item.image && <Image src={item.image} size={20}/>}
+                    {item.icon && <item.icon size={20} />}
+                    {item.image && <Image src={item.image} size={20} />}
                     <span>{item.name}</span>
                   </Link>
                 ))}
@@ -131,7 +174,7 @@ export default function AdminLayout({ children }) {
         <div className="flex items-center justify-center h-16 border-b border-gray-800">
           <Link href="/admin" className="flex items-center gap-2">
             <div className="text-white">
-              <Image src={logo} alt='logo' className='w-24'/>
+              <Image src={logo} alt="logo" className="w-24" />
             </div>
           </Link>
         </div>
@@ -148,15 +191,18 @@ export default function AdminLayout({ children }) {
                     : "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
                 }`}
               >
-                {item.icon && <item.icon size={20}/>}
-                {item.image && <Image src={item.image} width={20}/> }
+                {item.icon && <item.icon size={20} />}
+                {item.image && <Image src={item.image} width={20} />}
                 <span>{item.name}</span>
               </Link>
             ))}
           </nav>
 
           <div className="p-4 border-t border-gray-800">
-            <button onClick={() => handleLogout()} className="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors w-full">
+            <button
+              onClick={() => handleLogout()}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors w-full"
+            >
               <LogOut size={20} />
               <span>Logout</span>
             </button>
@@ -170,39 +216,35 @@ export default function AdminLayout({ children }) {
         <header className="bg-[#1a1a1a] shadow-md">
           <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center gap-4">
-              <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-300 hover:text-white">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden text-gray-300 hover:text-white"
+              >
                 <Menu size={24} />
               </button>
-
-              {/* <div className="relative hidden md:block">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="bg-[#2a2a2a] text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 w-64"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              </div> */}
             </div>
 
             <div className="flex items-center gap-4">
-              <button className="relative text-gray-300 hover:text-white">
-                <Bell size={20} />
-                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  3
-                </span>
-              </button>
-
               <div className="relative">
-                <button className="flex items-center gap-2 text-gray-300 hover:text-white">
-                  <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
-                    <User size={16} />
+                <Link href={"/admin/settings"} className="flex items-center gap-2 text-gray-300 ">
+                  <div className="size-10 rounded-full  flex items-center justify-center hover:text-white border border-white/30 hover:opacity-85 hover:scale-105 hover:border-white duration-200">
+                    {!loading ? (
+                      <img
+                        src={user?.image}
+                        alt="Profile"
+                        className="w-full h-full rounded-full"
+                      />
+                    ) : (
+                      <User size={24} />
+                    )}
                   </div>
-                  <span className="hidden md:block">Admin User</span>
-                  <ChevronDown size={16} />
-                </button>
+                </Link>
               </div>
 
-              <Link href="/" className="hidden md:block text-sm text-gray-300 hover:text-white">
+              <Link
+                href="/"
+                className="hidden md:block text-sm text-gray-300 hover:text-white"
+              >
                 View Website
               </Link>
             </div>
@@ -213,5 +255,5 @@ export default function AdminLayout({ children }) {
         <main className="p-4 md:p-8">{children}</main>
       </div>
     </div>
-  )
+  );
 }
