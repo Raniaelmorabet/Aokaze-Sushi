@@ -451,7 +451,7 @@ export default function Home() {
     try {
       await notificationAPI.markAllAsRead();
       setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
-      setUnreadCount(0); 
+      setUnreadCount(0);
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }
