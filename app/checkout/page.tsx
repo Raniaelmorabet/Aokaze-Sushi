@@ -44,53 +44,53 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState([]);
   const [resData, setResData] = useState();
   const [errors, setErrors] = useState({
-  street: '',
-  city: '',
-  state: '',
-  country: '',
-  zipCode: ''
-});
+    street: "",
+    city: "",
+    state: "",
+    country: "",
+    zipCode: "",
+  });
 
-const validateStep1 = () => {
-  const newErrors = {};
-  let isValid = true;
+  const validateStep1 = () => {
+    const newErrors = {};
+    let isValid = true;
 
-  // Street validation
-  if (!formData.deliveryAddress.street.trim()) {
-    newErrors.street = 'Street address is required';
-    isValid = false;
-  }
+    // Street validation
+    if (!formData.deliveryAddress.street.trim()) {
+      newErrors.street = "Street address is required";
+      isValid = false;
+    }
 
-  // City validation
-  if (!formData.deliveryAddress.city.trim()) {
-    newErrors.city = 'City is required';
-    isValid = false;
-  }
+    // City validation
+    if (!formData.deliveryAddress.city.trim()) {
+      newErrors.city = "City is required";
+      isValid = false;
+    }
 
-  // State validation
-  if (!formData.deliveryAddress.state.trim()) {
-    newErrors.state = 'State is required';
-    isValid = false;
-  }
+    // State validation
+    if (!formData.deliveryAddress.state.trim()) {
+      newErrors.state = "State is required";
+      isValid = false;
+    }
 
-  // Country validation
-  if (!formData.deliveryAddress.country) {
-    newErrors.country = 'Please select a country';
-    isValid = false;
-  }
+    // Country validation
+    if (!formData.deliveryAddress.country) {
+      newErrors.country = "Please select a country";
+      isValid = false;
+    }
 
-  // Zip Code validation
-  if (!formData.deliveryAddress.zipCode.trim()) {
-    newErrors.zipCode = 'Zip code is required';
-    isValid = false;
-  } else if (!/^\d+$/.test(formData.deliveryAddress.zipCode)) {
-    newErrors.zipCode = 'Zip code must contain only numbers';
-    isValid = false;
-  }
+    // Zip Code validation
+    if (!formData.deliveryAddress.zipCode.trim()) {
+      newErrors.zipCode = "Zip code is required";
+      isValid = false;
+    } else if (!/^\d+$/.test(formData.deliveryAddress.zipCode)) {
+      newErrors.zipCode = "Zip code must contain only numbers";
+      isValid = false;
+    }
 
-  setErrors(newErrors);
-  return isValid;
-};
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -676,7 +676,10 @@ const validateStep1 = () => {
 
               <div className="space-y-4 mb-6">
                 {cartItems.map((item) => (
-                  <div key={item._id + JSON.stringify(item.selectedOptions)} className="flex gap-3">
+                  <div
+                    key={item._id + JSON.stringify(item.selectedOptions)}
+                    className="flex gap-3"
+                  >
                     <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                       <Image
                         src={item.image || "/placeholder.svg"}
@@ -691,21 +694,30 @@ const validateStep1 = () => {
                       <p className="text-sm text-gray-400">
                         Qty: {item.quantity}
                       </p>
-                                        {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
-                    <div className="mb-2">
-                      {Object.entries(item.selectedOptions).map(([category, options]) => (
-                        <div key={category} className="text-xs text-gray-400">
-                          <span className="font-medium">{category}:</span>{" "}
-                          {Array.isArray(options) ? options.join(", ") : options}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                      {item.selectedOptions &&
+                        Object.entries(item.selectedOptions).length > 0 && (
+                          <div className="mb-2">
+                            {Object.entries(item.selectedOptions).map(
+                              ([category, options]) => (
+                                <div
+                                  key={category}
+                                  className="text-xs text-gray-400"
+                                >
+                                  <span className="font-medium">
+                                    {category}:
+                                  </span>{" "}
+                                  {Array.isArray(options)
+                                    ? options.join(", ")
+                                    : options}
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
                       <p className="text-orange-500">
                         ${(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
-                    
                   </div>
                 ))}
               </div>
