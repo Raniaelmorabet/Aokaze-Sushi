@@ -1,8 +1,8 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-// export const API_BASE_URL = "http://localhost:5000/api";
+// export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
@@ -893,5 +893,119 @@ export const cartAPI = {
    */
   mergeCart: async (localItems) => {
     return await apiRequest("/cart/merge", "POST", { items: localItems }, true);
+  },
+};
+
+
+/**
+ * Notification API functions
+ */
+export const notificationAPI = {
+  // Get all notifications for current user
+  getNotifications: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/notifications?${queryString}`, "GET", null, true);
+  },
+
+  // Get unread notifications count
+  getUnreadCount: async () => {
+    return await apiRequest("/notifications/unread-count", "GET", null, true);
+  },
+
+  // Mark notification as read
+  markAsRead: async (notificationId) => {
+    return await apiRequest(
+      `/notifications/${notificationId}/read`,
+      "PATCH",
+      null,
+      true
+    );
+  },
+
+  // Mark all notifications as read
+  markAllAsRead: async () => {
+    // First get all unread notifications
+    const unreadNotifications = await apiRequest(
+      "/notifications?isRead=false",
+      "GET",
+      null,
+      true
+    );
+    
+    // Mark each as read
+    if (unreadNotifications && unreadNotifications.length > 0) {
+      await Promise.all(
+        unreadNotifications.map((notification) =>
+          apiRequest(
+            `/notifications/${notification._id}/read`,
+            "PATCH",
+            null,
+            true
+          )
+        )
+      );
+    }
+    
+    return { success: true, count: unreadNotifications.length };
+  },
+
+  // Create order notification (Admin/Kitchen only)
+  createOrderNotification: async (orderId, notificationType) => {
+    return await apiRequest(
+      "/notifications/order-complete",
+      "POST",
+      { orderId, notificationType },
+      true
+    );
+  },
+
+  // Create system notification (Admin only)
+  createSystemNotification: async (userId, title, message) => {
+    return await apiRequest(
+      "/notifications/system",
+      "POST",
+      { userId, title, message },
+      true
+    );
+  },
+
+  // Delete notification
+  deleteNotification: async (notificationId) => {
+    return await apiRequest(
+      `/notifications/${notificationId}`,
+      "DELETE",
+      null,
+      true
+    );
+  },
+
+  // Get notification by ID
+  getNotificationById: async (notificationId) => {
+    return await apiRequest(
+      `/notifications/${notificationId}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Get latest notifications
+  getLatestNotifications: async (limit = 5) => {
+    return await apiRequest(
+      `/notifications?limit=${limit}&sort=-createdAt`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Filter notifications by type
+  filterByType: async (type) => {
+    return await apiRequest(
+      `/notifications?type=${type}`,
+      "GET",
+      null,
+      true
+    );
   },
 };
