@@ -13,6 +13,7 @@ import { Tag } from "lucide-react";
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
 import { Toaster } from "sonner"
+import { API_BASE_URL } from "@/utils/api"
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
@@ -29,6 +30,35 @@ export default function AdminLayout({ children }) {
     { name: "Offers Management", href: "/admin/offers", icon: Tag },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
+
+    const handleLogout = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/logout`);
+        const ress = await res.json();
+        console.log(ress);
+  
+        if (ress.success) {
+          // Clear token and user data
+          localStorage.removeItem("token");
+          localStorage.removeItem("userData");
+          localStorage.removeItem("email");
+          localStorage.removeItem("orders");
+          localStorage.removeItem("cart");
+  
+          sessionStorage.clear();
+  
+        window.history.replaceState(null, "", "/auth/login");
+          window.location.href = "/auth/login";
+  
+          window.location.reload();
+        } else {
+          console.error("Logout failed");
+        }
+      } catch (error) {
+        console.error("Logout error:", error);
+
+      }
+    };
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -126,7 +156,7 @@ export default function AdminLayout({ children }) {
           </nav>
 
           <div className="p-4 border-t border-gray-800">
-            <button className="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors w-full">
+            <button onClick={() => handleLogout()} className="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors w-full">
               <LogOut size={20} />
               <span>Logout</span>
             </button>
