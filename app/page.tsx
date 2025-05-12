@@ -562,7 +562,7 @@ const addToCart = async (item) => {
                       alt={user?.name || "User"}
                       width={24}
                       height={24}
-                      className="rounded-full w-full h-full hover:opacity-80 duration-200"
+                      className="rounded-full w-full h-full hover:scale-105 hover:opacity-80 duration-200"
                     />
                   </Link>
                 ) : (
