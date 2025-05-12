@@ -24,6 +24,7 @@ import {
   Flame,
   ThumbsUp,
   DollarSign,
+  Bell,
 } from "lucide-react";
 import {
   motion,
@@ -141,86 +142,83 @@ export default function Home() {
     }
   };
 
-const addToCart = async (item) => {
-  let newItem;
+  const addToCart = async (item) => {
+    let newItem;
 
-  try {
-    newItem = JSON.parse(item);
-  } catch (e) {
-    if (typeof item === "object" && item !== null) {
-      newItem = item;
-    } else {
-      console.error("Item is neither valid JSON nor an object:", item);
-      newItem = null;
-    }
-  }
-  
-  if (!newItem) return; // Skip if item is invalid
-
-  console.log("new item", newItem);
-
-  // Check if item with same ID AND same customizations exists in cart
-  const existingItemIndex = cartItems.findIndex((cartItem) => {
-    // Compare IDs
-    const sameId = cartItem._id === newItem._id;
-    
-    // Compare customizations
-    let sameCustomizations = true;
-    
-    // If both have selectedOptions, compare them
-    if (cartItem.selectedOptions || newItem.selectedOptions) {
-      // Convert to JSON string for easy comparison of objects
-      const cartOptions = JSON.stringify(cartItem.selectedOptions || {});
-      const newOptions = JSON.stringify(newItem.selectedOptions || {});
-      sameCustomizations = cartOptions === newOptions;
-    }
-    
-    return sameId && sameCustomizations;
-  });
-
-  if (existingItemIndex >= 0) {
-    // Item with same ID AND customizations exists - increase quantity
-    const updatedCartItems = [...cartItems];
-    updatedCartItems[existingItemIndex] = {
-      ...updatedCartItems[existingItemIndex],
-      quantity: updatedCartItems[existingItemIndex].quantity + 1,
-    };
-    setCartItems(updatedCartItems);
-  } else {
-    // New item or different customizations - add as new item
-    setCartItems([...cartItems, { ...newItem, quantity: 1 }]);
-  }
-
-  if (localStorage.getItem("token")) {
     try {
-      const res = await fetch(`${API_BASE_URL}/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          menu_item_id: newItem._id,
-          quantity: 1,
-          customizations: newItem.selectedOptions || {}, // Ensure this is always an object
-        }),
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Failed to add item to cart:", errorData);
-        return;
+      newItem = JSON.parse(item);
+    } catch (e) {
+      if (typeof item === "object" && item !== null) {
+        newItem = item;
+      } else {
+        console.error("Item is neither valid JSON nor an object:", item);
+        newItem = null;
+      }
+    }
+
+    if (!newItem) return; // Skip if item is invalid
+
+    // Check if item with same ID AND same customizations exists in cart
+    const existingItemIndex = cartItems.findIndex((cartItem) => {
+      // Compare IDs
+      const sameId = cartItem._id === newItem._id;
+
+      // Compare customizations
+      let sameCustomizations = true;
+
+      // If both have selectedOptions, compare them
+      if (cartItem.selectedOptions || newItem.selectedOptions) {
+        // Convert to JSON string for easy comparison of objects
+        const cartOptions = JSON.stringify(cartItem.selectedOptions || {});
+        const newOptions = JSON.stringify(newItem.selectedOptions || {});
+        sameCustomizations = cartOptions === newOptions;
       }
 
-      const responseData = await res.json();
-      console.log("Item added to cart:", responseData);
-    } catch (error) {
-      console.error("Error adding item to cart:", error);
+      return sameId && sameCustomizations;
+    });
+
+    if (existingItemIndex >= 0) {
+      // Item with same ID AND customizations exists - increase quantity
+      const updatedCartItems = [...cartItems];
+      updatedCartItems[existingItemIndex] = {
+        ...updatedCartItems[existingItemIndex],
+        quantity: updatedCartItems[existingItemIndex].quantity + 1,
+      };
+      setCartItems(updatedCartItems);
+    } else {
+      // New item or different customizations - add as new item
+      setCartItems([...cartItems, { ...newItem, quantity: 1 }]);
     }
-  }
-  
-  setCartOpen(true);
-};
+
+    if (localStorage.getItem("token")) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            menu_item_id: newItem._id,
+            quantity: 1,
+            customizations: newItem.selectedOptions || {}, // Ensure this is always an object
+          }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("Failed to add item to cart:", errorData);
+          return;
+        }
+
+        const responseData = await res.json();
+      } catch (error) {
+        console.error("Error adding item to cart:", error);
+      }
+    }
+
+    setCartOpen(true);
+  };
 
   const removeItemFromCart = async (id) => {
     if (localStorage.getItem("token")) {
@@ -237,7 +235,6 @@ const addToCart = async (item) => {
           console.error("Failed to remove item from cart:", errorData);
           return;
         }
-        console.log("Item removed from cart:", res);
       } catch (error) {
         console.error("Error removing item from cart:", error);
       }
@@ -359,8 +356,6 @@ const addToCart = async (item) => {
 
   const getCartItems = async () => {
     if (localStorage.getItem("token")) {
-      console.log("getting cart items");
-
       try {
         const data = await cartAPI.getCart();
         console.log("server Cart items: ", data.items);
@@ -504,7 +499,7 @@ const addToCart = async (item) => {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-white">
-              <Image src={logo} alt="logo" className="w-28" />
+              <Image src={logo} alt="logo" className="w-24 md:w-28" />
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -543,28 +538,42 @@ const addToCart = async (item) => {
               className="relative bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
               onClick={() => setCartOpen(true)}
             >
-              <ShoppingCart size={16} />
+              <ShoppingCart  className="size-3 md:size-4" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItems.length}
                 </span>
               )}
             </button>
+            <button className="flex md:hidden relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white">
+              <Bell className="size-3 md:size-4" />
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                3
+              </span>
+            </button>
             <div className="hidden md:flex">
               {!loadUser ? (
                 loggedIn ? (
-                  <Link
-                    href="/profile"
-                    className=" rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
-                  >
-                    <Image
-                      src={user?.image || logo}
-                      alt={user?.name || "User"}
-                      width={24}
-                      height={24}
-                      className="rounded-full w-full h-full hover:scale-105 hover:opacity-80 duration-200"
-                    />
-                  </Link>
+                  <div className="flex items-center gap-4">
+                    <button className="relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white">
+                      <Bell size={17} />
+                      <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        3
+                      </span>
+                    </button>
+                    <Link
+                      href="/profile"
+                      className=" rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
+                    >
+                      <Image
+                        src={user?.image || logo}
+                        alt={user?.name || "User"}
+                        width={24}
+                        height={24}
+                        className="rounded-full w-full h-full hover:scale-105 hover:opacity-80 duration-200"
+                      />
+                    </Link>
+                  </div>
                 ) : (
                   <Link
                     href="/auth/login"
@@ -580,12 +589,12 @@ const addToCart = async (item) => {
                 </div>
               )}
             </div>
-            <Link
+            {/* <Link
               href="/reservation"
               className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors hidden md:block"
             >
               {t("nav.reserve")}
-            </Link>
+            </Link> */}
             <button className="md:hidden" onClick={() => setIsMenuOpen(true)}>
               <Menu size={24} />
             </button>
