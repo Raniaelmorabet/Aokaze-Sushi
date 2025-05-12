@@ -141,54 +141,86 @@ export default function Home() {
     }
   };
 
-  const addToCart = async (item) => {
-    // Check if item already exists in cart
-    const existingItemIndex = cartItems.findIndex(
-      (cartItem) => cartItem._id === item._id
-    );
+const addToCart = async (item) => {
+  let newItem;
 
-    if (existingItemIndex >= 0) {
-      // Item exists - increase quantity
-      const updatedCartItems = [...cartItems];
-      updatedCartItems[existingItemIndex] = {
-        ...updatedCartItems[existingItemIndex],
-        quantity: updatedCartItems[existingItemIndex].quantity + 1,
-      };
-      console.log(item._id);
-      setCartItems(updatedCartItems);
+  try {
+    newItem = JSON.parse(item);
+  } catch (e) {
+    if (typeof item === "object" && item !== null) {
+      newItem = item;
     } else {
-      setCartItems([...cartItems, { ...item, quantity: 1 }]);
+      console.error("Item is neither valid JSON nor an object:", item);
+      newItem = null;
     }
-    if (localStorage.getItem("token")) {
-      console.log("addddding");
-      
-      try {
-        const res = await fetch(`${API_BASE_URL}/cart`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            menu_item_id: item._id,
-            quantity: 1,
-          }),
-        });
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error("Failed to add item to cart:", errorData);
-          return;
-        }
+  }
+  
+  if (!newItem) return; // Skip if item is invalid
 
-        const responseData = await res.json();
-        console.log("Item added to cart:", responseData);
-      } catch (error) {
-        console.error("Error adding item to cart:", error);
-      }
+  console.log("new item", newItem);
+
+  // Check if item with same ID AND same customizations exists in cart
+  const existingItemIndex = cartItems.findIndex((cartItem) => {
+    // Compare IDs
+    const sameId = cartItem._id === newItem._id;
+    
+    // Compare customizations
+    let sameCustomizations = true;
+    
+    // If both have selectedOptions, compare them
+    if (cartItem.selectedOptions || newItem.selectedOptions) {
+      // Convert to JSON string for easy comparison of objects
+      const cartOptions = JSON.stringify(cartItem.selectedOptions || {});
+      const newOptions = JSON.stringify(newItem.selectedOptions || {});
+      sameCustomizations = cartOptions === newOptions;
     }
-    setCartOpen(true);
-    console.log("Cart items:", cartItems);
-  };
+    
+    return sameId && sameCustomizations;
+  });
+
+  if (existingItemIndex >= 0) {
+    // Item with same ID AND customizations exists - increase quantity
+    const updatedCartItems = [...cartItems];
+    updatedCartItems[existingItemIndex] = {
+      ...updatedCartItems[existingItemIndex],
+      quantity: updatedCartItems[existingItemIndex].quantity + 1,
+    };
+    setCartItems(updatedCartItems);
+  } else {
+    // New item or different customizations - add as new item
+    setCartItems([...cartItems, { ...newItem, quantity: 1 }]);
+  }
+
+  if (localStorage.getItem("token")) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          menu_item_id: newItem._id,
+          quantity: 1,
+          customizations: newItem.selectedOptions || {}, // Ensure this is always an object
+        }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Failed to add item to cart:", errorData);
+        return;
+      }
+
+      const responseData = await res.json();
+      console.log("Item added to cart:", responseData);
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+    }
+  }
+  
+  setCartOpen(true);
+};
 
   const removeItemFromCart = async (id) => {
     if (localStorage.getItem("token")) {
@@ -219,7 +251,6 @@ export default function Home() {
     setCustomizeOpen(true);
   };
 
-  // Add a function to show more images
   const showMoreImages = () => {
     setVisibleImages((prev) => Math.min(prev + 6, gallery.length));
   };
@@ -329,15 +360,16 @@ export default function Home() {
   const getCartItems = async () => {
     if (localStorage.getItem("token")) {
       console.log("getting cart items");
-      
+
       try {
         const data = await cartAPI.getCart();
         console.log("server Cart items: ", data.items);
-        data.items.map((item) => {
-          setCartItems((prev) => [
-            { ...item.menu_item_id, quantity: item.quantity },
-          ]);
-        });
+        const newCartItems = data.items.map((item) => ({
+          ...item.menu_item_id,
+          quantity: item.quantity || 1,
+        }));
+
+        setCartItems(newCartItems);
       } catch (error) {
         console.log(error.message);
       }
@@ -1569,6 +1601,7 @@ export default function Home() {
                   setCustomizeOpen(false);
                 }}
                 onCancel={() => setCustomizeOpen(false)}
+                setCustomizeItem={setCustomizeItem}
               />
             </motion.div>
           </motion.div>
