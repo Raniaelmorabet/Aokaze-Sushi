@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Save, User, Lock, Bell, Globe, CreditCard, Mail, Phone, MapPin, Building, Check } from "lucide-react"
+import { Save, User, Lock, Globe, CreditCard, Mail, Phone, MapPin, Building, Check } from "lucide-react"
 import Image from "next/image"
 
 export default function SettingsPage() {
