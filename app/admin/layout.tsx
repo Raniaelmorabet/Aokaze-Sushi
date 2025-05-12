@@ -54,7 +54,6 @@ export default function AdminLayout({ children }) {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/logout`);
       const ress = await res.json();
-      console.log(ress);
 
       if (ress.success) {
         // Clear token and user data
@@ -90,7 +89,6 @@ export default function AdminLayout({ children }) {
         },
       });
       const data = await response.json();
-      console.log(data.data);
       setUser(data.data);
     } catch (error) {
       console.error(error);
