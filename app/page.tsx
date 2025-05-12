@@ -79,6 +79,7 @@ export default function Home() {
   const [offers, setOffers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [specialties, setSpecialties] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [serverTestimonials, setServerTestimonials] = useState([]);
@@ -326,17 +327,25 @@ export default function Home() {
     try {
       if (!localStorage.getItem("token")) {
         setLoadUser(false);
+        setUnreadCount(0);
         return;
       }
       const data = await notificationAPI.getNotifications();
       if (data.success) {
         setNotifications(data.data);
+        // Calculate unread count
+        const unread = data.data.filter(
+          (notification) => !notification.isRead
+        ).length;
+        setUnreadCount(unread);
         console.log("Notifications: ", data.data);
       }
     } catch (error) {
       console.log(error.message);
+      setUnreadCount(0); // Reset on error
     }
   };
+
   const getUser = async () => {
     setLoadUser(true);
     try {
@@ -425,7 +434,13 @@ export default function Home() {
     try {
       await notificationAPI.markAsRead(id);
       setNotifications(
-        notifications.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+        notifications.map((n) => {
+          if (n._id === id && !n.isRead) {
+            setUnreadCount((prev) => prev - 1); // Decrement unread count
+            return { ...n, isRead: true };
+          }
+          return n;
+        })
       );
     } catch (error) {
       console.error("Error marking notification as read:", error);
@@ -436,6 +451,7 @@ export default function Home() {
     try {
       await notificationAPI.markAllAsRead();
       setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0); 
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }
@@ -545,7 +561,7 @@ export default function Home() {
 
       {/* Navigation */}
       <header
-        className={`w-full mt-1 py-4 z-50 transition-all duration-300 ${
+        className={`w-full mt-1 py-4 z-50 transition-all duration-300 fixed top-0 bg-[#121212]/90 backdrop-blur-md shadow-lg ${
           isHeaderFixed
             ? "fixed top-0 bg-[#121212]/90 backdrop-blur-md shadow-lg"
             : "fixed top-0"
@@ -600,30 +616,32 @@ export default function Home() {
                 </span>
               )}
             </button>
-              <button
-                className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
-                onClick={() => setNotificationsOpen(true)}
-              >
-                <Bell className="size-3 md:size-4" />
-                {notifications.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {!notifications ? "0" : notifications.length}
-                  </span>
-                )}
-              </button>
+            <button
+              className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
+              onClick={() => setNotificationsOpen(true)}
+            >
+              <Bell className="size-3 md:size-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {!notifications ? "0" : unreadCount}
+                </span>
+              )}
+            </button>
             <div className="hidden md:flex">
               {!loadUser ? (
                 loggedIn ? (
                   <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => setNotificationsOpen(true)}
-                        className="relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white"
-                      >
-                        <Bell size={17} />
+                    <button
+                      onClick={() => setNotificationsOpen(true)}
+                      className="relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white"
+                    >
+                      <Bell size={17} />
+                      {unreadCount > 0 && (
                         <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {!notifications ? "0" : notifications.length}
+                          {!notifications ? "0" : unreadCount}
                         </span>
-                      </button>
+                      )}
+                    </button>
                     <Link
                       href="/profile"
                       className=" rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
@@ -693,7 +711,7 @@ export default function Home() {
                         !notification.isRead ? "bg-[#2a2a2a]/50" : ""
                       }`}
                       onClick={() => {
-                        // Handle notification click (mark as read, navigate, etc.)
+                        markNotificationAsRead(notification._id);
                       }}
                     >
                       <div className="flex justify-between items-start">
@@ -727,7 +745,10 @@ export default function Home() {
 
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-gray-700 text-center">
-                  <button className="text-sm text-orange-500 hover:text-orange-400">
+                  <button
+                    onClick={() => markAllAsRead()}
+                    className="text-sm text-orange-500 hover:text-orange-400"
+                  >
                     Mark all as read
                   </button>
                 </div>
