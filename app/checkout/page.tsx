@@ -43,6 +43,54 @@ export default function Checkout() {
   const [error, setError] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [resData, setResData] = useState();
+  const [errors, setErrors] = useState({
+  street: '',
+  city: '',
+  state: '',
+  country: '',
+  zipCode: ''
+});
+
+const validateStep1 = () => {
+  const newErrors = {};
+  let isValid = true;
+
+  // Street validation
+  if (!formData.deliveryAddress.street.trim()) {
+    newErrors.street = 'Street address is required';
+    isValid = false;
+  }
+
+  // City validation
+  if (!formData.deliveryAddress.city.trim()) {
+    newErrors.city = 'City is required';
+    isValid = false;
+  }
+
+  // State validation
+  if (!formData.deliveryAddress.state.trim()) {
+    newErrors.state = 'State is required';
+    isValid = false;
+  }
+
+  // Country validation
+  if (!formData.deliveryAddress.country) {
+    newErrors.country = 'Please select a country';
+    isValid = false;
+  }
+
+  // Zip Code validation
+  if (!formData.deliveryAddress.zipCode.trim()) {
+    newErrors.zipCode = 'Zip code is required';
+    isValid = false;
+  } else if (!/^\d+$/.test(formData.deliveryAddress.zipCode)) {
+    newErrors.zipCode = 'Zip code must contain only numbers';
+    isValid = false;
+  }
+
+  setErrors(newErrors);
+  return isValid;
+};
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -263,106 +311,158 @@ export default function Checkout() {
                   Shipping Information
                 </h2>
 
-                <div className="grid grid-cols-1  gap-4 mb-6">
-                  <div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (validateStep1()) {
+                      nextStep();
+                    }
+                  }}
+                >
+                  <div className="grid grid-cols-1 gap-4 mb-6">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">
+                        Street
+                      </label>
+                      <input
+                        type="text"
+                        name="street"
+                        value={formData.deliveryAddress.street}
+                        onChange={handleChange}
+                        className={`w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 ${
+                          errors.street
+                            ? "focus:ring-red-500 border-red-500"
+                            : "focus:ring-orange-500"
+                        }`}
+                        required
+                      />
+                      {errors.street && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.street}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
                     <label className="block text-sm text-gray-400 mb-1">
-                      Street
+                      City
                     </label>
                     <input
                       type="text"
-                      name="street"
-                      value={formData.deliveryAddress.street}
+                      name="city"
+                      value={formData.deliveryAddress.city}
                       onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className={`w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.city
+                          ? "focus:ring-red-500 border-red-500"
+                          : "focus:ring-orange-500"
+                      }`}
                       required
                     />
+                    {errors.city && (
+                      <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                    )}
                   </div>
-                </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.deliveryAddress.city}
-                    onChange={handleChange}
-                    className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    required
-                  />
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.deliveryAddress.state}
-                    onChange={handleChange}
-                    className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    required
-                  />
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-1">
-                    Delivery Instructions
-                  </label>
-                  <input
-                    type="text"
-                    name="deliveryInstructions"
-                    value={formData.deliveryAddress.deliveryInstructions}
-                    onChange={handleChange}
-                    className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="col-span-2">
+                  <div className="mb-6">
                     <label className="block text-sm text-gray-400 mb-1">
-                      Country
+                      State
                     </label>
-                    <select
-                      name="country"
-                      value={formData.deliveryAddress.country}
+                    <input
+                      type="text"
+                      name="state"
+                      value={formData.deliveryAddress.state}
                       onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none"
+                      className={`w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.state
+                          ? "focus:ring-red-500 border-red-500"
+                          : "focus:ring-orange-500"
+                      }`}
                       required
+                    />
+                    {errors.state && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.state}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Delivery Instructions
+                    </label>
+                    <input
+                      type="text"
+                      name="deliveryInstructions"
+                      value={formData.deliveryAddress.deliveryInstructions}
+                      onChange={handleChange}
+                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="col-span-2">
+                      <label className="block text-sm text-gray-400 mb-1">
+                        Country
+                      </label>
+                      <select
+                        name="country"
+                        value={formData.deliveryAddress.country}
+                        onChange={handleChange}
+                        className={`w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 ${
+                          errors.country
+                            ? "focus:ring-red-500 border-red-500"
+                            : "focus:ring-orange-500"
+                        } appearance-none`}
+                        required
+                      >
+                        <option value="">Select Country</option>
+                        <option value="Indonesia">Indonesia</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Singapore">Singapore</option>
+                        <option value="Malaysia">Malaysia</option>
+                        <option value="Thailand">Thailand</option>
+                      </select>
+                      {errors.country && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.country}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">
+                        Zip Code
+                      </label>
+                      <input
+                        type="text"
+                        name="zipCode"
+                        value={formData.deliveryAddress.zipCode}
+                        onChange={handleChange}
+                        className={`w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 ${
+                          errors.zipCode
+                            ? "focus:ring-red-500 border-red-500"
+                            : "focus:ring-orange-500"
+                        }`}
+                        required
+                      />
+                      {errors.zipCode && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.zipCode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg transition-colors"
                     >
-                      <option value="Indonesia">Indonesia</option>
-                      <option value="Japan">Japan</option>
-                      <option value="Singapore">Singapore</option>
-                      <option value="Malaysia">Malaysia</option>
-                      <option value="Thailand">Thailand</option>
-                    </select>
+                      Continue to Payment
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">
-                      Zip Code
-                    </label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={formData.deliveryAddress.zipCode}
-                      onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    onClick={nextStep}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg transition-colors"
-                  >
-                    Continue to Payment
-                  </button>
-                </div>
+                </form>
               </motion.div>
             )}
             {/* Payment */}
@@ -540,9 +640,7 @@ export default function Checkout() {
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-400">Total:</span>
-                    <span className="font-medium">
-                      ${resData.totalPrice}
-                    </span>
+                    <span className="font-medium">${resData.totalPrice}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Estimated Delivery:</span>
@@ -578,7 +676,7 @@ export default function Checkout() {
 
               <div className="space-y-4 mb-6">
                 {cartItems.map((item) => (
-                  <div key={item._id} className="flex gap-3">
+                  <div key={item._id + JSON.stringify(item.selectedOptions)} className="flex gap-3">
                     <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                       <Image
                         src={item.image || "/placeholder.svg"}
@@ -593,10 +691,21 @@ export default function Checkout() {
                       <p className="text-sm text-gray-400">
                         Qty: {item.quantity}
                       </p>
+                                        {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
+                    <div className="mb-2">
+                      {Object.entries(item.selectedOptions).map(([category, options]) => (
+                        <div key={category} className="text-xs text-gray-400">
+                          <span className="font-medium">{category}:</span>{" "}
+                          {Array.isArray(options) ? options.join(", ") : options}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                       <p className="text-orange-500">
                         ${(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
+                    
                   </div>
                 ))}
               </div>
