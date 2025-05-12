@@ -31,8 +31,8 @@ export function LanguageSwitcher() {
         className="flex items-center gap-1 text-sm hover:text-orange-400 transition-colors"
         onClick={toggleDropdown}
       >
-        <Globe size={16} />
-        <span className="hidden md:inline">{currentLanguageLabel}</span>
+        <Globe  className="size-4.5 md:size-6" />
+        {/* <span className="hidden md:inline">{currentLanguageLabel}</span> */}
         <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
