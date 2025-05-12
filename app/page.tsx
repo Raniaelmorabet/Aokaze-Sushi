@@ -78,6 +78,7 @@ export default function Home() {
   const [activePromotion, setActivePromotion] = useState(0);
   const [offers, setOffers] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [specialties, setSpecialties] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [serverTestimonials, setServerTestimonials] = useState([]);
@@ -334,7 +335,7 @@ export default function Home() {
       }
     } catch (error) {
       console.log(error.message);
-    } 
+    }
   };
   const getUser = async () => {
     setLoadUser(true);
@@ -420,6 +421,26 @@ export default function Home() {
     }
   };
 
+  const markNotificationAsRead = async (id) => {
+    try {
+      await notificationAPI.markAsRead(id);
+      setNotifications(
+        notifications.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await notificationAPI.markAllAsRead();
+      setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
+
   useEffect(() => {
     getUser();
     getNotifications();
@@ -491,6 +512,22 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationsOpen &&
+        !event.target.closest(".notification-container")
+      ) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [notificationsOpen]);
+
   if (loading) return <PreLoader />;
 
   return (
@@ -508,10 +545,10 @@ export default function Home() {
 
       {/* Navigation */}
       <header
-        className={`w-full py-4 z-50 transition-all duration-300 ${
+        className={`w-full mt-1 py-4 z-50 transition-all duration-300 ${
           isHeaderFixed
             ? "fixed top-0 bg-[#121212]/90 backdrop-blur-md shadow-lg"
-            : ""
+            : "fixed top-0"
         }`}
       >
         <div className="container mx-auto px-4 flex items-center justify-between">
@@ -550,35 +587,43 @@ export default function Home() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
             </button>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <LanguageSwitcher />
             <button
               className="relative bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
               onClick={() => setCartOpen(true)}
             >
-              <ShoppingCart  className="size-3 md:size-4" />
+              <ShoppingCart className="size-3 md:size-4" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItems.length}
                 </span>
               )}
             </button>
-            <button className="flex md:hidden relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white">
-              <Bell className="size-3 md:size-4" />
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {notifications.length}
-              </span>
-            </button>
+              <button
+                className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
+                onClick={() => setNotificationsOpen(true)}
+              >
+                <Bell className="size-3 md:size-4" />
+                {notifications.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {notifications.length + 10}
+                  </span>
+                )}
+              </button>
             <div className="hidden md:flex">
               {!loadUser ? (
                 loggedIn ? (
                   <div className="flex items-center gap-4">
-                    <button className="relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white">
-                      <Bell size={17} />
-                      <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {!notifications ? "0" : notifications.length}
-                      </span>
-                    </button>
+                      <button
+                        onClick={() => setNotificationsOpen(true)}
+                        className="relative text-gray-300 bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors hover:text-white"
+                      >
+                        <Bell size={17} />
+                        <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {!notifications ? "0" : notifications.length + 15}
+                        </span>
+                      </button>
                     <Link
                       href="/profile"
                       className=" rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
@@ -618,6 +663,78 @@ export default function Home() {
             </button>
           </div>
         </div>
+        {/* Notifications Dropdown */}
+        <AnimatePresence>
+          {notificationsOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-0 mt-2 w-80 md:w-96 bg-[#1E1E1E] rounded-lg shadow-xl z-50 border border-gray-700 overflow-hidden"
+              style={{ top: "100%" }}
+            >
+              <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+                <h3 className="font-bold">Notifications</h3>
+                <button
+                  onClick={() => setNotificationsOpen(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification._id}
+                      className={`p-4 border-b border-gray-800 hover:bg-[#2a2a2a] transition-colors cursor-pointer ${
+                        !notification.isRead ? "bg-[#2a2a2a]/50" : ""
+                      }`}
+                      onClick={() => {
+                        // Handle notification click (mark as read, navigate, etc.)
+                      }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-medium">{notification.title}</h4>
+                        <span className="text-xs text-gray-400">
+                          {new Date(notification.createdAt).toLocaleTimeString(
+                            [],
+                            { hour: "2-digit", minute: "2-digit" }
+                          )}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">
+                        {notification.message}
+                      </p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs px-2 py-1 bg-gray-800 rounded-full text-gray-400">
+                          {notification.type.replace("_", " ")}
+                        </span>
+                        {!notification.isRead && (
+                          <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-400">
+                    No notifications yet
+                  </div>
+                )}
+              </div>
+
+              {notifications.length > 0 && (
+                <div className="p-3 border-t border-gray-700 text-center">
+                  <button className="text-sm text-orange-500 hover:text-orange-400">
+                    Mark all as read
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Mobile Menu */}
@@ -688,7 +805,7 @@ export default function Home() {
               >
                 {t("nav.contact")}
               </button>
-              
+
               <button
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors mt-4"
                 onClick={() => {
