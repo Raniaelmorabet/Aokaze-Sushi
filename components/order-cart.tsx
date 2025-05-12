@@ -1,24 +1,28 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { X, Trash2, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import Image from "next/image";
+import { X, Trash2, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
-export function OrderCart({ items, onClose, onRemoveItem }) {
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
+export function OrderCart({ items, onClose, onRemoveItem, scrollToSection }) {
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const calculateSubtotal = () => {
-    return items.reduce((total, item) => total + item.price * (item.quantity || 1), 0).toFixed(2)
-  }
+    return items
+      .reduce((total, item) => total + item.price * (item.quantity || 1), 0)
+      .toFixed(2);
+  };
 
   const calculateTax = () => {
-    return (calculateSubtotal() * 0.1).toFixed(2)
-  }
+    return (calculateSubtotal() * 0.1).toFixed(2);
+  };
 
   const calculateTotal = () => {
-    return (Number.parseFloat(calculateSubtotal()) + Number.parseFloat(calculateTax())).toFixed(2)
-  }
+    return (
+      Number.parseFloat(calculateSubtotal()) + Number.parseFloat(calculateTax())
+    ).toFixed(2);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -50,14 +54,23 @@ export function OrderCart({ items, onClose, onRemoveItem }) {
               </svg>
             </div>
             <p className="text-gray-400">Your cart is empty</p>
-            <button onClick={onClose} className="mt-4 text-orange-500 hover:text-orange-400 transition-colors">
+            <button
+              onClick={() => {
+                onClose();
+                scrollToSection("menu");
+              }}
+              className="mt-4 text-orange-500 hover:text-orange-400 transition-colors"
+            >
               Continue Shopping
             </button>
           </div>
         ) : (
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item._id +  item.selectedOptions} className="bg-[#2a2a2a] rounded-lg p-3 flex gap-3">
+              <div
+                key={item._id + item.selectedOptions}
+                className="bg-[#2a2a2a] rounded-lg p-3 flex gap-3"
+              >
                 <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
                   <Image
                     src={item.image || "/placeholder.svg"}
@@ -79,20 +92,32 @@ export function OrderCart({ items, onClose, onRemoveItem }) {
                     </button>
                   </div>
 
-                  <p className="text-sm text-gray-400 mb-2">Qty: {item.quantity || 1}</p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    Qty: {item.quantity || 1}
+                  </p>
 
-                  {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
-                    <div className="mb-2">
-                      {Object.entries(item.selectedOptions).map(([category, options]) => (
-                        <div key={category} className="text-xs text-gray-400">
-                          <span className="font-medium">{category}:</span>{" "}
-                          {Array.isArray(options) ? options.join(", ") : options}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {item.selectedOptions &&
+                    Object.entries(item.selectedOptions).length > 0 && (
+                      <div className="mb-2">
+                        {Object.entries(item.selectedOptions).map(
+                          ([category, options]) => (
+                            <div
+                              key={category}
+                              className="text-xs text-gray-400"
+                            >
+                              <span className="font-medium">{category}:</span>{" "}
+                              {Array.isArray(options)
+                                ? options.join(", ")
+                                : options}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
 
-                  <p className="text-orange-500 font-medium">${(item.price * (item.quantity || 1)).toFixed(2)}</p>
+                  <p className="text-orange-500 font-medium">
+                    ${(item.price * (item.quantity || 1)).toFixed(2)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -127,5 +152,5 @@ export function OrderCart({ items, onClose, onRemoveItem }) {
         </div>
       )}
     </div>
-  )
+  );
 }
