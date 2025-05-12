@@ -607,7 +607,7 @@ export default function Home() {
                 <Bell className="size-3 md:size-4" />
                 {notifications.length > 0 && (
                   <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {notifications.length + 10}
+                    {!notifications ? "0" : notifications.length}
                   </span>
                 )}
               </button>
@@ -621,7 +621,7 @@ export default function Home() {
                       >
                         <Bell size={17} />
                         <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {!notifications ? "0" : notifications.length + 15}
+                          {!notifications ? "0" : notifications.length}
                         </span>
                       </button>
                     <Link
@@ -671,7 +671,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-2 w-80 md:w-96 bg-[#1E1E1E] rounded-lg shadow-xl z-50 border border-gray-700 overflow-hidden"
+              className="absolute right-2 mt-2 w-80 md:w-96 bg-[#1E1E1E] rounded-lg shadow-xl z-50 border border-gray-700 overflow-hidden"
               style={{ top: "100%" }}
             >
               <div className="p-4 border-b border-gray-700 flex justify-between items-center">
