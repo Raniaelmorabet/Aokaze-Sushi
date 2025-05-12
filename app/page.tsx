@@ -1791,6 +1791,7 @@ export default function Home() {
                 setCartItems(cartItems.filter((item) => item._id !== id));
                 removeItemFromCart(id);
               }}
+              scrollToSection={scrollToSection}
             />
           </motion.div>
         )}
