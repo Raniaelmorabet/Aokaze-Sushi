@@ -4,15 +4,18 @@ import { useState } from "react"
 import Image from "next/image"
 import { Plus, Minus, Check } from "lucide-react"
 
-export function FoodCustomizer({ item, onAddToCart, onCancel }) {
+export function FoodCustomizer({ item, onAddToCart, onCancel, setCustomizeItem }) {
   const [quantity, setQuantity] = useState(1)
   const [selectedOptions, setSelectedOptions] = useState({})
   const [specialInstructions, setSpecialInstructions] = useState("")
+  
 
   const increaseQuantity = () => setQuantity(quantity + 1)
   const decreaseQuantity = () => quantity > 1 && setQuantity(quantity - 1)
 
   const toggleOption = (category, option) => {
+    console.log(selectedOptions);
+    
     setSelectedOptions((prev) => {
       const newOptions = { ...prev }
 
@@ -46,6 +49,9 @@ export function FoodCustomizer({ item, onAddToCart, onCancel }) {
     }
 
     onAddToCart(customizedItem)
+
+    console.log("Item added to cart:", customizedItem);
+    
   }
 
   // Example customization options
