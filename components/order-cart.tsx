@@ -57,7 +57,7 @@ export function OrderCart({ items, onClose, onRemoveItem }) {
         ) : (
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item._id} className="bg-[#2a2a2a] rounded-lg p-3 flex gap-3">
+              <div key={item._id +  item.selectedOptions} className="bg-[#2a2a2a] rounded-lg p-3 flex gap-3">
                 <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
                   <Image
                     src={item.image || "/placeholder.svg"}
