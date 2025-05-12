@@ -1,8 +1,8 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-// export const API_BASE_URL = "http://localhost:5000/api";
+// export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
@@ -898,21 +898,18 @@ export const cartAPI = {
 
 
 /**
- * Notification API functions
+ * Notification API Service
  */
 export const notificationAPI = {
-  // Get all notifications for current user
-  getNotifications: async (queryParams = {}) => {
-    const queryString = new URLSearchParams(queryParams).toString();
+  getNotifications: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
     return await apiRequest(`/notifications?${queryString}`, "GET", null, true);
   },
 
-  // Get unread notifications count
   getUnreadCount: async () => {
     return await apiRequest("/notifications/unread-count", "GET", null, true);
   },
 
-  // Mark notification as read
   markAsRead: async (notificationId) => {
     return await apiRequest(
       `/notifications/${notificationId}/read`,
@@ -922,44 +919,24 @@ export const notificationAPI = {
     );
   },
 
-  // Mark all notifications as read
   markAllAsRead: async () => {
-    // First get all unread notifications
-    const unreadNotifications = await apiRequest(
-      "/notifications?isRead=false",
-      "GET",
+    return await apiRequest(
+      "/notifications/mark-all-read",
+      "PATCH",
       null,
       true
     );
-    
-    // Mark each as read
-    if (unreadNotifications && unreadNotifications.length > 0) {
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          apiRequest(
-            `/notifications/${notification._id}/read`,
-            "PATCH",
-            null,
-            true
-          )
-        )
-      );
-    }
-    
-    return { success: true, count: unreadNotifications.length };
   },
 
-  // Create order notification (Admin/Kitchen only)
-  createOrderNotification: async (orderId, notificationType) => {
+  createOrderCompleteNotification: async (orderId) => {
     return await apiRequest(
       "/notifications/order-complete",
       "POST",
-      { orderId, notificationType },
+      { orderId },
       true
     );
   },
 
-  // Create system notification (Admin only)
   createSystemNotification: async (userId, title, message) => {
     return await apiRequest(
       "/notifications/system",
@@ -969,27 +946,6 @@ export const notificationAPI = {
     );
   },
 
-  // Delete notification
-  deleteNotification: async (notificationId) => {
-    return await apiRequest(
-      `/notifications/${notificationId}`,
-      "DELETE",
-      null,
-      true
-    );
-  },
-
-  // Get notification by ID
-  getNotificationById: async (notificationId) => {
-    return await apiRequest(
-      `/notifications/${notificationId}`,
-      "GET",
-      null,
-      true
-    );
-  },
-
-  // Get latest notifications
   getLatestNotifications: async (limit = 5) => {
     return await apiRequest(
       `/notifications?limit=${limit}&sort=-createdAt`,
@@ -999,7 +955,6 @@ export const notificationAPI = {
     );
   },
 
-  // Filter notifications by type
   filterByType: async (type) => {
     return await apiRequest(
       `/notifications?type=${type}`,
@@ -1008,4 +963,51 @@ export const notificationAPI = {
       true
     );
   },
+
+  getById: async (notificationId) => {
+    return await apiRequest(
+      `/notifications/${notificationId}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  delete: async (notificationId) => {
+    return await apiRequest(
+      `/notifications/${notificationId}`,
+      "DELETE",
+      null,
+      true
+    );
+  },
+
+  createOrderStatusNotification: async ({ userId, orderId, orderNumber, notificationType }) => {
+    let title, message;
+    
+    switch (notificationType) {
+      case "preparing":
+        title = "Order Preparing";
+        message = `Your order #${orderNumber} is now being prepared`;
+        break;
+      case "completed":
+        title = "Order Ready";
+        message = `Your order #${orderNumber} is ready for pickup/delivery`;
+        break;
+      case "cancelled":
+        title = "Order Cancelled";
+        message = `Your order #${orderNumber} has been cancelled`;
+        break;
+      default:
+        title = "Order Confirmed";
+        message = `Your order #${orderNumber} has been received`;
+    }
+
+    return await apiRequest(
+      "/notifications/system",
+      "POST",
+      { userId, title, message },
+      true
+    );
+  }
 };
