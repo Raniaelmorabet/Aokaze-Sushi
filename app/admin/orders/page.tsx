@@ -1,13 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import {
-  Search,
-  MoreHorizontal,
-  Eye,
-  X,
-  Check,
-} from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { Search, MoreHorizontal, Eye, X, Check } from "lucide-react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { orderAPI } from "@/utils/api";
@@ -572,33 +566,61 @@ export default function OrdersPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-700">
                       {selectedOrder.items.map((item) => (
-                        <tr key={item._id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-md overflow-hidden">
-                                <Image
-                                  src={
-                                    item.menuItem.image || "/placeholder.svg"
-                                  }
-                                  alt={item.menuItem.name}
-                                  width={48}
-                                  height={48}
-                                  className="object-cover"
-                                />
+                        <React.Fragment key={item._id + item.customizations}>
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-md overflow-hidden">
+                                  <Image
+                                    src={
+                                      item.menuItem.image || "/placeholder.svg"
+                                    }
+                                    alt={item.menuItem.name}
+                                    width={48}
+                                    height={48}
+                                    className="object-cover"
+                                  />
+                                </div>
+                                <span>{item.menuItem.name}</span>
                               </div>
-                              <span>{item.menuItem.name}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            ${item.menuItem.price.toFixed(2)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            {item.quantity}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </td>
-                        </tr>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              ${item.menuItem.price.toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              {item.quantity}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
+                              ${(item.price * item.quantity).toFixed(2)}
+                            </td>
+                          </tr>
+                          {item.customizations &&
+                            Object.entries(item.customizations).length > 0 && (
+                              <tr className="bg-gray-800/50">
+                                <td colSpan={4} className="px-6 py-2">
+                                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-300">
+                                    {Object.entries(item.customizations).map(
+                                      ([category, options]) => (
+                                        <div
+                                          key={category}
+                                          className="flex items-baseline"
+                                        >
+                                          <span className="font-medium text-gray-400 mr-1">
+                                            {category}:
+                                          </span>
+                                          <span>
+                                            {Array.isArray(options)
+                                              ? options.join(", ")
+                                              : options}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
@@ -662,11 +684,10 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="border-t border-gray-800 pt-6 flex flex-wrap gap-4">
-
                   <div className="space-x-2">
                     {selectedOrder.status === "pending" && (
                       <>
-                                              <button
+                        <button
                           className="bg-[#f05a28] hover:bg-[#bb4b26] text-white px-4 py-2 rounded-lg transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -690,7 +711,6 @@ export default function OrdersPage() {
                           <X size={18} className="inline mr-2" />
                           Cancel Order
                         </button>
-
                       </>
                     )}
 
