@@ -426,7 +426,6 @@ export default function CategoryManagement() {
         formDataToSend
       );
 
-      console.log(res);
       
       // Simulate upload progress
       const interval = setInterval(() => {
@@ -574,7 +573,6 @@ export default function CategoryManagement() {
 
   // Open status confirmation modal
   const openStatusModal = async (category) => {
-    console.log(category);
 
     setSelectedCategory(category);
     setStatusModalOpen(true);
@@ -595,7 +593,6 @@ export default function CategoryManagement() {
       if (selectedCategory.image instanceof File) {
         formData.append("image", selectedCategory.image);
       }
-      console.log("📝 FormData content:");
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
       }
