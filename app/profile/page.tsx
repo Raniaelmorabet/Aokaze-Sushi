@@ -147,6 +147,7 @@ export default function ProfilePage() {
       console.error(error);
     }
   };
+
   const ShowOrders = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -234,29 +235,23 @@ export default function ProfilePage() {
       console.log(ress);
 
       if (ress.success) {
-        // Clear token and user data
         localStorage.removeItem("token");
         localStorage.removeItem("userData");
         localStorage.removeItem("email");
         localStorage.removeItem("orders");
         localStorage.removeItem("cart");
 
-        // Clear session storage if used
         sessionStorage.clear();
 
-        // Replace current history entry and redirect
-        window.history.replaceState(null, "", "/");
-        window.location.href = "/";
+        window.history.replaceState(null, "", "/auth/login");
+        window.location.href = "/auth/login";
 
-        // Optional: Force reload to clear any in-memory state
         window.location.reload();
       } else {
         console.error("Logout failed");
       }
     } catch (error) {
       console.error("Logout error:", error);
-      // Optional: Show error message to user
-      // setError("Failed to logout. Please try again.");
     }
   };
 
@@ -292,7 +287,10 @@ export default function ProfilePage() {
     }
 
     try {
-      const responce = await authAPI.updatePassword({currentPassword: formDataForPassword.currentPassword, newPassword: formDataForPassword.newPassword});
+      const responce = await authAPI.updatePassword({
+        currentPassword: formDataForPassword.currentPassword,
+        newPassword: formDataForPassword.newPassword,
+      });
       if (responce.success) {
         setAlertStatus({
           type: true,
@@ -328,8 +326,8 @@ export default function ProfilePage() {
         setTimeout(() => {
           setAlertStatus({});
           setIsExiting(false);
-        }, 300); 
-      }, 3000); 
+        }, 300);
+      }, 3000);
     }
     return () => clearTimeout(timer);
   }, [alertStatus]);
@@ -638,12 +636,34 @@ export default function ProfilePage() {
                                   />
                                 </div>
                                 <div className="flex-1">
-                                  <div className="flex justify-between">
+                                  <div className="flex justify-between text-left">
                                     <h5 className="font-medium">{item.name}</h5>
+                                    
                                     <p className="font-medium">
                                       ${(item.price * item.quantity).toFixed(2)}
                                     </p>
                                   </div>
+                                  {item.customizations &&
+                                      Object.entries(item.customizations)
+                                        .length > 0 && (
+                                        <div className="my-2">
+                                          {Object.entries(
+                                            item.customizations
+                                          ).map(([category, options]) => (
+                                            <div
+                                              key={category}
+                                              className="text-xs text-gray-400"
+                                            >
+                                              <span className="font-medium">
+                                                {category}:
+                                              </span>{" "}
+                                              {Array.isArray(options)
+                                                ? options.join(", ")
+                                                : options}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
                                   <p className="text-sm text-gray-400">
                                     Qty: {item.quantity} × $
                                     {item.price.toFixed(2)}
