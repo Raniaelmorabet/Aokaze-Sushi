@@ -573,28 +573,28 @@ export default function OrdersPage() {
                                 <div className="w-12 h-12 rounded-md overflow-hidden">
                                   <Image
                                     src={
-                                      item.menuItem.image || "/placeholder.svg"
+                                      item?.menuItem?.image || "/placeholder.svg"
                                     }
-                                    alt={item.menuItem.name}
+                                    alt={item?.menuItem?.name || "Menu Item"}
                                     width={48}
                                     height={48}
                                     className="object-cover"
                                   />
                                 </div>
-                                <span>{item.menuItem.name}</span>
+                                <span>{item?.menuItem?.name}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              ${item.menuItem.price.toFixed(2)}
+                              ${item?.menuItem?.price.toFixed(2)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              {item.quantity}
+                              {item?.quantity}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right font-medium">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${(item?.price * item.quantity).toFixed(2)}
                             </td>
                           </tr>
-                          {item.customizations &&
+                          {item?.customizations &&
                             Object.entries(item.customizations).length > 0 && (
                               <tr className="bg-gray-800/50">
                                 <td colSpan={4} className="px-6 py-2">
