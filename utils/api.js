@@ -40,37 +40,31 @@ export const apiRequest = async (
   customHeaders = {}
 ) => {
   try {
-    // Check if data is FormData
     const isFormData = data instanceof FormData;
-
-    // Prepare headers
     const headers = { ...customHeaders };
 
-    // Only set JSON content type if not FormData
     if (!isFormData) {
       headers["Content-Type"] = "application/json";
     }
 
-    // Add auth token if required
+    // Use ONLY ONE authentication method (recommend Bearer token)
     if (requiresAuth) {
       const token = getToken();
       if (!token) throw new Error("Authentication required");
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    // Prepare request options
     const options = {
       method,
       headers,
-      credentials: "include",
+      // Remove credentials: "include" unless you specifically need cookies
+      // credentials: "include",
     };
 
-    // Add body data if needed
     if (data) {
       options.body = isFormData ? data : JSON.stringify(data);
     }
 
-    // Make the request
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     const responseData = await response.json();
 
@@ -451,18 +445,23 @@ export const galleryAPI = {
     return await apiRequest(`/gallery?page=${page}&limit=${limit}`, "GET");
   },
 
-    // Toggle the featured status of a gallery image (Admin only)
+  // Toggle the featured status of a gallery image (Admin only)
   toggleFeaturedStatus: async (publicId) => {
-    return await apiRequest(`/gallery/${publicId}/featured`, "PATCH", null, true);
+    return await apiRequest(
+      `/gallery/${publicId}/featured`,
+      "PATCH",
+      null,
+      true
+    );
   },
 
-    // Update image position (Admin only)
+  // Update image position (Admin only)
   // Takes publicId and position (1, 2, or 3)
   // Clears any existing image with that position first
   updateImagePosition: async (publicId, position) => {
     return await apiRequest(
-      "/gallery/positions", 
-      "PUT", 
+      "/gallery/positions",
+      "PUT",
       { publicId, position },
       true // requires auth
     );
@@ -740,7 +739,6 @@ export const customerAPI = {
   },
 };
 
-
 /**
  * Chefs API functions
  */
@@ -765,7 +763,7 @@ export const chefsAPI = {
 
   // Filter chefs by specialties
   filterBySpecialties: async (specialties = [], queryParams = {}) => {
-    const params = { ...queryParams, specialties: specialties.join(',') };
+    const params = { ...queryParams, specialties: specialties.join(",") };
     const queryString = new URLSearchParams(params).toString();
     return await apiRequest(`/chefs?${queryString}`, "GET");
   },
@@ -796,12 +794,11 @@ export const chefsAPI = {
   },
 
   // Get chefs sorted by name
-  getChefsByName: async (order = 'asc') => {
-    const sortOrder = order === 'desc' ? '-name' : 'name';
+  getChefsByName: async (order = "asc") => {
+    const sortOrder = order === "desc" ? "-name" : "name";
     return await apiRequest(`/chefs?sort=${sortOrder}`, "GET");
   },
 };
-
 
 /**
  * Cart API functions
@@ -822,12 +819,7 @@ export const cartAPI = {
    * @returns {Promise<Object>} Updated cart
    */
   addToCart: async (menu_item_id, quantity) => {
-    return await apiRequest(
-      "/cart",
-      "POST",
-      { menu_item_id, quantity },
-      true
-    );
+    return await apiRequest("/cart", "POST", { menu_item_id, quantity }, true);
   },
 
   /**
@@ -837,12 +829,7 @@ export const cartAPI = {
    * @returns {Promise<Object>} Updated cart
    */
   updateCartItem: async (menu_item_id, quantity) => {
-    return await apiRequest(
-      "/cart",
-      "PUT",
-      { menu_item_id, quantity },
-      true
-    );
+    return await apiRequest("/cart", "PUT", { menu_item_id, quantity }, true);
   },
 
   /**
@@ -898,9 +885,7 @@ export const cartAPI = {
     const item = cart.items.find(
       (item) => item.menu_item_id._id === menu_item_id
     );
-    return item
-      ? { exists: true, quantity: item.quantity }
-      : { exists: false };
+    return item ? { exists: true, quantity: item.quantity } : { exists: false };
   },
 
   /**
@@ -912,7 +897,6 @@ export const cartAPI = {
     return await apiRequest("/cart/merge", "POST", { items: localItems }, true);
   },
 };
-
 
 /**
  * Notification API Service
@@ -973,12 +957,7 @@ export const notificationAPI = {
   },
 
   filterByType: async (type) => {
-    return await apiRequest(
-      `/notifications?type=${type}`,
-      "GET",
-      null,
-      true
-    );
+    return await apiRequest(`/notifications?type=${type}`, "GET", null, true);
   },
 
   getById: async (notificationId) => {
@@ -999,9 +978,14 @@ export const notificationAPI = {
     );
   },
 
-  createOrderStatusNotification: async ({ userId, orderId, orderNumber, notificationType }) => {
+  createOrderStatusNotification: async ({
+    userId,
+    orderId,
+    orderNumber,
+    notificationType,
+  }) => {
     let title, message;
-    
+
     switch (notificationType) {
       case "preparing":
         title = "Order Preparing";
@@ -1026,9 +1010,174 @@ export const notificationAPI = {
       { userId, title, message },
       true
     );
-  }
+  },
 };
 
+/**
+ * Table API functions
+ */
+export const tableAPI = {
+  // Get all tables
+  getTables: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/tables?${queryString}`, "GET");
+  },
+
+  // Get table by ID
+  getTableById: async (id) => {
+    return await apiRequest(`/tables/${id}`, "GET");
+  },
+
+  // Create table (Admin only)
+  createTable: async (tableData) => {
+    return await apiRequest("/tables", "POST", tableData, true);
+  },
+
+  // Update table (Admin only)
+  updateTable: async (id, updateData) => {
+    return await apiRequest(`/tables/${id}`, "PUT", updateData, true);
+  },
+
+  // Delete table (Admin only)
+  deleteTable: async (id) => {
+    return await apiRequest(`/tables/${id}`, "DELETE", null, true);
+  },
+
+  // Get tables by location
+  getTablesByLocation: async (location, queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/tables/location/${location}?${queryString}`,
+      "GET"
+    );
+  },
+
+  // Get tables by capacity
+  getTablesByCapacity: async (minCapacity, queryParams = {}) => {
+    const params = { ...queryParams, minCapacity };
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/tables?${queryString}`, "GET");
+  },
+
+  // Toggle table active status (Admin only)
+  toggleTableStatus: async (id, isActive) => {
+    return await apiRequest(
+      `/tables/${id}/status`,
+      "PATCH",
+      { isActive },
+      true
+    );
+  },
+};
+
+/**
+ * Reservation API functions
+ */
+export const reservationAPI = {
+  // Create new reservation
+  createReservation: async (reservationData) => {
+    return await apiRequest("/reservations", "POST", reservationData, true);
+  },
+
+  // Get all reservations (Admin/Staff only)
+  getReservations: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(`/reservations?${queryString}`, "GET", null, true);
+  },
+
+  // Get reservation by ID
+  getReservationById: async (id) => {
+    return await apiRequest(`/reservations/${id}`, "GET", null, true);
+  },
+
+  // Get available time slots
+  getAvailableSlots: async (tableId, date) => {
+    return await apiRequest(
+      `/reservations/available-slots?tableId=${tableId}&date=${date}`,
+      "GET"
+    );
+  },
+
+  // Get available tables
+  getAvailableTables: async (date, capacity, startTime, endTime) => {
+    const params = { date };
+    if (capacity) params.capacity = capacity;
+    if (startTime) params.startTime = startTime;
+    if (endTime) params.endTime = endTime;
+
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/reservations/availability?${queryString}`, "GET");
+  },
+
+  // Get user's reservations
+  getMyReservations: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/reservations/my-reservations?${queryString}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Update reservation status (Admin/Staff only)
+  updateReservationStatus: async (id, status, cancellationReason) => {
+    return await apiRequest(
+      `/reservations/${id}/status`,
+      "PATCH",
+      { status, cancellationReason },
+      true
+    );
+  },
+
+  // Cancel reservation
+  cancelReservation: async (id, cancellationReason) => {
+    return await apiRequest(
+      `/reservations/${id}/cancel`,
+      "PATCH",
+      { cancellationReason },
+      true
+    );
+  },
+
+  // Check in for reservation
+  checkInReservation: async (id) => {
+    return await apiRequest(
+      `/reservations/${id}/check-in`,
+      "PATCH",
+      null,
+      true
+    );
+  },
+
+  // Get floor plan availability (Admin/Staff only)
+  getFloorPlanAvailability: async (date, time) => {
+    const params = { date };
+    if (time) params.time = time;
+
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(
+      `/reservations/floor-plan/availability?${queryString}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Search reservations (Admin/Staff only)
+  searchReservations: async (searchTerm, queryParams = {}) => {
+    const params = { ...queryParams, search: searchTerm };
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/reservations?${queryString}`, "GET", null, true);
+  },
+
+  // Filter reservations by date range (Admin/Staff only)
+  filterReservationsByDate: async (startDate, endDate, queryParams = {}) => {
+    const params = { ...queryParams, startDate, endDate };
+    const queryString = new URLSearchParams(params).toString();
+    return await apiRequest(`/reservations?${queryString}`, "GET", null, true);
+  },
+};
 
 /**
  * Settings API functions
