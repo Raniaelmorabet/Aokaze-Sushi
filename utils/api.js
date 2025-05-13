@@ -1,8 +1,8 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
-// export const API_BASE_URL = "http://localhost:5000/api";
+// export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Get the authentication token from localStorage
@@ -1027,4 +1027,92 @@ export const notificationAPI = {
       true
     );
   }
+};
+
+
+/**
+ * Settings API functions
+ */
+export const settingsAPI = {
+  // Get all settings
+  getSettings: async () => {
+    return await apiRequest("/settings", "GET");
+  },
+
+  // Update general settings
+  updateGeneralSettings: async (settingsData) => {
+    return await apiRequest("/settings/general", "PUT", settingsData, true);
+  },
+
+  // Update opening hours
+  updateOpeningHours: async (openingHours) => {
+    return await apiRequest(
+      "/settings/opening-hours",
+      "PUT",
+      { openingHours },
+      true
+    );
+  },
+
+  // Get restaurant name
+  getRestaurantName: async () => {
+    const settings = await apiRequest("/settings", "GET");
+    return settings.restaurantName;
+  },
+
+  // Get contact information
+  getContactInfo: async () => {
+    const settings = await apiRequest("/settings", "GET");
+    return {
+      email: settings.email,
+      phone: settings.phone,
+      website: settings.website,
+      address: settings.address,
+    };
+  },
+
+  // Get business hours
+  getBusinessHours: async () => {
+    const settings = await apiRequest("/settings", "GET");
+    return settings.openingHours;
+  },
+
+  // Get tax rate
+  getTaxRate: async () => {
+    const settings = await apiRequest("/settings", "GET");
+    return settings.taxRate;
+  },
+
+  // Get currency
+  getCurrency: async () => {
+    const settings = await apiRequest("/settings", "GET");
+    return settings.currency;
+  },
+
+  // Get all business info (name, contact, hours)
+  getBusinessInfo: async () => {
+    const settings = await apiRequest("/settings", "GET");
+    return {
+      name: settings.restaurantName,
+      email: settings.email,
+      phone: settings.phone,
+      website: settings.website,
+      address: settings.address,
+      hours: settings.openingHours,
+      currency: settings.currency,
+      taxRate: settings.taxRate,
+    };
+  },
+
+  // Upload restaurant logo
+  uploadLogo: async (logoFile) => {
+    const formData = new FormData();
+    formData.append("logo", logoFile);
+    return await apiRequest("/settings/logo", "POST", formData, true);
+  },
+
+  // Delete restaurant logo
+  deleteLogo: async () => {
+    return await apiRequest("/settings/logo", "DELETE", null, true);
+  },
 };
