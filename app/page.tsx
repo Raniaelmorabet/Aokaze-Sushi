@@ -570,7 +570,7 @@ export default function Home() {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-white">
-              <Image src={logo} alt="logo" className="w-24 md:w-28" />
+              <Image src={logo} alt="logo" className="w-24 md:w-28 object-cover" />
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -651,7 +651,7 @@ export default function Home() {
                         alt={user?.name || "User"}
                         width={24}
                         height={24}
-                        className="rounded-full w-full h-full hover:scale-105 hover:opacity-80 duration-200"
+                        className="rounded-full object-cover w-full h-full hover:scale-105 hover:opacity-80 duration-200"
                       />
                     </Link>
                   </div>
@@ -785,7 +785,7 @@ export default function Home() {
                       alt={user?.name || "User"}
                       width={24}
                       height={24}
-                      className="rounded-full w-full h-full hover:opacity-80 duration-200"
+                      className="rounded-full w-full h-full hover:opacity-80 duration-200 object-cover"
                     />
                   </Link>
                 ) : (
