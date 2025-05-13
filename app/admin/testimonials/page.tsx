@@ -19,7 +19,6 @@ import {
 import Image from "next/image";
 import { API_BASE_URL, testimonialAPI } from "@/utils/api";
 
-
 export default function TestimonialManagement() {
   const [loading, setLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -54,14 +53,16 @@ export default function TestimonialManagement() {
   // Handle testimonial delete
   const handleDelete = async () => {
     console.log(selectedTestimonial);
-    
+
     try {
-      const response = await testimonialAPI.deleteTestimonial(selectedTestimonial._id);
-      if (response.success) {
-      setShowTestimonial(
-        showTestimonial.filter((t) => t._id !== selectedTestimonial._id)
+      const response = await testimonialAPI.deleteTestimonial(
+        selectedTestimonial._id
       );
-    }
+      if (response.success) {
+        setShowTestimonial(
+          showTestimonial.filter((t) => t._id !== selectedTestimonial._id)
+        );
+      }
 
       setDeleteModalOpen(false);
     } catch (error) {
@@ -72,19 +73,20 @@ export default function TestimonialManagement() {
   // Handle status change
   const handleStatusChange = async (status) => {
     try {
-      const responce = await testimonialAPI.updateTestimonialStatus(selectedTestimonial._id, status);
-      console.log(responce);
-      
-      if ( responce.success ) {
-      const updatedTestimonials = showTestimonial.map((t) =>
-        t._id === selectedTestimonial._id ? { ...t, status } : t
+      const responce = await testimonialAPI.updateTestimonialStatus(
+        selectedTestimonial._id,
+        status
       );
-      setShowTestimonial(updatedTestimonials);
-      setStatusModalOpen(false);
-      setSelectedTestimonial(null);
-    }
-        
+      console.log(responce);
 
+      if (responce.success) {
+        const updatedTestimonials = showTestimonial.map((t) =>
+          t._id === selectedTestimonial._id ? { ...t, status } : t
+        );
+        setShowTestimonial(updatedTestimonials);
+        setStatusModalOpen(false);
+        setSelectedTestimonial(null);
+      }
     } catch (error) {
       console.error("Error updating testimonial status:", error);
     }
@@ -746,7 +748,7 @@ export default function TestimonialManagement() {
                       </p>
                       <div
                         className={`mx-auto mt-1 ${getStatusColor(
-                          filteredTestimonials[activeTestimonial].status
+                          filteredTestimonials[activeTestimonial]?.status
                         )} text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 justify-center w-fit`}
                       >
                         {getStatusIcon(selectedTestimonial.status)}
@@ -788,22 +790,28 @@ export default function TestimonialManagement() {
                 </motion.div>
 
                 <button
-                  onClick={() =>
-                    setActiveTestimonial((prev) =>
-                      prev === 0 ? selectedTestimonial.length - 1 : prev - 1
-                    )
-                  }
+                  onClick={() => {
+                    setActiveTestimonial((prev) => {
+                      const newIndex =
+                        prev === 0 ? selectedTestimonial.length - 1 : prev - 1;
+                      setSelectedTestimonial(filteredTestimonials[newIndex]);
+                      return newIndex;
+                    });
+                  }}
                   className="absolute top-1/2 -translate-y-1/2 -left-4 sm:-left-6 md:-left-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
                 >
                   <ChevronLeft size={24} />
                 </button>
 
                 <button
-                  onClick={() =>
-                    setActiveTestimonial((prev) =>
-                      prev === selectedTestimonial.length - 1 ? 0 : prev + 1
-                    )
-                  }
+                  onClick={() => {
+                    setActiveTestimonial((prev) => {
+                      const newIndex =
+                        prev === selectedTestimonial.length - 1 ? 0 : prev + 1;
+                      setSelectedTestimonial(filteredTestimonials[newIndex]);
+                      return newIndex;
+                    });
+                  }}
                   className="absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 md:-right-8 bg-[#F05B29] rounded-full p-3 hover:bg-orange-500 transition-colors duration-300 z-10"
                 >
                   <ChevronRight size={24} />
