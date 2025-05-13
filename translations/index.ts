@@ -15,6 +15,7 @@ export const translations = {
       description:
         "Experience authentic Japanese flavors with our carefully crafted sushi made from the freshest ingredients.",
       cta: "EXPLORE OUR MENU",
+      dashboard: "Dashboard",
       customers: "Our Happy Customers",
       reviews: "Reviews",
     },
@@ -207,6 +208,7 @@ export const translations = {
       description:
         "Découvrez des saveurs japonaises authentiques avec nos sushis soigneusement préparés à partir des ingrédients les plus frais.",
       cta: "EXPLORER NOTRE MENU",
+      dashboard: "Tableau de Bord",
       customers: "Nos Clients Satisfaits",
       reviews: "Avis",
     },
@@ -401,6 +403,7 @@ export const translations = {
       title: "استمتع بالسوشي الطازج واللذيذ",
       description: "استمتع بنكهات يابانية أصيلة مع السوشي المصنوع بعناية من أطيب المكونات الطازجة.",
       cta: "استكشف قائمتنا",
+      dashboard: "لوحة التحكم",
       customers: "عملاؤنا السعداء",
       reviews: "التقييمات",
     },
