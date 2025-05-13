@@ -23,7 +23,7 @@ import { API_BASE_URL, galleryAPI } from "@/utils/api";
 
 export default function GalleryManagement() {
   const [getGallery, setGetGallery] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -149,7 +149,6 @@ const filteredGallery = getGallery
 
       const responce = await galleryAPI.uploadGalleryImages(formData);
 
-      console.log(responce.data.images[0]);
       setGetGallery((prev) => [...prev, responce.data.images[0]]);
       if (responce.success) {
         setImageFile(null);
@@ -211,20 +210,18 @@ const filteredGallery = getGallery
     if (position === "first") {
       setPositionSelection({ ...positionSelection, first: imageId });
       const responce = await galleryAPI.updateImagePosition(imageId, 1);
-      console.log(responce);
     } else if (position === "second") {
       setPositionSelection({ ...positionSelection, second: imageId });
       const responce = await galleryAPI.updateImagePosition(imageId, 2);
-      console.log(responce);
     } else if (position === "third") {
       setPositionSelection({ ...positionSelection, third: imageId });
       const responce = await galleryAPI.updateImagePosition(imageId, 3);
-      console.log(responce);
     }
     setSelectingPosition(null);
   };
 
   const Gallery = async () => {
+    setLoading(true)
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/gallery?limit=100`, {
@@ -235,16 +232,16 @@ const filteredGallery = getGallery
         },
       });
       const data = await response.json();
-      console.log(data);
       setGetGallery(data.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false)
     }
   };
 
   const handleDeleteImage = async () => {
     try {
-      console.log(selectedImage.publicId);
       const token = localStorage.getItem("token");
       const response = await fetch(
         `${API_BASE_URL}/gallery/${selectedImage.publicId}`,
@@ -474,7 +471,6 @@ const filteredGallery = getGallery
                           ) : (
                             <StarOff size={16} />
                           )}
-                          {/*{console.log(image.isFeatured)}*/}
                         </button>
                         <button
                           onClick={() => {
