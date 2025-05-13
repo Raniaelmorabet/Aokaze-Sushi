@@ -450,6 +450,23 @@ export const galleryAPI = {
   getGalleryBatch: async (page, limit) => {
     return await apiRequest(`/gallery?page=${page}&limit=${limit}`, "GET");
   },
+
+    // Toggle the featured status of a gallery image (Admin only)
+  toggleFeaturedStatus: async (publicId) => {
+    return await apiRequest(`/gallery/${publicId}/featured`, "PATCH", null, true);
+  },
+
+    // Update image position (Admin only)
+  // Takes publicId and position (1, 2, or 3)
+  // Clears any existing image with that position first
+  updateImagePosition: async (publicId, position) => {
+    return await apiRequest(
+      "/gallery/positions", 
+      "PUT", 
+      { publicId, position },
+      true // requires auth
+    );
+  },
 };
 
 /**
