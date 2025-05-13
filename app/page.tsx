@@ -570,7 +570,11 @@ export default function Home() {
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-white">
-              <Image src={logo} alt="logo" className="w-24 md:w-28 object-cover" />
+              <Image
+                src={logo}
+                alt="logo"
+                className="w-24 md:w-28 object-cover"
+              />
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -827,15 +831,12 @@ export default function Home() {
                 {t("nav.contact")}
               </button>
 
-              <button
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors mt-4"
-                onClick={() => {
-                  setReservationOpen(true);
-                  setIsMenuOpen(false);
-                }}
+              <Link
+                href="/reservation"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors"
               >
                 {t("nav.reserve")}
-              </button>
+              </Link>
             </div>
           </motion.div>
         )}
@@ -917,6 +918,12 @@ export default function Home() {
                   </motion.button>
                 </Link>
               )}
+                            <Link
+                href="/reservation"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors"
+              >
+                {t("nav.reserve")}
+              </Link>
             </motion.div>
 
             <motion.div
