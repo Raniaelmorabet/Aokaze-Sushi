@@ -18,77 +18,10 @@ import {
   Check,
 } from "lucide-react";
 import Image from "next/image";
-import { API_BASE_URL } from "@/utils/api";
+import { API_BASE_URL, galleryAPI } from "@/utils/api";
 
-// Sample gallery data with Unsplash images
-const sampleGallery = [
-  {
-    _id: "1",
-    url: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1200&auto=format&fit=crop",
-    featured: true,
-    date: "2023-11-15T12:00:00Z",
-    position: 0,
-  },
-  {
-    _id: "2",
-    url: "https://images.unsplash.com/photo-1534482421-64566f976cfa?q=80&w=1200&auto=format&fit=crop",
-    featured: false,
-    date: "2023-10-22T15:30:00Z",
-    position: null,
-  },
-  {
-    _id: "3",
-    url: "https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1200&auto=format&fit=crop",
-    featured: true,
-    date: "2023-12-05T18:45:00Z",
-    position: 1,
-  },
-  {
-    _id: "4",
-    url: "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=1200&auto=format&fit=crop",
-    featured: false,
-    date: "2023-09-18T14:20:00Z",
-    position: 2,
-  },
-  {
-    _id: "5",
-    url: "https://images.unsplash.com/photo-1611143669185-af224c5e3252?q=80&w=1200&auto=format&fit=crop",
-    featured: true,
-    date: "2023-11-30T11:15:00Z",
-    position: null,
-  },
-  {
-    _id: "6",
-    url: "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?q=80&w=1200&auto=format&fit=crop",
-    featured: false,
-    date: "2023-10-10T16:40:00Z",
-    position: null,
-  },
-  {
-    _id: "7",
-    url: "https://images.unsplash.com/photo-1562158074-d49fbeffcc91?q=80&w=1200&auto=format&fit=crop",
-    featured: true,
-    date: "2023-12-12T13:25:00Z",
-    position: null,
-  },
-  {
-    _id: "8",
-    url: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=1200&auto=format&fit=crop",
-    featured: false,
-    date: "2023-11-05T19:10:00Z",
-    position: null,
-  },
-  {
-    _id: "9",
-    url: "https://images.unsplash.com/photo-1584583570840-0a3d88497593?q=80&w=1200&auto=format&fit=crop",
-    featured: true,
-    date: "2023-10-28T10:50:00Z",
-    position: null,
-  },
-];
 
 export default function GalleryManagement() {
-  const [gallery, setGallery] = useState(sampleGallery);
   const [getGallery, setGetGallery] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -109,45 +42,34 @@ export default function GalleryManagement() {
     second: null,
     third: null,
   });
-
   const [selectingPosition, setSelectingPosition] = useState(null);
 
-  // Fetch gallery images
-  const fetchGallery = async () => {
-    setLoading(true);
-    try {
-      // In a real app, you would fetch from API
-      // For demo, we'll use the sample data
-      setTimeout(() => {
-        setGallery(sampleGallery);
-        setLoading(false);
-      }, 800);
-    } catch (error) {
-      console.error("Error fetching gallery:", error);
-      setLoading(false);
+const filteredGallery = getGallery
+  .filter((image) => {
+    // Handle tab-based filtering (unchanged)
+    switch (selectedTab) {
+      case "all":
+        return true;
+      case "featured":
+        return image.isFeatured === true;
+      case "positioned":
+        return image.position !== null && image.position !== undefined;
+      default:
+        return true;
     }
-  };
+  })
+  .sort((a, b) => {
+    // Handle position sorting with adjusted values
+    const aPos = a.position !== null && a.position !== undefined ? (a.position === 0 ? 1 : a.position) : null;
+    const bPos = b.position !== null && b.position !== undefined ? (b.position === 0 ? 1 : b.position) : null;
 
-  useEffect(() => {
-    fetchGallery();
-  }, []);
-
-  // Initialize position selection from gallery data
-  useEffect(() => {
-    const positions = {
-      first: gallery.find((img) => img.position === 0)?._id || null,
-      second: gallery.find((img) => img.position === 1)?._id || null,
-      third: gallery.find((img) => img.position === 2)?._id || null,
-    };
-    setPositionSelection(positions);
-  }, [gallery]);
-
-  // Filter gallery based on tab
-  const filteredGallery = gallery.filter((image) => {
-    if (selectedTab === "all") return true;
-    if (selectedTab === "featured") return image.featured;
-    if (selectedTab === "positioned") return image.position !== null;
-    return true;
+    if (aPos !== null && bPos !== null) {
+      return aPos - bPos;
+    }
+    if (aPos !== null) return -1;
+    if (bPos !== null) return 1;
+    // Fallback to upload date (newest first)
+    return new Date(b.uploadedAt) - new Date(a.uploadedAt);
   });
 
   // Handle file selection
@@ -200,86 +122,68 @@ export default function GalleryManagement() {
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(interval);
-            return 95;
-          }
-          return prev + 5;
-        });
-      }, 100);
-
-      // For demo, we'll simulate the upload
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Add the new image to our local state
-      const newImage = {
-        _id: String(gallery.length + 1),
-        url: imagePreview,
-        featured: false,
-        date: new Date().toISOString(),
-        position: null,
-      };
-
-      setGallery([newImage, ...gallery]);
-
-      clearInterval(interval);
-      setUploadProgress(100);
-      setUploadSuccess(true);
-
-      // Reset form after successful upload
+      const formData = new FormData();
+      // Handle the image
+      if (imageFile) {
+        if (imageFile instanceof File) {
+          formData.append("image", imageFile);
+        } else if (
+          typeof imageFile === "string" &&
+          imageFile.startsWith("data:")
+        ) {
+          // Convert base64 to blob
+          const response = await fetch(imageFile);
+          const blob = await response.blob();
+          formData.append("image", blob, "gallery-image.jpg");
+        } else if (typeof imageFile === "string") {
+          formData.append("imageUrl", imageFile);
+        }
+      }
       setTimeout(() => {
-        setUploadModalOpen(false);
+        setUploadProgress(25);
+      }, 500);
+
+      setTimeout(() => {
+        setUploadProgress(50);
+      }, 500);
+
+      const responce = await galleryAPI.uploadGalleryImages(formData);
+
+      console.log(responce.data.images[0]);
+      setGetGallery((prev) => [...prev, responce.data.images[0]]);
+      if (responce.success) {
         setImageFile(null);
-        setImagePreview(null);
-        setUploadSuccess(false);
-        setUploading(false);
-      }, 1500);
+      }
     } catch (error) {
       console.error("Error uploading image:", error);
+    } finally {
       setUploading(false);
+      setUploadSuccess(true);
+      setTimeout(() => {
+        setUploadProgress(100);
+      }, 500);
     }
-  };
 
-  // Handle image delete
-  const handleDelete = async () => {
-    try {
-      // For demo, we'll update our local state
-      setGallery(gallery.filter((img) => img._id !== selectedImage._id));
-      setDeleteModalOpen(false);
-
-      // Update position selection if needed
-      const newPositionSelection = { ...positionSelection };
-      if (positionSelection.first === selectedImage._id)
-        newPositionSelection.first = null;
-      if (positionSelection.second === selectedImage._id)
-        newPositionSelection.second = null;
-      if (positionSelection.third === selectedImage._id)
-        newPositionSelection.third = null;
-      setPositionSelection(newPositionSelection);
-    } catch (error) {
-      console.error("Error deleting image:", error);
-    }
+    // Reset form after successful upload
+    setTimeout(() => {
+      setUploadModalOpen(false);
+      setImageFile(null);
+      setImagePreview(null);
+      setUploadSuccess(false);
+      setUploading(false);
+    }, 1500);
   };
 
   // Toggle featured status
-  const toggleFeatured = (image) => {
-    const updatedGallery = gallery.map((img) =>
-      img._id === image._id ? { ...img, featured: !img.featured } : img
+  const toggleFeatured = async (image) => {
+    const updatedGallery = getGallery.map((img) =>
+      img._id === image._id ? { ...img, isFeatured: !img.isFeatured } : img
     );
-    setGallery(updatedGallery);
-  };
 
-  // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const responce = await galleryAPI.toggleFeaturedStatus(image.publicId);
+    if (responce.success) {
+      setGetGallery(updatedGallery);
+    }
   };
 
   // Open delete confirmation modal
@@ -294,22 +198,6 @@ export default function GalleryManagement() {
     setPreviewModalOpen(true);
   };
 
-  // Save position selections
-  const savePositions = () => {
-    const updatedGallery = gallery.map((img) => {
-      let position = null;
-
-      if (img._id === positionSelection.first) position = 0;
-      else if (img._id === positionSelection.second) position = 1;
-      else if (img._id === positionSelection.third) position = 2;
-
-      return { ...img, position };
-    });
-
-    setGallery(updatedGallery);
-    setPositionModalOpen(false);
-  };
-
   // Get position label
   const getPositionLabel = (imageId) => {
     if (positionSelection.first === imageId) return "1st";
@@ -319,13 +207,19 @@ export default function GalleryManagement() {
   };
 
   // Add this function to handle position selection
-  const handlePositionSelect = (imageId, position) => {
+  const handlePositionSelect = async (imageId, position) => {
     if (position === "first") {
       setPositionSelection({ ...positionSelection, first: imageId });
+      const responce = await galleryAPI.updateImagePosition(imageId, 1);
+      console.log(responce);
     } else if (position === "second") {
       setPositionSelection({ ...positionSelection, second: imageId });
+      const responce = await galleryAPI.updateImagePosition(imageId, 2);
+      console.log(responce);
     } else if (position === "third") {
       setPositionSelection({ ...positionSelection, third: imageId });
+      const responce = await galleryAPI.updateImagePosition(imageId, 3);
+      console.log(responce);
     }
     setSelectingPosition(null);
   };
@@ -333,7 +227,7 @@ export default function GalleryManagement() {
   const Gallery = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/gallery`, {
+      const response = await fetch(`${API_BASE_URL}/gallery?limit=100`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -347,10 +241,6 @@ export default function GalleryManagement() {
       console.error(error);
     }
   };
-
-  useEffect(() => {
-    Gallery();
-  }, []);
 
   const handleDeleteImage = async () => {
     try {
@@ -366,7 +256,6 @@ export default function GalleryManagement() {
           },
         }
       );
-      console.log(response);
       setDeleteModalOpen(false);
       setGetGallery(
         getGallery.filter((image) => image.publicId !== selectedImage.publicId)
@@ -375,6 +264,22 @@ export default function GalleryManagement() {
       console.error(error);
     }
   };
+
+  // Initialize position selection from gallery data
+  useEffect(() => {
+    const positions = {
+      first: getGallery.find((img) => img.position === 1)?.publicId || null,
+      second: getGallery.find((img) => img.position === 2)?.publicId || null,
+      third: getGallery.find((img) => img.position === 3)?.publicId || null,
+    };
+    setPositionSelection(positions);
+  }, [getGallery]);
+
+  useEffect(() => {
+    Gallery();
+  }, []);
+
+
 
   return (
     <div className="min-h-screen">
@@ -458,7 +363,7 @@ export default function GalleryManagement() {
             />
           )}
         </button>
-        <button
+        {/* <button
           className={`px-4 py-2 font-medium text-sm transition-colors relative ${
             selectedTab === "positioned"
               ? "text-white"
@@ -474,7 +379,7 @@ export default function GalleryManagement() {
               initial={false}
             />
           )}
-        </button>
+        </button> */}
       </motion.div>
 
       {/* gallery Stats */}
@@ -516,7 +421,7 @@ export default function GalleryManagement() {
       ) : filteredGallery.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <AnimatePresence>
-            {getGallery.map((image, index) => (
+            {filteredGallery.map((image, index) => (
               <motion.div
                 key={image._id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -540,9 +445,9 @@ export default function GalleryManagement() {
                     </div>
                   )}
 
-                  {getPositionLabel(image._id) && (
+                  {getPositionLabel(image.publicId) && (
                     <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                      {getPositionLabel(image._id)}
+                      {getPositionLabel(image.publicId)}
                     </div>
                   )}
 
@@ -559,7 +464,7 @@ export default function GalleryManagement() {
                         <button
                           onClick={() => toggleFeatured(image)}
                           className={`${
-                            image.featured
+                            image.isFeatured
                               ? "bg-orange-500 hover:bg-orange-600"
                               : "bg-white/20 hover:bg-white/30"
                           } text-white p-2 rounded-full transition-colors`}
@@ -830,14 +735,14 @@ export default function GalleryManagement() {
                 <div className="absolute top-1/2 left-4 transform -translate-y-1/2">
                   <button
                     onClick={() => {
-                      const currentIndex = gallery.findIndex(
+                      const currentIndex = filteredGallery.findIndex(
                         (img) => img._id === selectedImage._id
                       );
                       const prevIndex =
                         currentIndex > 0
                           ? currentIndex - 1
-                          : gallery.length - 1;
-                      setSelectedImage(gallery[prevIndex]);
+                          : filteredGallery.length - 1;
+                      setSelectedImage(filteredGallery[prevIndex]);
                     }}
                     className="bg-black/50 hover:bg-black/70 p-2 rounded-full transition-colors"
                   >
@@ -848,14 +753,14 @@ export default function GalleryManagement() {
                 <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
                   <button
                     onClick={() => {
-                      const currentIndex = gallery.findIndex(
+                      const currentIndex = filteredGallery.findIndex(
                         (img) => img._id === selectedImage._id
                       );
                       const nextIndex =
-                        currentIndex < gallery.length - 1
+                        currentIndex < filteredGallery.length - 1
                           ? currentIndex + 1
                           : 0;
-                      setSelectedImage(gallery[nextIndex]);
+                      setSelectedImage(filteredGallery[nextIndex]);
                     }}
                     className="bg-black/50 hover:bg-black/70 p-2 rounded-full transition-colors"
                   >
@@ -866,7 +771,13 @@ export default function GalleryManagement() {
 
               <div className="flex justify-center mt-4 gap-4">
                 <button
-                  onClick={() => toggleFeatured(selectedImage)}
+                  onClick={() => {
+                    toggleFeatured(selectedImage);
+                    setSelectedImage((prev) => ({
+                      ...prev,
+                      isFeatured: !prev.isFeatured,
+                    }));
+                  }}
                   className={`${
                     selectedImage.isFeatured
                       ? "bg-orange-500 hover:bg-orange-600"
@@ -929,8 +840,8 @@ export default function GalleryManagement() {
                     <div className="relative aspect-square rounded-lg overflow-hidden mb-3">
                       <Image
                         src={
-                          gallery.find(
-                            (img) => img._id === positionSelection.first
+                          getGallery.find(
+                            (img) => img.publicId === positionSelection.first
                           )?.url || "/placeholder.svg"
                         }
                         alt="First position"
@@ -971,8 +882,8 @@ export default function GalleryManagement() {
                     <div className="relative aspect-square rounded-lg overflow-hidden mb-3">
                       <Image
                         src={
-                          gallery.find(
-                            (img) => img._id === positionSelection.second
+                          getGallery.find(
+                            (img) => img.publicId === positionSelection.second
                           )?.url || "/placeholder.svg"
                         }
                         alt="Second position"
@@ -1013,8 +924,8 @@ export default function GalleryManagement() {
                     <div className="relative aspect-square rounded-lg overflow-hidden mb-3">
                       <Image
                         src={
-                          gallery.find(
-                            (img) => img._id === positionSelection.third
+                          getGallery.find(
+                            (img) => img.publicId === positionSelection.third
                           )?.url || "/placeholder.svg"
                         }
                         alt="Third position"
@@ -1049,13 +960,14 @@ export default function GalleryManagement() {
                   Select Images for Positions
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {gallery.map((image) => {
+                  {getGallery.map((image) => {
                     // Determine if this image is already assigned to a position
-                    const isFirst = positionSelection.first === image._id;
-                    const isSecond = positionSelection.second === image._id;
-                    const isThird = positionSelection.third === image._id;
+                    const isFirst = positionSelection.first === image.publicId;
+                    const isSecond =
+                      positionSelection.second === image.publicId;
+                    const isThird = positionSelection.third === image.publicId;
                     const isAssigned = isFirst || isSecond || isThird;
-                    const isSelecting = selectingPosition === image._id;
+                    const isSelecting = selectingPosition === image.publicId;
 
                     return (
                       <div
@@ -1067,7 +979,7 @@ export default function GalleryManagement() {
                         }`}
                         onClick={() => {
                           if (!isSelecting && !isAssigned) {
-                            setSelectingPosition(image._id);
+                            setSelectingPosition(image.publicId);
                           } else if (isSelecting) {
                             setSelectingPosition(null);
                           }
@@ -1087,9 +999,11 @@ export default function GalleryManagement() {
                               className="w-full bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handlePositionSelect(image._id, "first");
+                                handlePositionSelect(image.publicId, "first");
                               }}
-                              disabled={positionSelection.first === image._id}
+                              disabled={
+                                positionSelection.first === image.publicId
+                              }
                             >
                               1st Position
                             </button>
@@ -1097,9 +1011,11 @@ export default function GalleryManagement() {
                               className="w-full bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handlePositionSelect(image._id, "second");
+                                handlePositionSelect(image.publicId, "second");
                               }}
-                              disabled={positionSelection.second === image._id}
+                              disabled={
+                                positionSelection.second === image.publicId
+                              }
                             >
                               2nd Position
                             </button>
@@ -1107,9 +1023,11 @@ export default function GalleryManagement() {
                               className="w-full bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handlePositionSelect(image._id, "third");
+                                handlePositionSelect(image.publicId, "third");
                               }}
-                              disabled={positionSelection.third === image._id}
+                              disabled={
+                                positionSelection.third === image.publicId
+                              }
                             >
                               3rd Position
                             </button>
@@ -1135,28 +1053,6 @@ export default function GalleryManagement() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => {
-                    setPositionModalOpen(false);
-                    setSelectingPosition(null);
-                  }}
-                  className="bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    savePositions();
-                    setSelectingPosition(null);
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                >
-                  <Check size={18} />
-                  <span>Save Arrangement</span>
-                </button>
-              </div>
             </motion.div>
           </div>
         )}
