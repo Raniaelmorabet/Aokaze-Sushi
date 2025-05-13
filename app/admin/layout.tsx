@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/Image";
 import { usePathname } from "next/navigation";
+import { IoHomeOutline } from "react-icons/io5";
+import { LuEye } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -79,7 +81,7 @@ export default function AdminLayout({ children }) {
 
   const ShowUser = async () => {
     const token = localStorage.getItem("token");
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
         method: "GET",
@@ -154,6 +156,14 @@ export default function AdminLayout({ children }) {
                     <span>{item.name}</span>
                   </Link>
                 ))}
+                <Link
+                  href={"/"}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-gray-300 hover:bg-[#2a2a2a] hover:text-white`}
+                >
+                  {/* <IoHomeOutline size={20}/> */}
+                  <LuEye size={20} />
+                  <span>View website</span>
+                </Link>
               </nav>
 
               <div className="p-4 mt-auto border-t border-gray-800">
@@ -213,7 +223,7 @@ export default function AdminLayout({ children }) {
         {/* Top navbar */}
         <header className="bg-[#1a1a1a] shadow-md">
           <div className="flex items-center justify-between h-16 px-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ">
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="lg:hidden text-gray-300 hover:text-white"
@@ -222,9 +232,12 @@ export default function AdminLayout({ children }) {
               </button>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 md:mr-5">
               <div className="relative">
-                <Link href={"/admin/settings"} className="flex items-center gap-2 text-gray-300 ">
+                <Link
+                  href={"/admin/settings"}
+                  className="flex items-center gap-2 text-gray-300 "
+                >
                   <div className="size-10 rounded-full  flex items-center justify-center hover:text-white border border-white/30 hover:opacity-85 hover:scale-105 hover:border-white duration-200">
                     {!loading ? (
                       <img
