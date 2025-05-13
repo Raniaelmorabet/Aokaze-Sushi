@@ -243,7 +243,7 @@ export default function AdminLayout({ children }) {
                       <img
                         src={user?.image}
                         alt="Profile"
-                        className="w-full h-full rounded-full"
+                        className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
                       <User size={24} />
