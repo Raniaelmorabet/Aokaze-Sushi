@@ -19,6 +19,8 @@ import {
   Bell,
   Search,
   User,
+  Grid,
+  Calendar,
   ChevronDown,
 } from "lucide-react";
 import { RiUserStarLine } from "react-icons/ri";
@@ -49,6 +51,8 @@ export default function AdminLayout({ children }) {
     },
     { name: "Chef's Management", href: "/admin/chefs", icon: PiChefHat },
     { name: "Offers Management", href: "/admin/offers", icon: Tag },
+    { name: "Reservations", href: "/admin/reservation", icon: Calendar },
+    { name: "Tables Management", href: "/admin/tables", icon: Grid },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
