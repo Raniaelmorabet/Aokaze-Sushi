@@ -2074,14 +2074,7 @@ export default function OffersManagement() {
                 className="mt-4"
               >
                 <TabsList className="bg-[#252525]">
-                  <TabsTrigger
-                    className={`${
-                      activeOffer === "basic" ? "!bg-white !text-black" : ""
-                    }`}
-                    value="basic"
-                  >
-                    Basic Info
-                  </TabsTrigger>
+                  <TabsTrigger className={`${activeOffer === "basic" ? "!bg-white !text-black" : ""}`} value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger
                     className={`${
                       activeOffer === "discount" ? "!bg-white !text-black" : ""
