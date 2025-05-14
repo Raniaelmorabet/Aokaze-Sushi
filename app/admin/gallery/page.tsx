@@ -413,7 +413,6 @@ const filteredGallery = getGallery
       {loading ? (
         <div className="flex flex-col justify-center items-center h-64">
           <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
-          <p className="text-gray-400">Loading gnollery images...</p>
         </div>
       ) : filteredGallery.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
