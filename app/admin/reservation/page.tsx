@@ -865,21 +865,21 @@ export default function ReservationsPage() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     </div>
 
-                    <div className="relative">
-                        <button className="bg-[#1E1E1E] text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                            <CalendarDays size={18} />
-                            <span>Date</span>
-                            <ChevronDown size={16} />
-                        </button>
-                    </div>
+                    {/*<div className="relative">*/}
+                    {/*    <button className="bg-[#1E1E1E] text-white px-4 py-2 rounded-lg flex items-center gap-2">*/}
+                    {/*        <CalendarDays size={18} />*/}
+                    {/*        <span>Date</span>*/}
+                    {/*        <ChevronDown size={16} />*/}
+                    {/*    </button>*/}
+                    {/*</div>*/}
 
-                    <button
-                        onClick={() => setShowTableLayout(true)}
-                        className="bg-[#2a2a2a] hover:bg-[#333] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                    >
-                        <Eye size={18} />
-                        <span>View Layout</span>
-                    </button>
+                    {/*<button*/}
+                    {/*    onClick={() => setShowTableLayout(true)}*/}
+                    {/*    className="bg-[#2a2a2a] hover:bg-[#333] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"*/}
+                    {/*>*/}
+                    {/*    <Eye size={18} />*/}
+                    {/*    <span>View Layout</span>*/}
+                    {/*</button>*/}
 
                     <button
                         onClick={() => setShowNewReservationModal(true)}
@@ -1845,110 +1845,110 @@ export default function ReservationsPage() {
                 </div>
             )}
 
-            {/* Table Layout Modal */}
-            {showTableLayout && (
-                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#1E1E1E] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-[#1E1E1E] z-10">
-                            <h3 className="text-xl font-bold">Restaurant Table Layout</h3>
-                            <button onClick={() => setShowTableLayout(false)}>
-                                <X size={24} />
-                            </button>
-                        </div>
+            {/*/!* Table Layout Modal *!/*/}
+            {/*{showTableLayout && (*/}
+            {/*    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">*/}
+            {/*        <div className="bg-[#1E1E1E] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">*/}
+            {/*            <div className="p-6 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-[#1E1E1E] z-10">*/}
+            {/*                <h3 className="text-xl font-bold">Restaurant Table Layout</h3>*/}
+            {/*                <button onClick={() => setShowTableLayout(false)}>*/}
+            {/*                    <X size={24} />*/}
+            {/*                </button>*/}
+            {/*            </div>*/}
 
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold">Table Status</h2>
-                                <div className="flex flex-wrap gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-green-500" />
-                                        <span className="text-xs">Available</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-red-500" />
-                                        <span className="text-xs">Reserved</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-gray-400" />
-                                        <span className="text-xs">Filled</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-amber-500" />
-                                        <span className="text-xs">Available Soon</span>
-                                    </div>
-                                </div>
-                            </div>
+            {/*            <div className="p-6">*/}
+            {/*                <div className="flex justify-between items-center mb-6">*/}
+            {/*                    <h2 className="text-xl font-bold">Table Status</h2>*/}
+            {/*                    <div className="flex flex-wrap gap-4">*/}
+            {/*                        <div className="flex items-center gap-2">*/}
+            {/*                            <div className="w-3 h-3 rounded-full bg-green-500" />*/}
+            {/*                            <span className="text-xs">Available</span>*/}
+            {/*                        </div>*/}
+            {/*                        <div className="flex items-center gap-2">*/}
+            {/*                            <div className="w-3 h-3 rounded-full bg-red-500" />*/}
+            {/*                            <span className="text-xs">Reserved</span>*/}
+            {/*                        </div>*/}
+            {/*                        <div className="flex items-center gap-2">*/}
+            {/*                            <div className="w-3 h-3 rounded-full bg-gray-400" />*/}
+            {/*                            <span className="text-xs">Filled</span>*/}
+            {/*                        </div>*/}
+            {/*                        <div className="flex items-center gap-2">*/}
+            {/*                            <div className="w-3 h-3 rounded-full bg-amber-500" />*/}
+            {/*                            <span className="text-xs">Available Soon</span>*/}
+            {/*                        </div>*/}
+            {/*                    </div>*/}
+            {/*                </div>*/}
 
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="flex items-center">
-                                    <div className="relative flex items-center bg-[#2a2a2a] text-white rounded-lg py-3 px-4">
-                                        <Users size={18} className="mr-2 text-gray-400" />
-                                        <span>
-                      {peopleCount} {peopleCount === 1 ? "person" : "people"}
-                    </span>
-                                        <div className="ml-4 flex flex-col">
-                                            <button
-                                                type="button"
-                                                onClick={incrementPeople}
-                                                className="px-2 text-gray-400 hover:text-white focus:outline-none"
-                                            >
-                                                <ChevronUp size={16} />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={decrementPeople}
-                                                className="px-2 text-gray-400 hover:text-white focus:outline-none"
-                                            >
-                                                <ChevronDown size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-gray-400">Select a table that can accommodate your party size</p>
-                            </div>
+            {/*                <div className="flex items-center gap-4 mb-6">*/}
+            {/*                    <div className="flex items-center">*/}
+            {/*                        <div className="relative flex items-center bg-[#2a2a2a] text-white rounded-lg py-3 px-4">*/}
+            {/*                            <Users size={18} className="mr-2 text-gray-400" />*/}
+            {/*                            <span>*/}
+            {/*          {peopleCount} {peopleCount === 1 ? "person" : "people"}*/}
+            {/*        </span>*/}
+            {/*                            <div className="ml-4 flex flex-col">*/}
+            {/*                                <button*/}
+            {/*                                    type="button"*/}
+            {/*                                    onClick={incrementPeople}*/}
+            {/*                                    className="px-2 text-gray-400 hover:text-white focus:outline-none"*/}
+            {/*                                >*/}
+            {/*                                    <ChevronUp size={16} />*/}
+            {/*                                </button>*/}
+            {/*                                <button*/}
+            {/*                                    type="button"*/}
+            {/*                                    onClick={decrementPeople}*/}
+            {/*                                    className="px-2 text-gray-400 hover:text-white focus:outline-none"*/}
+            {/*                                >*/}
+            {/*                                    <ChevronDown size={16} />*/}
+            {/*                                </button>*/}
+            {/*                            </div>*/}
+            {/*                        </div>*/}
+            {/*                    </div>*/}
+            {/*                    <p className="text-sm text-gray-400">Select a table that can accommodate your party size</p>*/}
+            {/*                </div>*/}
 
-                            <div className="overflow-auto px-28" style={{ maxHeight: "600px", maxWidth: "100%" }}>
-                                <div style={{ width: "1200px", height: "auto", minHeight: "800px" }}>
-                                    {Object.entries(tablesByRow).map(([rowIndex, rowTables]) => {
-                                        const rowNumber = Number.parseInt(rowIndex)
-                                        return (
-                                            <div key={rowIndex} className="relative" style={{ height: "200px", marginBottom: "24px" }}>
-                                                {rowTables.map((table) => {
-                                                    // Calculate absolute positioning based on grid
-                                                    const colWidth = 170 // Fixed column width
-                                                    const colGap = 32 // Fixed gap between columns (16px on each side)
-                                                    const totalColWidth = colWidth + colGap
+            {/*                <div className="overflow-auto px-28" style={{ maxHeight: "600px", maxWidth: "100%" }}>*/}
+            {/*                    <div style={{ width: "1200px", height: "auto", minHeight: "800px" }}>*/}
+            {/*                        {Object.entries(tablesByRow).map(([rowIndex, rowTables]) => {*/}
+            {/*                            const rowNumber = Number.parseInt(rowIndex)*/}
+            {/*                            return (*/}
+            {/*                                <div key={rowIndex} className="relative" style={{ height: "200px", marginBottom: "24px" }}>*/}
+            {/*                                    {rowTables.map((table) => {*/}
+            {/*                                        // Calculate absolute positioning based on grid*/}
+            {/*                                        const colWidth = 170 // Fixed column width*/}
+            {/*                                        const colGap = 32 // Fixed gap between columns (16px on each side)*/}
+            {/*                                        const totalColWidth = colWidth + colGap*/}
 
-                                                    // Calculate left position based on column
-                                                    const leftPos = table.position.col * totalColWidth
+            {/*                                        // Calculate left position based on column*/}
+            {/*                                        const leftPos = table.position.col * totalColWidth*/}
 
-                                                    // Adjust width for tables that span multiple columns
-                                                    const width = table.position.colSpan === 2 ? colWidth * 2 + colGap : colWidth
+            {/*                                        // Adjust width for tables that span multiple columns*/}
+            {/*                                        const width = table.position.colSpan === 2 ? colWidth * 2 + colGap : colWidth*/}
 
-                                                    return (
-                                                        <div
-                                                            key={table.id}
-                                                            className="absolute"
-                                                            style={{
-                                                                left: `${leftPos}px`,
-                                                                top: "0",
-                                                                width: `${width}px`,
-                                                                height: "170px",
-                                                            }}
-                                                        >
-                                                            {renderTable(table)}
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/*                                        return (*/}
+            {/*                                            <div*/}
+            {/*                                                key={table.id}*/}
+            {/*                                                className="absolute"*/}
+            {/*                                                style={{*/}
+            {/*                                                    left: `${leftPos}px`,*/}
+            {/*                                                    top: "0",*/}
+            {/*                                                    width: `${width}px`,*/}
+            {/*                                                    height: "170px",*/}
+            {/*                                                }}*/}
+            {/*                                            >*/}
+            {/*                                                {renderTable(table)}*/}
+            {/*                                            </div>*/}
+            {/*                                        )*/}
+            {/*                                    })}*/}
+            {/*                                </div>*/}
+            {/*                            )*/}
+            {/*                        })}*/}
+            {/*                    </div>*/}
+            {/*                </div>*/}
+            {/*            </div>*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*)}*/}
         </div>
     )
 }
