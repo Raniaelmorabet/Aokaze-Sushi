@@ -50,7 +50,7 @@ import {
   galleryAPI,
   menuAPI,
   notificationAPI,
-  offersAPI,
+  offersAPI, settingsAPI,
   testimonialAPI,
 } from "@/utils/api"
 import logo from "@/public/logo.png"
@@ -105,6 +105,7 @@ export default function Home() {
   const [getChefs, setGetChefs] = useState([])
   const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
+  const [openingHours, setOpeningHours] = useState([])
   const [user, setUser] = useState(null)
   const [loadUser, setLoadUser] = useState(false)
   const aboutRef = useRef(null)
@@ -469,6 +470,17 @@ export default function Home() {
     }
   }
 
+  const getOpeningHours = async () => {
+    const token = localStorage.getItem("token")
+    try {
+      const response = await settingsAPI.getSettings()
+      setOpeningHours(response.data.openingHours)
+      console.log(response.data.openingHours)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   useEffect(() => {
     getUser()
     getNotifications()
@@ -480,6 +492,7 @@ export default function Home() {
     getTestimonials()
     fetchChefs()
     getCartItems()
+    getOpeningHours()
   }, [])
 
   const instagramPosts = [
@@ -640,7 +653,7 @@ export default function Home() {
                           </button>
                           <Link
                               href="/profile"
-                              className=" rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
+                              className="rounded-full size-9 border border-gray-600 flex items-center gap-2 hover:border-white/60 transition-colors"
                           >
                             <Image
                                 src={user?.image || logo}
@@ -1734,18 +1747,6 @@ export default function Home() {
                           <span className="text-gray-300">Monday - Thursday</span>
                           <span className="font-medium text-white">10:00 - 23:00</span>
                         </li>
-                        <li className="flex justify-between items-center pb-3 border-b border-gray-800">
-                          <span className="text-gray-300">Friday</span>
-                          <span className="font-medium text-white">10:00 - 23:00</span>
-                        </li>
-                        <li className="flex justify-between items-center pb-3 border-b border-gray-800">
-                          <span className="text-gray-300">Saturday</span>
-                          <span className="font-medium text-white">10:00 - 24:00</span>
-                        </li>
-                        <li className="flex justify-between items-center">
-                          <span className="text-gray-300">Sunday</span>
-                          <span className="font-medium text-white">12:00 - 22:00</span>
-                        </li>
                       </ul>
                     </div>
                     <Link
@@ -1950,3 +1951,4 @@ export default function Home() {
       </div>
   )
 }
+
