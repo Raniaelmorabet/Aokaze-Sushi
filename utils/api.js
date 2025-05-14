@@ -1099,14 +1099,20 @@ export const reservationAPI = {
   },
 
   // Get available tables
-  getAvailableTables: async (date, capacity, startTime, endTime) => {
-    const params = { date };
-    if (capacity) params.capacity = capacity;
-    if (startTime) params.startTime = startTime;
-    if (endTime) params.endTime = endTime;
+  getAvailableTables: async ({ date, capacity, startTime }) => {
+    const formattedDate =
+      typeof date === "object" && date !== null
+        ? date.toISOString().split("T")[0]
+        : date;
+    const queryParams = new URLSearchParams();
+    queryParams.append("date", formattedDate);
+    if (capacity) queryParams.append("capacity", capacity);
+    if (startTime) queryParams.append("startTime", startTime);
 
-    const queryString = new URLSearchParams(params).toString();
-    return await apiRequest(`/reservations/availability?${queryString}`, "GET");
+    return apiRequest(
+      `/reservations/availability?${queryParams.toString()}`,
+      "GET"
+    );
   },
 
   // Get user's reservations
