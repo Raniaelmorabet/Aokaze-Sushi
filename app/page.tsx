@@ -24,7 +24,9 @@ import {
   Flame,
   ThumbsUp,
   DollarSign,
-  Bell,
+  Bell, Clock,
+  Calendar,
+  Users,
 } from "lucide-react";
 import {
   motion,
@@ -918,12 +920,6 @@ export default function Home() {
                   </motion.button>
                 </Link>
               )}
-                            <Link
-                href="/reservation"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full font-medium transition-colors"
-              >
-                {t("nav.reserve")}
-              </Link>
             </motion.div>
 
             <motion.div
@@ -1818,6 +1814,142 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* Opening hours*/}
+      <section className="py-20 bg-[#121212]">
+        <div className="container mx-auto px-4">
+          <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-12"
+          >
+            <h3 className="text-4xl md:text-5xl font-bold mb-4">Opening Hours</h3>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              We're open daily to bring you the freshest sushi in town. See our hours and plan your visit.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Opening Hours Card */}
+            <motion.div
+                className="bg-[#1E1E1E] rounded-xl overflow-hidden shadow-xl h-full"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="relative h-full">
+                <div className="absolute inset-0 opacity-20">
+                  <Image
+                      src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=800&auto=format&fit=crop"
+                      alt="Sushi restaurant"
+                      fill
+                      className="object-cover"
+                  />
+                </div>
+                <div className="relative p-8 h-full flex flex-col justify-between z-10">
+                  <div>
+                    <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 mb-6">
+                      <Clock size={28} />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-6">Regular Hours</h3>
+                    <ul className="space-y-4 text-lg">
+                      <li className="flex justify-between items-center pb-3 border-b border-gray-800">
+                        <span className="text-gray-300">Monday - Thursday</span>
+                        <span className="font-medium text-white">10:00 - 23:00</span>
+                      </li>
+                      <li className="flex justify-between items-center pb-3 border-b border-gray-800">
+                        <span className="text-gray-300">Friday</span>
+                        <span className="font-medium text-white">10:00 - 23:00</span>
+                      </li>
+                      <li className="flex justify-between items-center pb-3 border-b border-gray-800">
+                        <span className="text-gray-300">Saturday</span>
+                        <span className="font-medium text-white">10:00 - 24:00</span>
+                      </li>
+                      <li className="flex justify-between items-center">
+                        <span className="text-gray-300">Sunday</span>
+                        <span className="font-medium text-white">12:00 - 22:00</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <Link
+                      href="/reservation"
+                      className="mt-8 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors text-center font-medium flex items-center justify-center gap-2 w-full"
+                  >
+                    <Calendar size={18} />
+                    Make a Reservation
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Reservation Policy */}
+            <motion.div
+                className="bg-[#1E1E1E] rounded-xl overflow-hidden shadow-xl h-full"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <div className="relative h-full">
+                <div className="absolute inset-0 opacity-10">
+                  <Image
+                      src="https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=800&auto=format&fit=crop"
+                      alt="Sushi platter"
+                      fill
+                      className="object-cover"
+                  />
+                </div>
+                <div className="relative p-8 h-full flex flex-col z-10">
+                  <div>
+                    <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 mb-6">
+                      <Users size={28} />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-6">Reservation Policy</h3>
+                    <ul className="space-y-4">
+                      <li className="flex items-start gap-3 pb-3 border-b border-gray-800">
+                        <div className="min-w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500">
+                          <span>1</span>
+                        </div>
+                        <p className="text-gray-300 text-lg pt-1">Reservations recommended for parties of 4 or more</p>
+                      </li>
+                      <li className="flex items-start gap-3 pb-3 border-b border-gray-800">
+                        <div className="min-w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500">
+                          <span>2</span>
+                        </div>
+                        <p className="text-gray-300 text-lg pt-1">15-minute grace period for reserved tables</p>
+                      </li>
+                      <li className="flex items-start gap-3 pb-3 border-b border-gray-800">
+                        <div className="min-w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500">
+                          <span>3</span>
+                        </div>
+                        <p className="text-gray-300 text-lg pt-1">Special events require 24-hour advance booking</p>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="min-w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500">
+                          <span>4</span>
+                        </div>
+                        <p className="text-gray-300 text-lg pt-1">
+                          Cancellations should be made at least 2 hours in advance
+                        </p>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="mt-auto pt-8">
+                    <div className="bg-[#0E0E0E]/80 p-4 rounded-lg">
+                      <p className="text-gray-300 text-center">
+                        For large groups or special occasions, please contact us directly at{" "}
+                        <span className="text-orange-500">+62 8914 2014</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
       {/* Newsletter */}
       <section className="py-20 bg-gradient-to-b from-[#121212] to-[#0E0E0E]">
         <div className="container mx-auto px-4">
@@ -1828,7 +1960,7 @@ export default function Home() {
       {/* Footer */}
       <footer id="contact" className="bg-[#0E0E0E] pt-20 pb-10">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 mb-16">
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <div className="text-white">
@@ -1907,7 +2039,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div>
+            <div className=' '>
               <h3 className="font-bold text-xl mb-6">
                 {t("footer.getInTouch")}
               </h3>
@@ -1929,26 +2061,6 @@ export default function Home() {
                     <Mail size={20} />
                   </div>
                   <span>{t("footer.email")}</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-xl mb-6">
-                {t("footer.openingHours")}
-              </h3>
-              <ul className="space-y-4 text-gray-400">
-                <li>
-                  <p className="font-medium">{t("footer.weekdays")}</p>
-                  <p>11:00 AM - 10:00 PM</p>
-                </li>
-                <li>
-                  <p className="font-medium">{t("footer.weekends")}</p>
-                  <p>10:00 AM - 11:00 PM</p>
-                </li>
-                <li>
-                  <p className="font-medium">{t("footer.holidays")}</p>
-                  <p>12:00 PM - 9:00 PM</p>
                 </li>
               </ul>
             </div>
