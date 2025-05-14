@@ -40,18 +40,14 @@ export default function AdminLayout({ children }) {
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
-    { name: "Menu Management", href: "/admin/menu", icon: FileText },
     { name: "Customers", href: "/admin/customers", icon: Users },
     { name: "Testimonials", href: "/admin/testimonials", icon: RiUserStarLine },
+    { name: "Category", href: "/admin/category", icon: MdOutlineRestaurantMenu,},
+    { name: "Reservations", href: "/admin/reservation", icon: Calendar },
+    { name: "Menu Management", href: "/admin/menu", icon: FileText },
     { name: "Gallery Management", href: "/admin/gallery", icon: RiGalleryFill },
-    {
-      name: "Category",
-      href: "/admin/category",
-      icon: MdOutlineRestaurantMenu,
-    },
     { name: "Chef's Management", href: "/admin/chefs", icon: PiChefHat },
     { name: "Offers Management", href: "/admin/offers", icon: Tag },
-    { name: "Reservations", href: "/admin/reservation", icon: Calendar },
     { name: "Tables Management", href: "/admin/tables", icon: Grid },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
