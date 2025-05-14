@@ -19,6 +19,7 @@ import {
     Clock,
 } from "lucide-react"
 import Image from "next/image"
+import Loading from "./loading";
 
 // Mock data based on the schema
 const mockTables = [
@@ -418,6 +419,7 @@ export default function ReservationsPage() {
     const [showTableLayout, setShowTableLayout] = useState(false)
     const [layoutTables, setLayoutTables] = useState<TableLayout[]>(initialTables)
     const [peopleCount, setPeopleCount] = useState(2)
+    const [loading, setLoading] = useState(true);
 
     // New reservation form state
     const [newReservation, setNewReservation] = useState({
@@ -844,7 +846,7 @@ export default function ReservationsPage() {
             setPeopleCount(peopleCount - 1)
         }
     }
-
+    // if (loading) return <Loading />;
     return (
         <div>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
