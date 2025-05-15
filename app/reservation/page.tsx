@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,10 +13,12 @@ import {
   ArrowLeft,
   X,
   Info,
+  XCircle,
 } from "lucide-react";
+
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from "next/navigation";
-import { reservationAPI } from "@/utils/api";
+import { API_BASE_URL, reservationAPI } from "@/utils/api";
 import Loading from "./loading";
 
 type TableStatus = "available" | "reserved" | "filled" | "availableSoon";
@@ -47,11 +49,11 @@ interface Table {
   timeRemaining?: string;
   selected?: boolean;
   position: {
+    x: number;
+    y: number;
     row: number;
     col: number;
     colSpan?: number;
-    x: number;
-    y: number;
   };
   capacity: number;
   location: TableLocation;
@@ -73,6 +75,7 @@ export default function ReservationPage() {
   const [formData, setFormData] = useState({
     date: "",
     time: "",
+    endTime: "",
     guests: "2",
     name: "",
     email: "",
@@ -300,28 +303,27 @@ export default function ReservationPage() {
   }));
 
   const [allTables, setAllTables] = useState<Table[]>([...initialTables]);
-  const [loading, setLoading] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false);
   const [tables, setTables] = useState<Table[]>();
   const [filteredTables, setFilteredTables] = useState<Table[]>([]);
   const [peopleCount, setPeopleCount] = useState(2);
+  const [selectedTablee, setSelectedTablee] = useState<Table>(null);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
-const filterTables = () => {
+  const filterTables = () => {
     handleGetTables();
-    
-    const filtered = tables?.filter(
-        (table) =>
-            table.capacity >= peopleCount &&
-            (table.status === "available" || table.status === "availableSoon")
-    );
-    setFilteredTables(filtered || []);
     setShowSearchModal(false);
     setStep(1);
-};
+  };
 
   const handleGetTables = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-
       let formattedDate;
 
       if (typeof formData.date === "object" && formData.date !== null) {
@@ -340,19 +342,52 @@ const filterTables = () => {
       }
 
       const response = await reservationAPI.getAvailableTables({
-        date: formattedDate, 
+        date: formattedDate,
         capacity: formData.guests,
         startTime: formData.time,
       });
 
       console.log("API Response:", response);
-      if (response.success){
-        setTables(response.data)
+      if (response.success) {
+        // Map API response to your Table interface
+        const mappedTables = response.data.map((table: any) => ({
+          id: table._id,
+          tableNumber: table.tableNumber,
+          name: table.name,
+          status: table.available ? "available" : "reserved", // Convert available to status
+          shape: "rectangular", // Default shape or get from API if available
+          position: {
+            x: table.position.x,
+            y: table.position.y,
+            row: Math.floor(table.position.y / 200), // Calculate based on your grid
+            col: Math.floor(table.position.x / 200), // Calculate based on your grid
+          },
+          capacity: table.capacity,
+          location: table.location,
+          description: table.description,
+          isActive: table.isActive,
+          amenities: table.amenities,
+          pricePerHour: table.pricePerHour,
+          minReservationDuration: table.minReservationDuration,
+          maxReservationDuration: table.maxReservationDuration,
+          images: table.images,
+          meetings: [], // Add if available from API
+        }));
+
+        setTables(mappedTables);
+
+        // Filter the tables immediately after setting them
+        const filtered = mappedTables.filter(
+          (table) =>
+            table.capacity >= peopleCount &&
+            (table.status === "available" || table.status === "availableSoon")
+        );
+        setFilteredTables(filtered);
       }
     } catch (error) {
       console.error("Error in handleGetTables:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -365,10 +400,10 @@ const filterTables = () => {
     router.push(path);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setStep(3);
-  };
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   setStep(3);
+  // };
 
   const nextStep = () => {
     setStep(step + 1);
@@ -544,7 +579,7 @@ const filterTables = () => {
                 table.status
               )}`}
             >
-              {table.name}
+              {table.tableNumber}
             </span>
           </div>
 
@@ -567,12 +602,12 @@ const filterTables = () => {
     );
   };
 
-const tablesByRow = (filteredTables || []).reduce((acc, table) => {
+  const tablesByRow = (filteredTables || []).reduce((acc, table) => {
     const row = table.position.x;
     if (!acc[row]) acc[row] = [];
     acc[row].push(table);
     return acc;
-}, {} as Record<number, Table[]>);
+  }, {} as Record<number, Table[]>);
 
   const selectedTable = filteredTables.find((table) => table.selected);
 
@@ -601,6 +636,137 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
     }
   };
 
+  const generateTimeOptions = (startTime, minDuration, maxDuration) => {
+    if (!startTime) return [];
+
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const startDate = new Date();
+    startDate.setHours(startHour, startMinute, 0, 0);
+
+    const options = [];
+
+    // Calculate possible end times based on min/max duration
+    const minEndDate = new Date(startDate.getTime() + minDuration * 60000);
+    const maxEndDate = new Date(startDate.getTime() + maxDuration * 60000);
+
+    // Add 1 hour increments between min and max duration
+    const minHour = minEndDate.getHours();
+    const maxHour = maxEndDate.getHours();
+
+    for (let hour = minHour; hour <= maxHour; hour++) {
+      // Skip if the duration would be less than minimum
+      if (hour === minHour && minEndDate.getMinutes() > 0) continue;
+
+      // Skip if the duration would be more than maximum
+      if (hour === maxHour && maxEndDate.getMinutes() === 0) continue;
+
+      const timeValue = `${hour.toString().padStart(2, "0")}:00`;
+      const durationMinutes = (hour - startHour) * 60;
+      const durationText =
+        durationMinutes >= 60
+          ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`
+          : `${durationMinutes}m`;
+
+      options.push({
+        value: timeValue,
+        label: `${timeValue} (${durationText})`,
+      });
+    }
+
+    return options;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      // Validate required fields
+      if (
+        !selectedTablee ||
+        !formData.date ||
+        !formData.time ||
+        !formData.endTime
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      // Format the date and time values for the API
+      const formattedReservationDate = formatDateForAPI(formData.date);
+      const formattedStartTime = formatTimeForAPI(formData.time, formData.date);
+      const formattedEndTime = formatTimeForAPI(
+        formData.endTime,
+        formData.date
+      );
+
+      // Calculate duration in hours
+      const start = new Date(formattedStartTime);
+      const end = new Date(formattedEndTime);
+      const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+      const durationHours = durationMinutes / 60;
+
+      // Calculate total price based on table's pricePerHour and duration
+      const totalPrice = durationHours * selectedTablee.pricePerHour;
+
+      const reservationData = {
+        tableId: selectedTablee.id,
+        reservationDate: formattedReservationDate,
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        partySize: parseInt(formData.guests) || 1,
+        specialRequests: formData.specialRequests,
+        totalPrice: parseFloat(totalPrice.toFixed(2)), // Round to 2 decimal places
+      };
+
+      console.log("Sending reservation data:", reservationData);
+      const token = localStorage.getItem("token");
+      // const response = await reservationAPI.createReservation(reservationData);
+      const response = await fetch(`${API_BASE_URL}/reservations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tableId: selectedTablee.id,
+          reservationDate: formattedReservationDate,
+          startTime: formattedStartTime,
+          endTime: formattedEndTime,
+          partySize: parseInt(formData.guests) || 1, // Make sure this is called partySize
+          specialRequests: formData.specialRequests,
+          totalPrice: parseFloat(totalPrice.toFixed(2)),
+        }),
+      });
+
+      // Handle successful reservation
+      console.log("Reservation created:", response);
+      if (response.ok) nextStep();
+    } catch (error) {
+      console.error("Reservation error:", error);
+      // Handle error (show toast, etc.)
+    }
+  };
+
+  // Helper functions for date/time formatting
+  const formatDateForAPI = (dateString: string): string => {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date format");
+    }
+    return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD
+  };
+
+  const formatTimeForAPI = (timeString: string, dateString: string): string => {
+    const [hours, minutes] = timeString.split(":").map(Number);
+    const date = new Date(dateString);
+
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date format");
+    }
+
+    date.setHours(hours, minutes, 0, 0);
+    return date.toISOString(); // Returns full ISO datetime string
+  };
+
   // Format amenities for display
   const formatAmenity = (amenity: TableAmenity) => {
     return amenity
@@ -609,7 +775,58 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
       .join(" ");
   };
 
-  if (loading) return <Loading />
+  const fetchAvailableTimeSlots = async () => {
+    if (!selectedTablee || !formData.date) {
+      setAvailableTimeSlots([]);
+      return;
+    }
+
+    setIsLoadingSlots(true);
+    try {
+      const response = await reservationAPI.getAvailableSlots(
+        selectedTablee.id,
+        formatDateForAPI(formData.date),
+        {
+          partySize: parseInt(formData.guests) || 2,
+        }
+      );
+
+      if (response.success) {
+        setAvailableTimeSlots(response.rawResponse.data.availableSlots);
+      } else {
+        console.error("Failed to fetch time slots:", response.message);
+        setAvailableTimeSlots([]);
+      }
+    } catch (error) {
+      console.error("Error fetching time slots:", error);
+      setAvailableTimeSlots([]);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
+
+  // Call this when date or table changes
+  useEffect(() => {
+    fetchAvailableTimeSlots();
+  }, [selectedTablee, formData.date, formData.guests]);
+
+  // Helper function to extract time in HH:MM format from ISO string
+  const getTimeFromISO = (isoString) => {
+    const date = new Date(isoString);
+    return date.toTimeString().substring(0, 5); // Returns "HH:MM"
+  };
+
+  // Track cursor position
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setCursorPosition({ x: event.clientX, y: event.clientY });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -755,55 +972,6 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
 
                   <div>
                     <label className="block text-sm text-gray-400 mb-2">
-                      {t("reservation.time")}
-                    </label>
-                    <div className="relative">
-                      <select
-                        name="time"
-                        value={formData.time}
-                        onChange={handleChange}
-                        className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 pl-10 appearance-none"
-                        required
-                      >
-                        <option value="">{t("reservation.selectTime")}</option>
-                        <option value="00:00">00:00</option>
-                        <option value="01:00">01:00</option>
-                        <option value="02:00">02:00</option>
-                        <option value="03:00">03:00</option>
-                        <option value="04:00">04:00</option>
-                        <option value="05:00">05:00</option>
-                        <option value="06:00">06:00</option>
-                        <option value="07:00">07:00</option>
-                        <option value="08:00">08:00</option>
-                        <option value="09:00">09:00</option>
-                        <option value="10:00">10:00</option>
-                        <option value="11:00">11:00</option>
-                        <option value="12:00">12:00</option>
-                        <option value="13:00">13:00</option>
-                        <option value="14:00">14:00</option>
-                        <option value="15:00">15:00</option>
-                        <option value="16:00">16:00</option>
-                        <option value="17:00">17:00</option>
-                        <option value="18:00">18:00</option>
-                        <option value="19:00">19:00</option>
-                        <option value="20:00">20:00</option>
-                        <option value="21:00">21:00</option>
-                        <option value="22:00">22:00</option>
-                        <option value="23:00">23:00</option>
-                      </select>
-                      <Clock
-                        size={18}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      />
-                      <ChevronDown
-                        size={18}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">
                       {t("reservation.guests")}
                     </label>
                     <div className="flex items-center">
@@ -853,24 +1021,29 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
 
         {/* Table Hover Details Modal */}
         <AnimatePresence>
-          {hoveredTable && (
+          {hoveredTable && cursorPosition && (
             <motion.div
               className="fixed z-40 bg-[#1E1E1E] border border-gray-700 rounded-lg shadow-xl p-4 max-w-xs"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.2 }}
               style={{
                 left: `${Math.min(
                   window.innerWidth - 320,
-                  hoveredTable.position.x + 100
+                  cursorPosition.x + 20
                 )}px`,
                 top: `${Math.min(
                   window.innerHeight - 400,
-                  hoveredTable.position.y + 100
+                  cursorPosition.y + 20
                 )}px`,
               }}
             >
+              <img
+                src={hoveredTable.images[0]}
+                alt={hoveredTable.name}
+                className="rounded-md w-full bg-cover mb-3"
+              />
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold text-lg">Table {hoveredTable.name}</h3>
                 <div
@@ -879,7 +1052,7 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                   )}`}
                 ></div>
               </div>
-
+              <p className="text-gray-300 mb-2">{hoveredTable.description}</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Capacity:</span>
@@ -911,35 +1084,6 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                     </div>
                   </div>
                 )}
-
-                {hoveredTable.meetings && hoveredTable.meetings.length > 0 && (
-                  <div>
-                    <span className="text-gray-400 block mb-1">
-                      Reservations:
-                    </span>
-                    <div className="space-y-2 mt-1">
-                      {hoveredTable.meetings.map((meeting, index) => (
-                        <div
-                          key={index}
-                          className="bg-[#2a2a2a] p-2 rounded text-xs"
-                        >
-                          <div className="flex justify-between">
-                            <span>{meeting.customerName}</span>
-                            <span className="capitalize text-xs px-1.5 py-0.5 bg-blue-500 rounded-full">
-                              {meeting.status}
-                            </span>
-                          </div>
-                          <div className="flex justify-between mt-1">
-                            <span>
-                              {meeting.startTime} - {meeting.endTime}
-                            </span>
-                            <span>{meeting.guestCount} guests</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}
@@ -960,20 +1104,29 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                   </h2>
 
                   <div className="flex flex-wrap gap-4">
-                    <div className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2">
+                    <button
+                      onClick={() => setShowSearchModal(true)}
+                      className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
                       <Calendar size={16} className="text-orange-500" />
                       <span>{formData.date}</span>
-                    </div>
-                    <div className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2">
+                    </button>
+                    <button
+                      onClick={() => setShowSearchModal(true)}
+                      className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
                       <Clock size={16} className="text-orange-500" />
                       <span>{formData.time}</span>
-                    </div>
-                    <div className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2">
+                    </button>
+                    <button
+                      onClick={() => setShowSearchModal(true)}
+                      className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
                       <Users size={16} className="text-orange-500" />
                       <span>
                         {peopleCount} {peopleCount === 1 ? "person" : "people"}
                       </span>
-                    </div>
+                    </button>
                     <button
                       onClick={() => setShowSearchModal(true)}
                       className="bg-[#2a2a2a] hover:bg-[#333] px-4 py-2 rounded-lg text-sm"
@@ -989,7 +1142,7 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold">Select a Table</h2>
                   <div className="flex flex-wrap gap-4">
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-green-500" />
                       <span className="text-xs">Available</span>
                     </div>
@@ -1004,21 +1157,22 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-amber-500" />
                       <span className="text-xs">Available Soon</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
                 {filteredTables.length > 0 ? (
                   <div
-                    className="overflow-auto px-28"
+                    className="overflow-auto px-28 flex justify-center"
                     style={{ maxHeight: "600px", maxWidth: "100%" }}
                   >
                     <div
-                      style={{
-                        width: "1200px",
-                        height: "auto",
-                        minHeight: "800px",
-                      }}
+                      // style={{
+                      //   width: "1200px",
+                      //   height: "auto",
+                      //   minHeight: "800px",
+                      // }}
+                      className="flex gap-x-24 flex-wrap "
                     >
                       {Object.entries(tablesByRow).map(
                         ([rowIndex, rowTables]) => {
@@ -1030,16 +1184,13 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                               style={{ height: "200px", marginBottom: "24px" }}
                             >
                               {rowTables.map((table) => {
-                                // Calculate absolute positioning based on grid
-                                const colWidth = 170; // Fixed column width
-                                const colGap = 32; // Fixed gap between columns (16px on each side)
+                                const colWidth = 170;
+                                const colGap = 32;
                                 const totalColWidth = colWidth + colGap;
 
-                                // Calculate left position based on column
                                 const leftPos =
                                   table.position.col * totalColWidth;
 
-                                // Adjust width for tables that span multiple columns
                                 const width =
                                   table.position.colSpan === 2
                                     ? colWidth * 2 + colGap
@@ -1048,12 +1199,20 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                                 return (
                                   <div
                                     key={table.id}
-                                    className="absolute"
+                                    className=""
                                     style={{
                                       left: `${leftPos}px`,
                                       top: "0",
                                       width: `${width}px`,
                                       height: "170px",
+                                    }}
+                                    onClick={() => {
+                                      if (selectedTablee?.id === table.id) {
+                                        setSelectedTablee(null);
+                                      } else {
+                                        setSelectedTablee(table);
+                                        console.log(table);
+                                      }
                                     }}
                                   >
                                     {renderTable(table)}
@@ -1112,15 +1271,53 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={nextStep}
-                    disabled={
-                      !formData.date || !formData.time || !formData.tableId
-                    }
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors disabled:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {t("reservation.next")}
-                  </button>
+                  <div className="relative inline-block group">
+                    {" "}
+                    {/* Add group here */}
+                    <button
+                      onClick={nextStep}
+                      disabled={
+                        !selectedTablee || !formData.date || !formData.guests
+                      }
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors disabled:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {t("reservation.next")}
+                    </button>
+                    {/* Tooltip */}
+                    {(!selectedTablee ||
+                      !formData.date ||
+                      !formData.guests) && (
+                      <div className="absolute z-10 hidden group-hover:block w-max max-w-xs px-3 py-2 text-sm text-white bg-gray-800 rounded-lg shadow-lg -bottom-12 left-1/2 transform -translate-x-1/2">
+                        <div className="flex flex-col space-y-1">
+                          {!selectedTablee && (
+                            <span className="flex items-center">
+                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
+                              Please select a table
+                            </span>
+                          )}
+                          {!formData.date && (
+                            <span className="flex items-center">
+                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
+                              Please select a date
+                            </span>
+                          )}
+                          {!formData.time && (
+                            <span className="flex items-center">
+                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
+                              Please select a time
+                            </span>
+                          )}
+                          {!formData.guests && (
+                            <span className="flex items-center">
+                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
+                              Please select number of guests
+                            </span>
+                          )}
+                        </div>
+                        <div className="absolute w-3 h-3 -top-1.5 left-1/2 transform -translate-x-1/2 rotate-45 bg-gray-800"></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1140,50 +1337,92 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
               </h2>
 
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">
-                      {t("reservation.name")}
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
+                <div className="mb-3">
+                  <label className="block text-sm text-gray-400 mb-2">
+                    {t("reservation.time")}
+                  </label>
+                  <div className="relative">
+                    <select
+                      name="time"
+                      value={formData.time}
                       onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 pl-10 appearance-none"
                       required
+                      disabled={isLoadingSlots || !availableTimeSlots.length}
+                    >
+                      <option value="">{t("reservation.selectTime")}</option>
+                      {availableTimeSlots.map((slot) => (
+                        <option
+                          key={slot.startTime}
+                          value={getTimeFromISO(slot.startTime)}
+                        >
+                          {slot.startTimeFormatted}
+                        </option>
+                      ))}
+                    </select>
+                    <Clock
+                      size={18}
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    />
+                    <ChevronDown
+                      size={18}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">
-                      {t("reservation.email")}
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
-                      required
-                    />
-                  </div>
+                  {isLoadingSlots && (
+                    <p className="text-sm text-orange-500 mt-1">
+                      Loading available time slots...
+                    </p>
+                  )}
+                  {!isLoadingSlots &&
+                    !availableTimeSlots.length &&
+                    selectedTablee &&
+                    formData.date && (
+                      <p className="text-sm text-orange-500 mt-1">
+                        No available time slots for this date
+                      </p>
+                    )}
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-2">
-                    {t("reservation.phone")}
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
+                <label className="block text-sm text-gray-400 mb-2">
+                  {t("reservation.endTime")}
+                </label>
+                <div className="relative mb-5">
+                  <select
+                    name="endTime"
+                    value={formData.endTime}
                     onChange={handleChange}
-                    className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+                    className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 pl-10 appearance-none"
                     required
+                    disabled={!formData.time}
+                  >
+                    <option value="">{t("reservation.selectTime")}</option>
+                    {formData.time &&
+                      availableTimeSlots
+                        .filter(
+                          (slot) =>
+                            getTimeFromISO(slot.startTime) === formData.time
+                        )
+                        .map((slot) => (
+                          <option
+                            key={slot.endTime}
+                            value={getTimeFromISO(slot.endTime)}
+                          >
+                            {slot.endTimeFormatted}
+                          </option>
+                        ))}
+                  </select>
+                  <Clock
+                    size={18}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  />
+                  <ChevronDown
+                    size={18}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   />
                 </div>
 
+                {/* Rest of your form remains the same */}
                 <div className="mb-6">
                   <label className="block text-sm text-gray-400 mb-2">
                     {t("reservation.specialRequests")}
@@ -1208,6 +1447,7 @@ const tablesByRow = (filteredTables || []).reduce((acc, table) => {
                   <button
                     type="submit"
                     className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors"
+                    disabled={!formData.time || !formData.endTime}
                   >
                     {t("reservation.reserve")}
                   </button>
