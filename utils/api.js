@@ -43,11 +43,12 @@ export const apiRequest = async (
     const isFormData = data instanceof FormData;
     const headers = { ...customHeaders };
 
+    // Don't set Content-Type header for FormData - the browser will set it automatically
+    // with the proper boundary parameter
     if (!isFormData) {
       headers["Content-Type"] = "application/json";
     }
 
-    // Use ONLY ONE authentication method (recommend Bearer token)
     if (requiresAuth) {
       const token = getToken();
       if (!token) throw new Error("Authentication required");
@@ -57,8 +58,6 @@ export const apiRequest = async (
     const options = {
       method,
       headers,
-      // Remove credentials: "include" unless you specifically need cookies
-      // credentials: "include",
     };
 
     if (data) {
@@ -66,6 +65,12 @@ export const apiRequest = async (
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+
+    // Handle empty response (204 No Content)
+    if (response.status === 204) {
+      return { success: true };
+    }
+
     const responseData = await response.json();
 
     if (!response.ok) {
@@ -1034,8 +1039,8 @@ export const tableAPI = {
   },
 
   // Update table (Admin only)
-  updateTable: async (id, updateData) => {
-    return await apiRequest(`/tables/${id}`, "PUT", updateData, true);
+  updateTable: async (id, formData) => {
+    return await apiRequest(`/tables/${id}`, "PUT", formData, true);
   },
 
   // Delete table (Admin only)
@@ -1091,11 +1096,41 @@ export const reservationAPI = {
   },
 
   // Get available time slots
-  getAvailableSlots: async (tableId, date) => {
-    return await apiRequest(
-      `/reservations/available-slots?tableId=${tableId}&date=${date}`,
-      "GET"
-    );
+  getAvailableSlots: async (tableId, date, options = {}) => {
+    try {
+      // Construct query parameters
+      const params = new URLSearchParams();
+      params.append("tableId", tableId);
+      params.append("date", date);
+
+      // Add optional parameters if provided
+      if (options.partySize) params.append("partySize", options.partySize);
+      if (options.duration) params.append("duration", options.duration);
+
+      const response = await apiRequest(
+        `/reservations/available-slots?${params.toString()}`,
+        "GET"
+      );
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch available slots");
+      }
+
+      return {
+        success: true,
+        table: response.data.table,
+        date: response.data.date,
+        slots: response.data.availableSlots,
+        rawResponse: response,
+      };
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      return {
+        success: false,
+        message: error.message,
+        error: error,
+      };
+    }
   },
 
   // Get available tables
