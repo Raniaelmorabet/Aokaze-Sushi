@@ -229,8 +229,8 @@ export default function TablesPage() {
         setAlertStatus({
           type: responce.success,
           message: responce.data.isActive
-            ? "Table active now"
-            : "Table inactive now",
+            ? "Table inactive now"
+            : "Table active now",
         });
       }
     } catch (error) {}
@@ -291,8 +291,8 @@ export default function TablesPage() {
     formData.append("location", newTable.location);
     formData.append("description", newTable.description);
     formData.append("position[x]", newTable.position.x);
-  formData.append("position[y]", newTable.position.y);
-    
+    formData.append("position[y]", newTable.position.y);
+
     formData.append("isActive", newTable.isActive);
     newTable.amenities.forEach((amenity, index) => {
       formData.append(`amenities[${index}]`, amenity);
@@ -305,15 +305,6 @@ export default function TablesPage() {
     selectedImages.forEach((image, index) => {
       formData.append(`images`, image.file);
     });
-
-    for (const [key, value] of formData.entries()) {
-      // Special handling for File objects to avoid [object File]
-      if (value instanceof File) {
-        console.log(`${key}: File - ${value.name} (${value.size} bytes)`);
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
 
     try {
       const response = await tableAPI.createTable(formData, {
@@ -347,20 +338,78 @@ export default function TablesPage() {
     });
   };
 
-  const handleEditTableSubmit = (e) => {
+  const handleEditTableSubmit = async (e) => {
     e.preventDefault();
-    // Update the table in the tables array
-    setTables(
-      tables.map((table) => {
-        if (table._id === editingTable._id) {
-          return editingTable;
-        }
-        return table;
-      })
+    setIsUploading(true);
+
+    const formData = new FormData();
+
+    // Append all table data
+    formData.append("tableNumber", editingTable.tableNumber);
+    formData.append("name", editingTable.name);
+    formData.append("capacity", editingTable.capacity);
+    formData.append("location", editingTable.location);
+    formData.append("description", editingTable.description);
+
+    // Append position
+    formData.append("position[x]", editingTable.position.x);
+    formData.append("position[y]", editingTable.position.y);
+
+    formData.append("isActive", editingTable.isActive);
+
+    // Append amenities (as multiple fields with same name)
+    editingTable.amenities.forEach((amenity) => {
+      formData.append("amenities", amenity);
+    });
+
+    // Append pricing info
+    formData.append("pricePerHour", editingTable.pricePerHour);
+    formData.append(
+      "minReservationDuration",
+      editingTable.minReservationDuration
+    );
+    formData.append(
+      "maxReservationDuration",
+      editingTable.maxReservationDuration
     );
 
-    // Close the modal
-    setShowEditTableModal(false);
+    // Append existing images (as multiple fields)
+    editingTable.images.forEach((image) => {
+      formData.append("existingImages", image);
+    });
+
+    // Append new images
+    selectedImages.forEach((image) => {
+      formData.append("newImages", image.file);
+    });
+
+    try {
+      const response = await tableAPI.updateTable(editingTable._id, formData);
+      console.log(response);
+      
+      if (response.success) {
+        setServerTables((tables) =>
+          tables.map((table) =>
+            table._id === editingTable._id ? response.data : table
+          )
+        );
+        setShowEditTableModal(false);
+        setSelectedImages([]);
+
+        setAlertStatus({
+          type: "success",
+          message: "Table updated successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      setAlertStatus({
+        type: "error",
+        message: error.response?.data?.message || "Failed to update table",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -766,13 +815,13 @@ export default function TablesPage() {
                           {selectedTable.maxReservationDuration} minutes
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-gray-400">Position:</span>
                         <span>
                           x: {selectedTable.position?.x}, y:{" "}
                           {selectedTable.position?.y}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 
@@ -1583,16 +1632,16 @@ export default function TablesPage() {
               <div className="mb-8">
                 <h4 className="text-lg font-medium mb-4">Images</h4>
                 <div className="grid grid-cols-4 gap-4 mb-4">
+                  {/* Existing images */}
                   {editingTable.images.map((image, index) => (
                     <div
                       key={index}
                       className="relative aspect-square rounded-md overflow-hidden"
                     >
-                      <Image
+                      <img
                         src={image || "/placeholder.svg"}
                         alt={`Table image ${index + 1}`}
-                        fill
-                        className="object-cover"
+                        className="w-full h-full object-cover"
                       />
                       <button
                         type="button"
@@ -1611,19 +1660,60 @@ export default function TablesPage() {
                       </button>
                     </div>
                   ))}
+
+                  {/* Newly uploaded image previews */}
+                  {selectedImages.map((image, index) => (
+                    <div
+                      key={`new-${index}`}
+                      className="relative aspect-square rounded-md overflow-hidden"
+                    >
+                      <img
+                        src={image.preview}
+                        alt={`New image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full"
+                        title="Remove image"
+                        onClick={() => {
+                          setSelectedImages(
+                            selectedImages.filter((_, i) => i !== index)
+                          );
+                        }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div className="bg-[#2a2a2a] p-6 rounded-lg border-2 border-dashed border-gray-700 text-center">
-                  <ImageIcon size={32} className="mx-auto text-gray-500 mb-2" />
-                  <p className="text-gray-400 mb-2">
-                    Drag and drop images here, or click to select files
-                  </p>
-                  <button
-                    type="button"
-                    className="bg-[#1E1E1E] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors"
+
+                {/* Image upload area */}
+                <div
+                  className="bg-[#2a2a2a] p-6 rounded-lg border-2 border-dashed border-gray-700 text-center"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  <input
+                    type="file"
+                    id="edit-image-upload"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="edit-image-upload"
+                    className="bg-[#1E1E1E] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors inline-block cursor-pointer"
                   >
                     <Upload size={16} className="inline mr-2" />
                     Upload Images
-                  </button>
+                  </label>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {selectedImages.length > 0
+                      ? `${selectedImages.length} new image(s) selected`
+                      : "Drag and drop images here"}
+                  </p>
                 </div>
               </div>
 
@@ -1657,10 +1747,15 @@ export default function TablesPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                    disabled={isUploading}
+                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    <Save size={18} className="inline mr-2" />
-                    Save Changes
+                    {isUploading ? (
+                      <Loader2 size={18} className="inline mr-2 animate-spin" />
+                    ) : (
+                      <Save size={18} className="inline mr-2" />
+                    )}
+                    {isUploading ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </div>
