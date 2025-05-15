@@ -17,6 +17,7 @@ import {
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from "next/navigation";
 import { reservationAPI } from "@/utils/api";
+import Loading from "./loading";
 
 type TableStatus = "available" | "reserved" | "filled" | "availableSoon";
 type TableShape = "round" | "oval" | "rectangular";
@@ -67,7 +68,7 @@ interface Table {
 export default function ReservationPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const [step, setStep] = useState(0); // Start with 0 to show search modal first
+  const [step, setStep] = useState(0);
   const [showSearchModal, setShowSearchModal] = useState(true);
   const [formData, setFormData] = useState({
     date: "",
@@ -299,69 +300,61 @@ export default function ReservationPage() {
   }));
 
   const [allTables, setAllTables] = useState<Table[]>([...initialTables]);
+  const [loading, setLoading] = useState<boolean>(false)
+  const [tables, setTables] = useState<Table[]>();
   const [filteredTables, setFilteredTables] = useState<Table[]>([]);
   const [peopleCount, setPeopleCount] = useState(2);
 
-  // Filter tables based on search criteria
-  const filterTables = () => {
-    // In a real app, this would be an API call with the search parameters
-    const filtered = allTables.filter(
-      (table) =>
-        table.capacity >= peopleCount &&
-        (table.status === "available" || table.status === "availableSoon")
+const filterTables = () => {
+    handleGetTables();
+    
+    const filtered = tables?.filter(
+        (table) =>
+            table.capacity >= peopleCount &&
+            (table.status === "available" || table.status === "availableSoon")
     );
-    setFilteredTables(filtered);
+    setFilteredTables(filtered || []);
     setShowSearchModal(false);
     setStep(1);
-    handleGetTables()
-  };
-
-const handleGetTables = async () => {
-  try {
-    console.log('Raw date value:', formData.date);
-    console.log('Type of date:', typeof formData.date);
-    
-    // Ensure date is properly formatted as a string
-    let formattedDate;
-    
-    if (typeof formData.date === 'object' && formData.date !== null) {
-      // If it's a Date object
-      formattedDate = formData.date.toISOString().split('T')[0];
-    } else if (typeof formData.date === 'string') {
-      // If it's already a string
-      const parsedDate = new Date(formData.date);
-      if (!isNaN(parsedDate.getTime())) {
-        formattedDate = parsedDate.toISOString().split('T')[0];
-      } else {
-        formattedDate = formData.date; // Keep as is if parsing fails
-      }
-    }
-
-    // Validate the date format
-    if (!formattedDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
-      throw new Error('Invalid date format');
-    }
-
-    console.log('Final formatted date:', formattedDate);
-
-    const response = await reservationAPI.getAvailableTables({
-      date: formattedDate, // Send string, not object
-      capacity: formData.guests,
-      startTime: formData.time
-    });
-
-    console.log('API Response:', response);
-    
-    // Handle successful response
-    // ...
-    
-  } catch (error) {
-    console.error('Error in handleGetTables:', error);
-    // Handle error appropriately
-  }
 };
 
+  const handleGetTables = async () => {
+    setLoading(true)
+    try {
 
+      let formattedDate;
+
+      if (typeof formData.date === "object" && formData.date !== null) {
+        formattedDate = formData.date.toISOString().split("T")[0];
+      } else if (typeof formData.date === "string") {
+        const parsedDate = new Date(formData.date);
+        if (!isNaN(parsedDate.getTime())) {
+          formattedDate = parsedDate.toISOString().split("T")[0];
+        } else {
+          formattedDate = formData.date;
+        }
+      }
+
+      if (!formattedDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
+        throw new Error("Invalid date format");
+      }
+
+      const response = await reservationAPI.getAvailableTables({
+        date: formattedDate, 
+        capacity: formData.guests,
+        startTime: formData.time,
+      });
+
+      console.log("API Response:", response);
+      if (response.success){
+        setTables(response.data)
+      }
+    } catch (error) {
+      console.error("Error in handleGetTables:", error);
+    } finally {
+      setLoading(false)
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -574,12 +567,12 @@ const handleGetTables = async () => {
     );
   };
 
-  const tablesByRow = filteredTables.reduce((acc, table) => {
-    const { row } = table.position;
+const tablesByRow = (filteredTables || []).reduce((acc, table) => {
+    const row = table.position.x;
     if (!acc[row]) acc[row] = [];
     acc[row].push(table);
     return acc;
-  }, {} as Record<number, Table[]>);
+}, {} as Record<number, Table[]>);
 
   const selectedTable = filteredTables.find((table) => table.selected);
 
@@ -615,6 +608,8 @@ const handleGetTables = async () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   };
+
+  if (loading) return <Loading />
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -730,7 +725,7 @@ const handleGetTables = async () => {
                     className="text-gray-400 hover:text-white"
                     onClick={() => {
                       setShowSearchModal(false);
-                    //   handleNavigate("/");
+                      //   handleNavigate("/");
                     }}
                   >
                     <X size={20} />
