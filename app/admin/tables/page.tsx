@@ -16,6 +16,7 @@ import {
   ToggleRight,
   Save,
   Upload,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { tableAPI } from "@/utils/api";
@@ -142,6 +143,8 @@ export default function TablesPage() {
   const [editingTable, setEditingTable] = useState(null);
   const [alertStatus, setAlertStatus] = useState({});
   const [isExiting, setIsExiting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [newTable, setNewTable] = useState({
     tableNumber: "",
     name: "",
@@ -177,6 +180,31 @@ export default function TablesPage() {
     return true;
   });
 
+  const handleImageChange = (e) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files).map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setSelectedImages((prev) => [...prev, ...filesArray]);
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleImageChange({ target: { files: e.dataTransfer.files } });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   const viewTableDetails = (table) => {
     setSelectedTable(table);
     setShowTableDetails(true);
@@ -200,7 +228,9 @@ export default function TablesPage() {
       if (responce.success) {
         setAlertStatus({
           type: responce.success,
-          message: responce.data.isActive ? "Table active now" : "Table inactive now",
+          message: responce.data.isActive
+            ? "Table active now"
+            : "Table inactive now",
         });
       }
     } catch (error) {}
@@ -250,22 +280,58 @@ export default function TablesPage() {
 
   const handleNewTableSubmit = async (e) => {
     e.preventDefault();
-    // Create a new table with a unique ID
-    const new_table = {
-      ...newTable,
-      images: ["/placeholder.svg?height=200&width=300"],
-    };
+    setIsUploading(true);
 
-    try {
-      const responce = await tableAPI.createTable(new_table);
-      console.log(responce);
-      // Add the new table to the tables array
-      setServerTables([...serverTables, responce.data]);
-    } catch (error) {
-      console.error(error);
+    const formData = new FormData();
+
+    // Append all table data
+    formData.append("tableNumber", newTable.tableNumber);
+    formData.append("name", newTable.name);
+    formData.append("capacity", newTable.capacity);
+    formData.append("location", newTable.location);
+    formData.append("description", newTable.description);
+    formData.append("position[x]", newTable.position.x);
+  formData.append("position[y]", newTable.position.y);
+    
+    formData.append("isActive", newTable.isActive);
+    newTable.amenities.forEach((amenity, index) => {
+      formData.append(`amenities[${index}]`, amenity);
+    });
+    formData.append("pricePerHour", newTable.pricePerHour);
+    formData.append("minReservationDuration", newTable.minReservationDuration);
+    formData.append("maxReservationDuration", newTable.maxReservationDuration);
+
+    // Append all images
+    selectedImages.forEach((image, index) => {
+      formData.append(`images`, image.file);
+    });
+
+    for (const [key, value] of formData.entries()) {
+      // Special handling for File objects to avoid [object File]
+      if (value instanceof File) {
+        console.log(`${key}: File - ${value.name} (${value.size} bytes)`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
     }
 
-    // Reset the form and close the modal
+    try {
+      const response = await tableAPI.createTable(formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setServerTables([...serverTables, response.data]);
+      setShowNewTableModal(false);
+      setSelectedImages([]);
+    } catch (error) {
+      console.error("Error creating table:", error);
+    } finally {
+      setIsUploading(false);
+    }
+
+    // Reset form
     setNewTable({
       tableNumber: "",
       name: "",
@@ -278,9 +344,7 @@ export default function TablesPage() {
       pricePerHour: 20,
       minReservationDuration: 60,
       maxReservationDuration: 180,
-      images: [],
     });
-    setShowNewTableModal(false);
   };
 
   const handleEditTableSubmit = (e) => {
@@ -705,8 +769,8 @@ export default function TablesPage() {
                       <div className="flex justify-between">
                         <span className="text-gray-400">Position:</span>
                         <span>
-                          x: {selectedTable.position.x}, y:{" "}
-                          {selectedTable.position.y}
+                          x: {selectedTable.position?.x}, y:{" "}
+                          {selectedTable.position?.y}
                         </span>
                       </div>
                     </div>
@@ -1102,18 +1166,63 @@ export default function TablesPage() {
 
               <div className="mb-8">
                 <h4 className="text-lg font-medium mb-4">Images</h4>
-                <div className="bg-[#2a2a2a] p-6 rounded-lg border-2 border-dashed border-gray-700 text-center">
-                  <ImageIcon size={32} className="mx-auto text-gray-500 mb-2" />
-                  <p className="text-gray-400 mb-2">
-                    Drag and drop images here, or click to select files
-                  </p>
-                  <button
-                    type="button"
-                    className="bg-[#1E1E1E] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors"
+                <div
+                  className="bg-[#2a2a2a] p-6 rounded-lg border-2 border-dashed border-gray-700 text-center"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  {selectedImages.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      {selectedImages.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image.preview}
+                            alt={`Preview ${index}`}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="absolute top-2 right-2 bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon
+                        size={32}
+                        className="mx-auto text-gray-500 mb-2"
+                      />
+                      <p className="text-gray-400 mb-2">
+                        Drag and drop images here, or click to select files
+                      </p>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    id="image-upload"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="bg-[#1E1E1E] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors inline-block cursor-pointer"
                   >
                     <Upload size={16} className="inline mr-2" />
-                    Upload Images
-                  </button>
+                    {selectedImages.length > 0
+                      ? "Add More Images"
+                      : "Upload Images"}
+                  </label>
+                  {selectedImages.length > 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      {selectedImages.length} image(s) selected
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1144,10 +1253,15 @@ export default function TablesPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                    disabled={isUploading}
+                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    <Save size={18} className="inline mr-2" />
-                    Save Table
+                    {isUploading ? (
+                      <Loader2 size={18} className="inline mr-2 animate-spin" />
+                    ) : (
+                      <Save size={18} className="inline mr-2" />
+                    )}
+                    {isUploading ? "Saving..." : "Save Table"}
                   </button>
                 </div>
               </div>
