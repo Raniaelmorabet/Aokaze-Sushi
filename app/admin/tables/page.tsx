@@ -706,13 +706,13 @@ export default function TablesPage() {
                           {selectedTable.maxReservationDuration} minutes
                         </span>
                       </div>
-                      {/* <div className="flex justify-between">
+                      <div className="flex justify-between">
                         <span className="text-gray-400">Position:</span>
                         <span>
                           x: {selectedTable.position?.x}, y:{" "}
                           {selectedTable.position?.y}
                         </span>
-                      </div> */}
+                      </div>
                     </div>
                   </div>
 
