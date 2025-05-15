@@ -22,114 +22,8 @@ import Image from "next/image";
 import { tableAPI } from "@/utils/api";
 import Loading from "./loading";
 
-// Mock data based on the schema
-const mockTables = [
-  {
-    _id: "t1",
-    tableNumber: "A1",
-    name: "Window Table 1",
-    capacity: 4,
-    location: "indoor",
-    description: "Elegant table with a view of the garden",
-    position: { x: 10, y: 20 },
-    isActive: true,
-    amenities: ["window-view", "power-outlet"],
-    pricePerHour: 20,
-    minReservationDuration: 60,
-    maxReservationDuration: 180,
-    images: [
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=500&auto=format&fit=crop",
-    ],
-  },
-  {
-    _id: "t2",
-    tableNumber: "B2",
-    name: "Patio Table 2",
-    capacity: 6,
-    location: "outdoor",
-    description: "Spacious outdoor table with umbrella",
-    position: { x: 30, y: 40 },
-    isActive: true,
-    amenities: ["wheelchair-accessible"],
-    pricePerHour: 25,
-    minReservationDuration: 90,
-    maxReservationDuration: 180,
-    images: [
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500&auto=format&fit=crop",
-    ],
-  },
-  {
-    _id: "t3",
-    tableNumber: "C3",
-    name: "Bar Table 3",
-    capacity: 2,
-    location: "bar",
-    description: "Intimate table at the bar",
-    position: { x: 50, y: 60 },
-    isActive: true,
-    amenities: ["power-outlet"],
-    pricePerHour: 15,
-    minReservationDuration: 60,
-    maxReservationDuration: 120,
-    images: [
-      "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=500&auto=format&fit=crop",
-    ],
-  },
-  {
-    _id: "t4",
-    tableNumber: "D4",
-    name: "Private Room Table",
-    capacity: 8,
-    location: "private-room",
-    description: "Large table in private dining room",
-    position: { x: 70, y: 80 },
-    isActive: true,
-    amenities: ["sofa", "high-chair"],
-    pricePerHour: 40,
-    minReservationDuration: 120,
-    maxReservationDuration: 180,
-    images: [
-      "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=500&auto=format&fit=crop",
-    ],
-  },
-  {
-    _id: "t5",
-    tableNumber: "E5",
-    name: "Patio Corner Table",
-    capacity: 4,
-    location: "patio",
-    description: "Cozy corner table on the patio",
-    position: { x: 90, y: 100 },
-    isActive: false,
-    amenities: ["window-view"],
-    pricePerHour: 22,
-    minReservationDuration: 60,
-    maxReservationDuration: 150,
-    images: [
-      "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?q=80&w=500&auto=format&fit=crop",
-    ],
-  },
-  {
-    _id: "t6",
-    tableNumber: "F6",
-    name: "Tatami Room",
-    capacity: 10,
-    location: "private-room",
-    description: "Traditional Japanese tatami room for private dining",
-    position: { x: 110, y: 120 },
-    isActive: true,
-    amenities: ["sofa", "wheelchair-accessible"],
-    pricePerHour: 50,
-    minReservationDuration: 120,
-    maxReservationDuration: 180,
-    images: [
-      "https://images.unsplash.com/photo-1581414211938-e772a180e8e9?q=80&w=500&auto=format&fit=crop",
-    ],
-  },
-];
 
 export default function TablesPage() {
-  const [tables, setTables] = useState(mockTables);
   const [loading, setLoading] = useState(true);
   const [serverTables, setServerTables] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("all");
@@ -1820,7 +1714,7 @@ export default function TablesPage() {
                 </div>
 
                 {/* Tables */}
-                {tables.map((table) => (
+                {serverTables.map((table) => (
                   <div
                     key={table._id}
                     className={`absolute rounded-md border-2 flex flex-col items-center justify-center p-2 ${
