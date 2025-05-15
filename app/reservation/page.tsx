@@ -690,6 +690,24 @@ export default function ReservationPage() {
         throw new Error("Please fill in all required fields");
       }
 
+      const formatDateForAPI = (dateString: string): string => {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          throw new Error("Invalid date format");
+        }
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`; // DD-MM-YYYY format
+      };
+
+      const formatTimeForAPI = (timeString: string): string => {
+        const [hours, minutes] = timeString.split(":").map(Number);
+        return `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}`;
+      };
+
       // Format the date and time values for the API
       const formattedReservationDate = formatDateForAPI(formData.date);
       const formattedStartTime = formatTimeForAPI(formData.time, formData.date);
@@ -739,6 +757,9 @@ export default function ReservationPage() {
 
       // Handle successful reservation
       console.log("Reservation created:", response);
+      const res = await response.json()
+      console.log(res);
+      
       if (response.ok) nextStep();
     } catch (error) {
       console.error("Reservation error:", error);
