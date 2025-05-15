@@ -118,7 +118,6 @@ export default function TablesPage() {
     // Update the tables array with the toggled status
     try {
       const responce = await tableAPI.toggleTableStatus(tableId);
-      console.log(responce);
       if (responce.success) {
         setAlertStatus({
           type: responce.success,
@@ -279,7 +278,6 @@ export default function TablesPage() {
 
     try {
       const response = await tableAPI.updateTable(editingTable._id, formData);
-      console.log(response);
       
       if (response.success) {
         setServerTables((tables) =>
@@ -361,7 +359,6 @@ export default function TablesPage() {
     setLoading(true);
     try {
       const responce = await tableAPI.getTables();
-      console.log(responce);
       setServerTables(responce.data);
     } catch (error) {
       console.error(error);
