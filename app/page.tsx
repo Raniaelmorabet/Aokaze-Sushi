@@ -495,6 +495,14 @@ export default function Home() {
     }
   };
 
+  const formatTime = (timeStr) => {
+    const [hours, minutes] = timeStr.split(":");
+    const hourNum = parseInt(hours, 10);
+    const period = hourNum >= 12 ? "PM" : "AM";
+    const displayHour = hourNum % 12 || 12; // Convert 0 to 12 for 12AM
+    return `${displayHour}:${minutes}${period}`;
+  };
+
   useEffect(() => {
     getUser();
     getNotifications();
@@ -1933,12 +1941,27 @@ export default function Home() {
                     </div>
                     <h3 className="text-2xl font-bold mb-6">Regular Hours</h3>
                     <ul className="space-y-4 text-lg">
-                      <li className="flex justify-between items-center pb-3 border-b border-gray-800">
-                        <span className="text-gray-300">Monday - Thursday</span>
-                        <span className="font-medium text-white">
-                          10:00 - 23:00
-                        </span>
-                      </li>
+                      {Object.entries(openingHours).map(
+                        ([day, { open, close, closed }]) => (
+                          <li
+                            key={day}
+                            className="flex justify-between items-center pb-3 border-b border-gray-800"
+                          >
+                            <span className="text-gray-300 capitalize">
+                              {day.charAt(0).toUpperCase() + day.slice(1)}
+                            </span>
+                            {closed ? (
+                              <span className="font-medium text-red-400">
+                                Closed
+                              </span>
+                            ) : (
+                              <span className="font-medium text-white">
+                                {formatTime(open)} - {formatTime(close)}
+                              </span>
+                            )}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                   <Link
