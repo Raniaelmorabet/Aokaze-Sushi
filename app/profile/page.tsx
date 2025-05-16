@@ -20,9 +20,9 @@ import {
   Search,
   Users,
   Save,
-  Eye, 
+  Eye,
   Mail,
-  Phone
+  Phone,
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import logo from "@/public/logo.png";
@@ -45,26 +45,8 @@ export default function ProfilePage() {
     newPassword: "",
     confirmPassword: "",
   });
-    const [selectedReservation, setSelectedReservation] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  // Mock reservations data
-  // const reservations = [
-  //   {
-  //     id: "RES-1234",
-  //     date: "2023-05-20",
-  //     time: "19:00",
-  //     guests: 4,
-  //     status: "confirmed",
-  //   },
-  //   {
-  //     id: "RES-1235",
-  //     date: "2023-06-15",
-  //     time: "20:00",
-  //     guests: 2,
-  //     status: "pending",
-  //   },
-  // ];
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -114,26 +96,7 @@ export default function ProfilePage() {
         return status;
     }
   };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "pending":
-        return <Clock size={18} />;
-      case "processing":
-        return <Clock size={18} />;
-      case "completed":
-        return <CheckCircle size={18} />;
-      case "delivered":
-        return <TruckIcon size={18} />;
-      case "cancelled":
-        return <AlertCircle size={18} />;
-      case "refunded":
-        return <AlertCircle size={18} />;
-      default:
-        return <Clock size={18} />;
-    }
-  };
-
+  
   const handleSaveUser = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -197,11 +160,11 @@ export default function ProfilePage() {
     try {
       const response = await reservationAPI.getMyReservations();
       console.log(response);
-      setReservations(response.data)
+      setReservations(response.data);
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   const filteredOrders = useMemo(() => {
     if (!searchQuery.trim()) return getorders;
@@ -336,10 +299,10 @@ export default function ProfilePage() {
     });
   };
 
-function extractTimeFromISO(isoString) {
-    const timePart = isoString.split('T')[1]; // "09:00:00.000Z"
+  function extractTimeFromISO(isoString) {
+    const timePart = isoString.split("T")[1]; // "09:00:00.000Z"
     return timePart.substring(0, 5); // Takes "09:00"
-}
+  }
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -662,32 +625,32 @@ function extractTimeFromISO(isoString) {
                                 <div className="flex-1">
                                   <div className="flex justify-between text-left">
                                     <h5 className="font-medium">{item.name}</h5>
-                                    
+
                                     <p className="font-medium">
                                       ${(item.price * item.quantity).toFixed(2)}
                                     </p>
                                   </div>
                                   {item.customizations &&
-                                      Object.entries(item.customizations)
-                                        .length > 0 && (
-                                        <div className="my-2">
-                                          {Object.entries(
-                                            item.customizations
-                                          ).map(([category, options]) => (
-                                            <div
-                                              key={category}
-                                              className="text-xs text-gray-400"
-                                            >
-                                              <span className="font-medium">
-                                                {category}:
-                                              </span>{" "}
-                                              {Array.isArray(options)
-                                                ? options.join(", ")
-                                                : options}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
+                                    Object.entries(item.customizations).length >
+                                      0 && (
+                                      <div className="my-2">
+                                        {Object.entries(
+                                          item.customizations
+                                        ).map(([category, options]) => (
+                                          <div
+                                            key={category}
+                                            className="text-xs text-gray-400"
+                                          >
+                                            <span className="font-medium">
+                                              {category}:
+                                            </span>{" "}
+                                            {Array.isArray(options)
+                                              ? options.join(", ")
+                                              : options}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   <p className="text-sm text-gray-400">
                                     Qty: {item.quantity} × $
                                     {item.price.toFixed(2)}
@@ -705,7 +668,7 @@ function extractTimeFromISO(isoString) {
             )}
 
             {/* Reservations Tab */}
-                        {activeTab === "reservations" && (
+            {activeTab === "reservations" && (
               <div>
                 <h1 className="text-2xl font-bold mb-6">My Reservations</h1>
 
@@ -714,8 +677,12 @@ function extractTimeFromISO(isoString) {
                     <div className="w-16 h-16 mx-auto bg-[#2a2a2a] rounded-full flex items-center justify-center mb-4">
                       <Calendar size={24} className="text-gray-400" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">No Reservations</h3>
-                    <p className="text-gray-400 mb-6">You haven't made any reservations yet.</p>
+                    <h3 className="text-xl font-medium mb-2">
+                      No Reservations
+                    </h3>
+                    <p className="text-gray-400 mb-6">
+                      You haven't made any reservations yet.
+                    </p>
                     <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors">
                       Make a Reservation
                     </button>
@@ -730,7 +697,9 @@ function extractTimeFromISO(isoString) {
                         className="bg-[#1E1E1E] rounded-xl p-6"
                       >
                         <div className="flex justify-between items-start mb-4">
-                          <h3 className="font-bold">{reservation.reservationNumber}</h3>
+                          <h3 className="font-bold">
+                            {reservation.reservationNumber}
+                          </h3>
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs ${
                               reservation.status === "confirmed"
@@ -738,25 +707,35 @@ function extractTimeFromISO(isoString) {
                                 : "bg-yellow-500/20 text-yellow-500"
                             }`}
                           >
-                            {reservation.status === "confirmed" ? "Confirmed" : "Pending"}
+                            {reservation.status === "confirmed"
+                              ? "Confirmed"
+                              : "Pending"}
                           </span>
                         </div>
 
                         <div className="space-y-3 mb-6">
                           <div className="flex items-center gap-3">
                             <Calendar size={18} className="text-gray-400" />
-                            <span>{new Date(reservation.reservationDate).toLocaleDateString()}</span>
+                            <span>
+                              {new Date(
+                                reservation.reservationDate
+                              ).toLocaleDateString()}
+                            </span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Clock size={18} className="text-gray-400" />
                             <span>
-                              {extractTimeFromISO(reservation.startTime)} - {extractTimeFromISO(reservation.endTime)}
+                              {extractTimeFromISO(reservation.startTime)} -{" "}
+                              {extractTimeFromISO(reservation.endTime)}
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Users size={18} className="text-gray-400" />
                             <span>
-                              {reservation.partySize} {reservation.partySize === 1 ? "person" : "people"}
+                              {reservation.partySize}{" "}
+                              {reservation.partySize === 1
+                                ? "person"
+                                : "people"}
                             </span>
                           </div>
                         </div>
@@ -765,8 +744,8 @@ function extractTimeFromISO(isoString) {
                           <div
                             className="bg-white/5 hover:bg-white/15 p-2 rounded-md duration-200 cursor-pointer"
                             onClick={() => {
-                              setSelectedReservation(reservation)
-                              setIsModalOpen(true)
+                              setSelectedReservation(reservation);
+                              setIsModalOpen(true);
                             }}
                           >
                             <Eye />
@@ -989,14 +968,18 @@ function extractTimeFromISO(isoString) {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-[#1E1E1E] text-white border-gray-800 max-w-2xl">
           <AlertDialogHeader>
-            <DialogTitle className="text-xl font-bold">Reservation Details</DialogTitle>
+            <DialogTitle className="text-xl font-bold">
+              Reservation Details
+            </DialogTitle>
           </AlertDialogHeader>
 
           {selectedReservation && (
             <div className="space-y-6 py-4">
               {/* Reservation Header */}
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold">{selectedReservation.reservationNumber}</h3>
+                <h3 className="text-lg font-bold">
+                  {selectedReservation.reservationNumber}
+                </h3>
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs ${
                     selectedReservation.status === "confirmed"
@@ -1004,7 +987,9 @@ function extractTimeFromISO(isoString) {
                       : "bg-yellow-500/20 text-yellow-500"
                   }`}
                 >
-                  {selectedReservation.status === "confirmed" ? "Confirmed" : "Pending"}
+                  {selectedReservation.status === "confirmed"
+                    ? "Confirmed"
+                    : "Pending"}
                 </span>
               </div>
 
@@ -1012,7 +997,9 @@ function extractTimeFromISO(isoString) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm text-gray-400 mb-1">Customer Information</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Customer Information
+                    </h4>
                     <div className="bg-[#252525] p-4 rounded-lg space-y-2">
                       <div className="flex items-center gap-2">
                         <User size={16} className="text-gray-400" />
@@ -1020,28 +1007,43 @@ function extractTimeFromISO(isoString) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Mail size={16} className="text-gray-400" />
-                        <span>{selectedReservation.customerDetails?.email}</span>
+                        <span>
+                          {selectedReservation.customerDetails?.email}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone size={16} className="text-gray-400" />
-                        <span>{selectedReservation.customerDetails?.phone}</span>
+                        <span>
+                          {selectedReservation.customerDetails?.phone}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="text-sm text-gray-400 mb-1">Table Information</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Table Information
+                    </h4>
                     <div className="bg-[#252525] p-4 rounded-lg space-y-2">
                       <div className="flex items-center gap-2">
-                        <div className="font-medium">{selectedReservation.table?.name}</div>
+                        <div className="font-medium">
+                          {selectedReservation.table?.name}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users size={16} className="text-gray-400" />
-                        <span>Capacity: {selectedReservation.table?.capacity} people</span>
+                        <span>
+                          Capacity: {selectedReservation.table?.capacity} people
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin size={16} className="text-gray-400" />
-                        <span className="capitalize">{selectedReservation.table?.location.replace("-", " ")}</span>
+                        <span className="capitalize">
+                          {selectedReservation.table?.location.replace(
+                            "-",
+                            " "
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1049,11 +1051,17 @@ function extractTimeFromISO(isoString) {
 
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm text-gray-400 mb-1">Reservation Details</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Reservation Details
+                    </h4>
                     <div className="bg-[#252525] p-4 rounded-lg space-y-2">
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-gray-400" />
-                        <span>{new Date(selectedReservation.reservationDate).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(
+                            selectedReservation.reservationDate
+                          ).toLocaleDateString()}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock size={16} className="text-gray-400" />
@@ -1064,23 +1072,32 @@ function extractTimeFromISO(isoString) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock size={16} className="text-gray-400" />
-                        <span>Duration: {selectedReservation.duration} minutes</span>
+                        <span>
+                          Duration: {selectedReservation.duration} minutes
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users size={16} className="text-gray-400" />
                         <span>
-                          {selectedReservation.partySize} {selectedReservation.partySize === 1 ? "person" : "people"}
+                          {selectedReservation.partySize}{" "}
+                          {selectedReservation.partySize === 1
+                            ? "person"
+                            : "people"}
                         </span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="text-sm text-gray-400 mb-1">Payment Information</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Payment Information
+                    </h4>
                     <div className="bg-[#252525] p-4 rounded-lg space-y-2">
                       <div className="flex justify-between items-center">
                         <span>Total Price:</span>
-                        <span className="font-bold text-orange-500">${selectedReservation.totalPrice}</span>
+                        <span className="font-bold text-orange-500">
+                          ${selectedReservation.totalPrice}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1091,9 +1108,14 @@ function extractTimeFromISO(isoString) {
               <div className="space-y-4">
                 {selectedReservation.specialRequests && (
                   <div>
-                    <h4 className="text-sm text-gray-400 mb-1">Special Requests</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Special Requests
+                    </h4>
                     <div className="bg-[#252525] p-4 rounded-lg">
-                      <p>{selectedReservation.specialRequests || "No special requests"}</p>
+                      <p>
+                        {selectedReservation.specialRequests ||
+                          "No special requests"}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -1108,7 +1130,11 @@ function extractTimeFromISO(isoString) {
                   <div>
                     <h4 className="text-sm text-gray-400 mb-1">Created At</h4>
                     <div className="bg-[#252525] p-4 rounded-lg">
-                      <p>{new Date(selectedReservation.createdAt).toLocaleString()}</p>
+                      <p>
+                        {new Date(
+                          selectedReservation.createdAt
+                        ).toLocaleString()}
+                      </p>
                     </div>
                   </div>
                 </div>
