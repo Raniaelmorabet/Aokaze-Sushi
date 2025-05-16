@@ -667,17 +667,19 @@ export default function Home() {
                 </span>
               )}
             </button>
-            <button
+            {loggedIn && <button
               className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
               onClick={() => setNotificationsOpen(true)}
             >
+              
               <Bell className="size-4" />
               {unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {!notifications ? "0" : unreadCount}
                 </span>
               )}
-            </button>
+            </button>}
+            
             <div className="hidden md:flex">
               {!loadUser ? (
                 loggedIn ? (
