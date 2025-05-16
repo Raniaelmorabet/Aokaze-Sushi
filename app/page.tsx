@@ -660,7 +660,7 @@ export default function Home() {
               className="relative bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
               onClick={() => setCartOpen(true)}
             >
-              <ShoppingCart className="size-3 md:size-4" />
+              <ShoppingCart className="size-4" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItems.length}
@@ -671,7 +671,7 @@ export default function Home() {
               className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
               onClick={() => setNotificationsOpen(true)}
             >
-              <Bell className="size-3 md:size-4" />
+              <Bell className="size-4" />
               {unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {!notifications ? "0" : unreadCount}
@@ -717,7 +717,7 @@ export default function Home() {
                 )
               ) : (
                 <div className="w-6 h-6 rounded-full bg-gray-600 animate-pulse">
-                  .
+                  
                 </div>
               )}
             </div>
@@ -728,7 +728,7 @@ export default function Home() {
               {t("nav.reserve")}
             </Link> */}
             <button className="md:hidden" onClick={() => setIsMenuOpen(true)}>
-              <Menu size={24} />
+              <Menu size={30} />
             </button>
           </div>
         </div>
