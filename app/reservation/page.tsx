@@ -1132,13 +1132,13 @@ export default function ReservationPage() {
                       <Calendar size={16} className="text-orange-500" />
                       <span>{formData.date}</span>
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => setShowSearchModal(true)}
                       className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2"
                     >
                       <Clock size={16} className="text-orange-500" />
                       <span>{formData.time}</span>
-                    </button>
+                    </button> */}
                     <button
                       onClick={() => setShowSearchModal(true)}
                       className="bg-[#2a2a2a] px-4 py-2 rounded-lg flex items-center gap-2"
@@ -1163,22 +1163,6 @@ export default function ReservationPage() {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold">Select a Table</h2>
                   <div className="flex flex-wrap gap-4">
-                    {/* <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
-                      <span className="text-xs">Available</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500" />
-                      <span className="text-xs">Reserved</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-gray-400" />
-                      <span className="text-xs">Filled</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-amber-500" />
-                      <span className="text-xs">Available Soon</span>
-                    </div> */}
                   </div>
                 </div>
 
@@ -1305,33 +1289,13 @@ export default function ReservationPage() {
                       {t("reservation.next")}
                     </button>
                     {/* Tooltip */}
-                    {(!selectedTablee ||
-                      !formData.date ||
-                      !formData.guests) && (
+                    {(!selectedTablee) && (
                       <div className="absolute z-10 hidden group-hover:block w-max max-w-xs px-3 py-2 text-sm text-white bg-gray-800 rounded-lg shadow-lg -bottom-12 left-1/2 transform -translate-x-1/2">
                         <div className="flex flex-col space-y-1">
                           {!selectedTablee && (
                             <span className="flex items-center">
                               <XCircle className="w-4 h-4 mr-1 text-red-400" />
                               Please select a table
-                            </span>
-                          )}
-                          {!formData.date && (
-                            <span className="flex items-center">
-                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
-                              Please select a date
-                            </span>
-                          )}
-                          {!formData.time && (
-                            <span className="flex items-center">
-                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
-                              Please select a time
-                            </span>
-                          )}
-                          {!formData.guests && (
-                            <span className="flex items-center">
-                              <XCircle className="w-4 h-4 mr-1 text-red-400" />
-                              Please select number of guests
                             </span>
                           )}
                         </div>
