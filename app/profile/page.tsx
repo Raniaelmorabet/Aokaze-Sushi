@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -29,6 +29,7 @@ import logo from "@/public/logo.png";
 import { API_BASE_URL, authAPI, reservationAPI } from "@/utils/api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialogHeader } from "@/components/ui/alert-dialog";
+import Loading from "../loading";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
@@ -47,6 +48,9 @@ export default function ProfilePage() {
   });
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -78,6 +82,44 @@ export default function ProfilePage() {
     }
   };
 
+  const getReservationStatusColor = (status) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-500/20 text-yellow-500";
+      case "confirmed":
+        return "bg-green-500/20 text-green-500";
+      case "seated":
+        return "bg-blue-500/20 text-blue-500";
+      case "completed":
+        return "bg-purple-500/20 text-purple-500";
+      case "cancelled":
+        return "bg-red-500/20 text-red-500";
+      case "no-show":
+        return "bg-gray-500/20 text-gray-500";
+      default:
+        return "bg-gray-500/20 text-gray-500";
+    }
+  };
+
+  const getReservationStatusText = (status) => {
+    switch (status) {
+      case "pending":
+        return "Pending";
+      case "confirmed":
+        return "Confirmed";
+      case "seated":
+        return "Seated";
+      case "completed":
+        return "Completed";
+      case "cancelled":
+        return "Cancelled";
+      case "no-show":
+        return "No Show";
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
+
   const getStatusText = (status) => {
     switch (status) {
       case "pending":
@@ -96,30 +138,58 @@ export default function ProfilePage() {
         return status;
     }
   };
-  
-  const handleSaveUser = async () => {
-    const token = localStorage.getItem("token");
+
+  const handleSave = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/updatedetails`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: user.name,
-          phone: user.phone,
-        }),
-      });
+      const formData = new FormData();
+      formData.append("name", user.name);
+      formData.append("phone", user.phone);
+
+      // Only append the image if a new one was selected
+      const file = fileInputRef.current.files[0];
+      if (file) {
+        formData.append("image", file);
+      }
+
+      // Make the API request
+      const response = await authAPI.updateUserDetails(formData);
+
       if (response.success) {
+        setAlertStatus({
+          type: true,
+          message: "Profile updated successfully",
+        });
+        setUser(response.data);
         setGetUser(response.data);
+      } else {
+        console.error("Failed to save settings", response);
+        setAlertStatus({
+          type: false,
+          message: "Failed to save settings",
+        });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error saving settings", error);
+      setAlertStatus({
+        type: false,
+        message: "Error saving settings",
+      });
+    }
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      // Preview the image
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUser({ ...user, image: event.target.result });
+      };
+      reader.readAsDataURL(e.target.files[0]);
     }
   };
 
   const ShowOrders = async () => {
+    setLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/orders/myorders`, {
@@ -134,10 +204,13 @@ export default function ProfilePage() {
       setGetOrders(data.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
-
+  
   const ShowUser = async () => {
+    setLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
@@ -153,16 +226,21 @@ export default function ProfilePage() {
       setUser(data.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const getReservations = async () => {
+    setLoading(true);
     try {
       const response = await reservationAPI.getMyReservations();
       console.log(response);
       setReservations(response.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -319,6 +397,8 @@ export default function ProfilePage() {
     return () => clearTimeout(timer);
   }, [alertStatus]);
 
+  if (loading) return <Loading />;
+
   return (
     <div className="bg-[#121212] text-white min-h-screen">
       {/* Header */}
@@ -327,7 +407,7 @@ export default function ProfilePage() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src={logo || "/placeholder.svg"}
-              alt={logo}
+              alt={"logo"}
               className="w-28"
             ></Image>
           </Link>
@@ -701,15 +781,11 @@ export default function ProfilePage() {
                             {reservation.reservationNumber}
                           </h3>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs ${
-                              reservation.status === "confirmed"
-                                ? "bg-green-500/20 text-green-500"
-                                : "bg-yellow-500/20 text-yellow-500"
-                            }`}
+                            className={`px-2 py-0.5 rounded-full text-xs ${getReservationStatusColor(
+                              reservation.status
+                            )}`}
                           >
-                            {reservation.status === "confirmed"
-                              ? "Confirmed"
-                              : "Pending"}
+                            {getReservationStatusText(reservation.status)}
                           </span>
                         </div>
 
@@ -771,9 +847,22 @@ export default function ProfilePage() {
                         alt={user.name}
                         className="object-cover w-full h-full rounded-full"
                       />
-                      <button className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors">
+                      <button
+                        onClick={() =>
+                          document.getElementById("profile-image-input").click()
+                        }
+                        className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors"
+                      >
                         <Edit size={18} />
                       </button>
+                      <input
+                        type="file"
+                        id="profile-image-input"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                        ref={fileInputRef}
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -832,7 +921,7 @@ export default function ProfilePage() {
 
                   <div className="flex justify-end">
                     <button
-                      onClick={() => handleSaveUser()}
+                      onClick={handleSave}
                       className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
                     >
                       <Save size={18} />
@@ -981,15 +1070,11 @@ export default function ProfilePage() {
                   {selectedReservation.reservationNumber}
                 </h3>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-xs ${
-                    selectedReservation.status === "confirmed"
-                      ? "bg-green-500/20 text-green-500"
-                      : "bg-yellow-500/20 text-yellow-500"
-                  }`}
+                  className={`px-2 py-0.5 rounded-full text-xs ${getReservationStatusColor(
+                    selectedReservation.status
+                  )}`}
                 >
-                  {selectedReservation.status === "confirmed"
-                    ? "Confirmed"
-                    : "Pending"}
+                  {getReservationStatusText(selectedReservation.status)}
                 </span>
               </div>
 
