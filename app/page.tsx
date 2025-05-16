@@ -949,7 +949,7 @@ export default function Home() {
               {user?.role === "admin" && (
                 <Link href="admin">
                   <motion.button
-                    className="bg-transparent border border-white hover:border-orange-500 hover:bg-orange-500 text-white my-2 mx-3 px-8 py-4 rounded-full font-medium transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 transform hover:-translate-y-1"
+                    className="bg-transparent border border-white text-white my-2 mx-3 px-8 py-4 rounded-full font-medium transition-all duration-300 hover:shadow-lg hover:shadow-white/20 transform hover:-translate-y-1"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     initial={{ opacity: 0, y: 20 }}
