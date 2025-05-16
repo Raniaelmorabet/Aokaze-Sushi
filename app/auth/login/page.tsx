@@ -51,9 +51,9 @@ export default function Login() {
               transition={{duration: 0.5}}
               className="w-full max-w-md"
           >
-            <div className="flex justify-center items-center mx-auto ">
+            <Link href={"/"} className="flex justify-center items-center mx-auto ">
               <Image src={logo} alt="logo" className="w-36 py-7"/>
-            </div>
+            </Link>
 
             <h1 className="text-3xl font-bold text-white mb-2 text-center">Welcome back</h1>
             <p className="text-gray-400 mb-8 text-center">Sign in to your account to continue</p>
