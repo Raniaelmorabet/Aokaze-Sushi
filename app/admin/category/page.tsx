@@ -22,7 +22,6 @@ import Loader from "@/components/Loader";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { API_BASE_URL, categoryAPI } from "@/utils/api";
-import { Toaster } from "sonner";
 import { toast } from 'sonner'
 
 // Sample categories data
