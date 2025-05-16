@@ -20,16 +20,22 @@ import {
   Search,
   Users,
   Save,
+  Eye, 
+  Mail,
+  Phone
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import logo from "@/public/logo.png";
-import { API_BASE_URL, authAPI } from "@/utils/api";
+import { API_BASE_URL, authAPI, reservationAPI } from "@/utils/api";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialogHeader } from "@/components/ui/alert-dialog";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("orders");
   const [getorders, setGetOrders] = useState([]);
   const [getuser, setGetUser] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState();
   const [alertStatus, setAlertStatus] = useState({});
@@ -39,24 +45,26 @@ export default function ProfilePage() {
     newPassword: "",
     confirmPassword: "",
   });
+    const [selectedReservation, setSelectedReservation] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Mock reservations data
-  const reservations = [
-    {
-      id: "RES-1234",
-      date: "2023-05-20",
-      time: "19:00",
-      guests: 4,
-      status: "confirmed",
-    },
-    {
-      id: "RES-1235",
-      date: "2023-06-15",
-      time: "20:00",
-      guests: 2,
-      status: "pending",
-    },
-  ];
+  // const reservations = [
+  //   {
+  //     id: "RES-1234",
+  //     date: "2023-05-20",
+  //     time: "19:00",
+  //     guests: 4,
+  //     status: "confirmed",
+  //   },
+  //   {
+  //     id: "RES-1235",
+  //     date: "2023-06-15",
+  //     time: "20:00",
+  //     guests: 2,
+  //     status: "pending",
+  //   },
+  // ];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -185,6 +193,16 @@ export default function ProfilePage() {
     }
   };
 
+  const getReservations = async () => {
+    try {
+      const response = await reservationAPI.getMyReservations();
+      console.log(response);
+      setReservations(response.data)
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const filteredOrders = useMemo(() => {
     if (!searchQuery.trim()) return getorders;
 
@@ -211,6 +229,7 @@ export default function ProfilePage() {
   useEffect(() => {
     ShowOrders();
     ShowUser();
+    getReservations();
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -316,6 +335,11 @@ export default function ProfilePage() {
       confirmPassword: "",
     });
   };
+
+function extractTimeFromISO(isoString) {
+    const timePart = isoString.split('T')[1]; // "09:00:00.000Z"
+    return timePart.substring(0, 5); // Takes "09:00"
+}
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -681,7 +705,7 @@ export default function ProfilePage() {
             )}
 
             {/* Reservations Tab */}
-            {activeTab === "reservations" && (
+                        {activeTab === "reservations" && (
               <div>
                 <h1 className="text-2xl font-bold mb-6">My Reservations</h1>
 
@@ -690,12 +714,8 @@ export default function ProfilePage() {
                     <div className="w-16 h-16 mx-auto bg-[#2a2a2a] rounded-full flex items-center justify-center mb-4">
                       <Calendar size={24} className="text-gray-400" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">
-                      No Reservations
-                    </h3>
-                    <p className="text-gray-400 mb-6">
-                      You haven't made any reservations yet.
-                    </p>
+                    <h3 className="text-xl font-medium mb-2">No Reservations</h3>
+                    <p className="text-gray-400 mb-6">You haven't made any reservations yet.</p>
                     <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors">
                       Make a Reservation
                     </button>
@@ -704,13 +724,13 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {reservations.map((reservation) => (
                       <motion.div
-                        key={reservation.id}
+                        key={reservation._id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-[#1E1E1E] rounded-xl p-6"
                       >
                         <div className="flex justify-between items-start mb-4">
-                          <h3 className="font-bold">{reservation.id}</h3>
+                          <h3 className="font-bold">{reservation.reservationNumber}</h3>
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs ${
                               reservation.status === "confirmed"
@@ -718,39 +738,39 @@ export default function ProfilePage() {
                                 : "bg-yellow-500/20 text-yellow-500"
                             }`}
                           >
-                            {reservation.status === "confirmed"
-                              ? "Confirmed"
-                              : "Pending"}
+                            {reservation.status === "confirmed" ? "Confirmed" : "Pending"}
                           </span>
                         </div>
 
                         <div className="space-y-3 mb-6">
                           <div className="flex items-center gap-3">
                             <Calendar size={18} className="text-gray-400" />
-                            <span>
-                              {new Date(reservation.date).toLocaleDateString()}
-                            </span>
+                            <span>{new Date(reservation.reservationDate).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Clock size={18} className="text-gray-400" />
-                            <span>{reservation.time}</span>
+                            <span>
+                              {extractTimeFromISO(reservation.startTime)} - {extractTimeFromISO(reservation.endTime)}
+                            </span>
                           </div>
                           <div className="flex items-center gap-3">
                             <Users size={18} className="text-gray-400" />
                             <span>
-                              {reservation.guests}{" "}
-                              {reservation.guests === 1 ? "person" : "people"}
+                              {reservation.partySize} {reservation.partySize === 1 ? "person" : "people"}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex justify-between">
-                          <button className="bg-[#2a2a2a] hover:bg-[#333] text-white px-4 py-2 rounded-lg transition-colors">
-                            Modify
-                          </button>
-                          <button className="bg-red-500/20 hover:bg-red-500/30 text-red-500 px-4 py-2 rounded-lg transition-colors">
-                            Cancel
-                          </button>
+                        <div className="flex justify-self-end">
+                          <div
+                            className="bg-white/5 hover:bg-white/15 p-2 rounded-md duration-200 cursor-pointer"
+                            onClick={() => {
+                              setSelectedReservation(reservation)
+                              setIsModalOpen(true)
+                            }}
+                          >
+                            <Eye />
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -964,6 +984,139 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Reservation Details Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-[#1E1E1E] text-white border-gray-800 max-w-2xl">
+          <AlertDialogHeader>
+            <DialogTitle className="text-xl font-bold">Reservation Details</DialogTitle>
+          </AlertDialogHeader>
+
+          {selectedReservation && (
+            <div className="space-y-6 py-4">
+              {/* Reservation Header */}
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold">{selectedReservation.reservationNumber}</h3>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs ${
+                    selectedReservation.status === "confirmed"
+                      ? "bg-green-500/20 text-green-500"
+                      : "bg-yellow-500/20 text-yellow-500"
+                  }`}
+                >
+                  {selectedReservation.status === "confirmed" ? "Confirmed" : "Pending"}
+                </span>
+              </div>
+
+              {/* Reservation Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Customer Information</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg space-y-2">
+                      <div className="flex items-center gap-2">
+                        <User size={16} className="text-gray-400" />
+                        <span>{selectedReservation.customerDetails?.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail size={16} className="text-gray-400" />
+                        <span>{selectedReservation.customerDetails?.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone size={16} className="text-gray-400" />
+                        <span>{selectedReservation.customerDetails?.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Table Information</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{selectedReservation.table?.name}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users size={16} className="text-gray-400" />
+                        <span>Capacity: {selectedReservation.table?.capacity} people</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} className="text-gray-400" />
+                        <span className="capitalize">{selectedReservation.table?.location.replace("-", " ")}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Reservation Details</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-gray-400" />
+                        <span>{new Date(selectedReservation.reservationDate).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-gray-400" />
+                        <span>
+                          {extractTimeFromISO(selectedReservation.startTime)} -{" "}
+                          {extractTimeFromISO(selectedReservation.endTime)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-gray-400" />
+                        <span>Duration: {selectedReservation.duration} minutes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users size={16} className="text-gray-400" />
+                        <span>
+                          {selectedReservation.partySize} {selectedReservation.partySize === 1 ? "person" : "people"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Payment Information</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span>Total Price:</span>
+                        <span className="font-bold text-orange-500">${selectedReservation.totalPrice}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="space-y-4">
+                {selectedReservation.specialRequests && (
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Special Requests</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg">
+                      <p>{selectedReservation.specialRequests || "No special requests"}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Source</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg">
+                      <p className="capitalize">{selectedReservation.source}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm text-gray-400 mb-1">Created At</h4>
+                    <div className="bg-[#252525] p-4 rounded-lg">
+                      <p>{new Date(selectedReservation.createdAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Alert Status */}
       {Object.keys(alertStatus).length > 0 && (
