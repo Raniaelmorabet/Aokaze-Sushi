@@ -29,7 +29,6 @@ import { RiGalleryFill } from "react-icons/ri";
 import { Tag } from "lucide-react";
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
-import { Toaster } from "sonner";
 import { API_BASE_URL } from "@/utils/api";
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,7 +41,11 @@ export default function AdminLayout({ children }) {
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Customers", href: "/admin/customers", icon: Users },
     { name: "Testimonials", href: "/admin/testimonials", icon: RiUserStarLine },
-    { name: "Category", href: "/admin/category", icon: MdOutlineRestaurantMenu,},
+    {
+      name: "Category",
+      href: "/admin/category",
+      icon: MdOutlineRestaurantMenu,
+    },
     { name: "Reservations", href: "/admin/reservation", icon: Calendar },
     { name: "Menu Management", href: "/admin/menu", icon: FileText },
     { name: "Gallery Management", href: "/admin/gallery", icon: RiGalleryFill },
@@ -79,14 +82,20 @@ export default function AdminLayout({ children }) {
     }
   };
 
-  const ShowUser = async () => {
+  useEffect(() => {
+    // Client-side only code
     const token = localStorage.getItem("token");
+    if (token) {
+      ShowUser(token);
+    }
+  }, []);
+
+  // Modify ShowUser to accept token parameter
+  const ShowUser = async (token: string) => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
@@ -98,10 +107,6 @@ export default function AdminLayout({ children }) {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    ShowUser();
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -261,7 +266,6 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
         </header>
-        <Toaster position="top-center" richColors />
         {/* Page content */}
         <main className="p-4 md:p-8">{children}</main>
       </div>
