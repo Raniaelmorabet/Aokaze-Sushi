@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import { API_BASE_URL, authAPI, settingsAPI } from "@/utils/api";
 import Loading from "./loading";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
@@ -108,16 +109,8 @@ export default function SettingsPage() {
 
   const ShowUser = async () => {
     setLoading(true);
-    const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const data = await authAPI.getCurrentUser()
       setUser(data.data);
       setProfileImage(data.data.image);
       setName(data.data.name);
