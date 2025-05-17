@@ -1,5 +1,6 @@
 "use client";
 
+import { unstable_noStore as noStore } from 'next/cache';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +16,10 @@ import {
   Info,
   XCircle,
 } from "lucide-react";
+
+// This forces dynamic rendering and prevents static generation
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 import { useLanguage } from "@/context/language-context";
 import { useRouter } from "next/navigation";
@@ -69,6 +74,9 @@ interface Table {
 }
 
 export default function ReservationPage() {
+  // Prevent static generation for this route
+  noStore();
+  
   const router = useRouter();
   const { t } = useLanguage();
   const [step, setStep] = useState(0);
