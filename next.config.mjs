@@ -32,6 +32,14 @@ const nextConfig = {
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 4,
+  },
+  // Skip static optimization for problematic pages
+  reactStrictMode: false,
+  poweredByHeader: false,
+  // Skip static optimization for problematic routes
+  unstable_staticPage: {
+    '/checkout': false,
+    '/_not-found': false
   }
 }
 
