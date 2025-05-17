@@ -27,21 +27,22 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
     optimizeCss: false,
-    esmExternals: 'loose'
+    esmExternals: 'loose',
+    // Force all pages to be server-rendered
+    appDir: true
   },
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 4,
-  },
+  // Disable incremental static regeneration
+  staticPageGenerationTimeout: 120,
   // Disable static optimization
   reactStrictMode: false,
   poweredByHeader: false,
   // Add trailingSlash option
   trailingSlash: false,
-  // Force dynamic rendering
-  staticPageGenerationTimeout: 0,
-  // Disable static export
-  output: process.env.VERCEL ? 'standalone' : undefined,
+  // Force all pages to be dynamically rendered
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 4,
+  }
 }
 
 if (userConfig) {
