@@ -36,6 +36,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { API_BASE_URL, chefsAPI } from "@/utils/api";
 import { toast } from "sonner";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -97,6 +98,7 @@ export default function ChefsManagement() {
   const fileInputRef = useRef(null);
   const [activeInfo, setActiveInfo] = useState("basic");
   const [imageFile, setImageFile] = useState(null);
+  const token = useLocalStorage("token");
 
   // Validation function
   const validateChef = (chef) => {
@@ -462,7 +464,6 @@ export default function ChefsManagement() {
   };
 
   const getChef = async () => {
-    const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/chefs`, {
         method: "GET",
