@@ -18,7 +18,18 @@ const userNextConfig = {
   // Help with asset handling
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
   // Improve public file handling
-  distDir: process.env.NODE_ENV === 'production' ? '.next' : '.next'
+  distDir: process.env.NODE_ENV === 'production' ? '.next' : '.next',
+  // Exclude not-found page from static generation
+  excludeDefaultMomentLocales: true,
+  generateEtags: false,
+  // Configure static generation
+  env: {
+    SERVER_ONLY_COOKIE_NAME: 'next-auth.session-token',
+  },
+  // Disallow static generation for problematic routes
+  generateBuildId: async () => {
+    return 'build-' + new Date().getTime()
+  }
 }
 
 export default userNextConfig 
