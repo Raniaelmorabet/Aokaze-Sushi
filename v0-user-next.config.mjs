@@ -3,7 +3,9 @@ const userNextConfig = {
   // Configure how auth pages are handled during build
   experimental: {
     // This helps with the document not defined error
-    optimizeCss: false
+    optimizeCss: false,
+    // Disable static generation for error pages
+    serverComponentsExternalPackages: ['js-cookie']
   },
   // External packages for server components
   serverExternalPackages: ['js-cookie'],
@@ -32,10 +34,14 @@ const userNextConfig = {
   },
   // Force server-side rendering for all pages
   runtime: 'nodejs',
+  // Global setting for incremental static regeneration
+  staticPageGenerationTimeout: 120,
   // Disable static optimization
   reactStrictMode: false,
-  // Force server-side rendering for all pages
-  staticPageGenerationTimeout: 0
+  // Prevent 404s on Next.js resources
+  poweredByHeader: false,
+  // Configure trailing slash
+  trailingSlash: false
 }
 
 export default userNextConfig 
