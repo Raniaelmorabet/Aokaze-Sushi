@@ -1,27 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // This middleware runs before any pages are rendered
 export function middleware(request: NextRequest) {
-  // Add a header to tell Next.js to render the page dynamically
+  // Create a response object
   const response = NextResponse.next();
   
-  // Add headers to force dynamic rendering
-  response.headers.set('x-middleware-cache', 'no-cache');
-  response.headers.set('x-middleware-revalidate', '0');
+  // Add headers to prevent caching and force dynamic rendering
+  response.headers.set('Cache-Control', 'no-store, max-age=0');
   
   return response;
 }
 
-// Run the middleware on all routes, especially profile
+// Limit the middleware to specific paths to avoid issues
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/profile/:path*', '/reservation/:path*'],
 }; 
