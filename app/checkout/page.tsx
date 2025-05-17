@@ -137,13 +137,17 @@ export default function Checkout() {
 
   const nextStep = () => {
     setStep(step + 1);
-    window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
     console.log("stepone", formData);
   };
 
   const prevStep = () => {
     setStep(step - 1);
-    window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
   };
 
   const placeOrder = async () => {
