@@ -24,12 +24,23 @@ export const getWindow = () => {
   return null;
 };
 
-// Create DOM elements safely 
+/**
+ * The specific function mentioned in the build error
+ * This is a critical fix to prevent "document is not defined" errors
+ * during server-side rendering and static page generation
+ */
 export const createTag = (tagName) => {
-  if (isClient) {
-    return document.createElement(tagName);
+  if (!isClient) {
+    // Return a mock element during server-side rendering
+    return {
+      textContent: '',
+      setAttribute: () => {},
+      appendChild: () => {},
+      // Add other element methods as needed
+    };
   }
-  return null;
+  // Only create real DOM elements on the client
+  return document.createElement(tagName);
 };
 
 // Safely query DOM elements
