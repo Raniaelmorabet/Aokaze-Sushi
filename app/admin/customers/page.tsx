@@ -3,7 +3,7 @@
 import {useEffect, useState} from "react"
 import { Search, Eye, Phone, MapPin, Calendar, User, X } from "lucide-react"
 import Image from "next/image"
-import { API_BASE_URL } from "@/utils/api"
+import { customerAPI } from "@/utils/api"
 
 export default function CustomersPage() {
   const [selectedStatus, setSelectedStatus] = useState("all")
@@ -18,30 +18,34 @@ export default function CustomersPage() {
   })
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-
   const getCustomers = async (page = 1, search = "") => {
     setIsLoading(true)
-    const token = localStorage.getItem("token")
     try {
-      let url = `${API_BASE_URL}/customers?page=${page}&limit=${pagination.limit}`
-      
-      if (search) {
-        url += `&search=${search}`
-      }
-      
-      if (selectedStatus !== "all") {
-        url += `&status=${selectedStatus}`
-      }
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        }
+      const data = await customerAPI.getCustomers({
+        page,
+        limit: pagination.limit,
+        status: selectedStatus,
+        search,
       })
+      // let url = `${API_BASE_URL}/customers?page=${page}&limit=${pagination.limit}`
       
-      const data = await response.json()
+      // if (search) {
+      //   url += `&search=${search}`
+      // }
+      
+      // if (selectedStatus !== "all") {
+      //   url += `&status=${selectedStatus}`
+      // }
+
+      // const response = await fetch(url, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: `Bearer ${token}`,
+      //   }
+      // })
+      
+      // const data = await response.json()
       
       setCustomers(data.data)
       setPagination({
