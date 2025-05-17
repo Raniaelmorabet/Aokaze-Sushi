@@ -1,19 +1,17 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
   Users,
   ShoppingBag,
   DollarSign,
-  MoreHorizontal,
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { customerAPI, menuAPI, orderAPI } from "@/utils/api";
-import { set } from "date-fns";
 import PreLoader from "@/components/PreLoader"
 const AnimatedCounter = ({ value, prefix = "", suffix = "", dur }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -59,138 +57,6 @@ export default function AdminDashboard() {
   const [featuredMenu, setFeaturedMenu] = useState([]);
   const [loadingOrderes, setLoadingOrderes] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
-
-  // Mock data
-  const stats = [
-    {
-      name: "Total Revenue",
-      value: "$12,426",
-      change: "+16.5%",
-      trend: "up",
-      icon: DollarSign,
-      color: "bg-green-500/20",
-      textColor: "text-green-500",
-    },
-    {
-      name: "Total Orders",
-      value: "324",
-      change: "+12.3%",
-      trend: "up",
-      icon: ShoppingBag,
-      color: "bg-orange-500/20",
-      textColor: "text-orange-500",
-    },
-    {
-      name: "New Customers",
-      value: "42",
-      change: "-3.2%",
-      trend: "down",
-      icon: Users,
-      color: "bg-blue-500/20",
-      textColor: "text-blue-500",
-    },
-    {
-      name: "Conversion Rate",
-      value: "3.6%",
-      change: "+2.1%",
-      trend: "up",
-      icon: TrendingUp,
-      color: "bg-purple-500/20",
-      textColor: "text-purple-500",
-    },
-  ];
-
-  const recentOrders = [
-    {
-      id: "ORD-7352",
-      customer: "John Doe",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
-      items: 3,
-      total: "$42.50",
-      status: "Completed",
-      date: "2 hours ago",
-    },
-    {
-      id: "ORD-7351",
-      customer: "Sarah Johnson",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
-      items: 5,
-      total: "$68.25",
-      status: "Processing",
-      date: "3 hours ago",
-    },
-    {
-      id: "ORD-7350",
-      customer: "Michael Chen",
-      avatar:
-        "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
-      items: 2,
-      total: "$24.99",
-      status: "Completed",
-      date: "5 hours ago",
-    },
-    {
-      id: "ORD-7349",
-      customer: "Emily Wilson",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop",
-      items: 4,
-      total: "$56.75",
-      status: "Delivered",
-      date: "Yesterday",
-    },
-    {
-      id: "ORD-7348",
-      customer: "David Kim",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",
-      items: 1,
-      total: "$18.50",
-      status: "Completed",
-      date: "Yesterday",
-    },
-  ];
-
-  const topProducts = [
-    {
-      id: 1,
-      name: "Salmon Nigiri",
-      image:
-        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=100&auto=format&fit=crop",
-      orders: 124,
-      revenue: "$1,054",
-      growth: "+12%",
-    },
-    {
-      id: 2,
-      name: "Dragon Roll",
-      image:
-        "https://images.unsplash.com/photo-1617196034183-421b4917c92d?q=80&w=100&auto=format&fit=crop",
-      orders: 98,
-      revenue: "$1,269",
-      growth: "+8%",
-    },
-    {
-      id: 3,
-      name: "Spicy Tuna Roll",
-      image:
-        "https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=100&auto=format&fit=crop",
-      orders: 86,
-      revenue: "$731",
-      growth: "+15%",
-    },
-    {
-      id: 4,
-      name: "California Roll",
-      image:
-        "https://images.unsplash.com/photo-1559410545-0bdcd187e323?q=80&w=100&auto=format&fit=crop",
-      orders: 72,
-      revenue: "$594",
-      growth: "+5%",
-    },
-  ];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -307,7 +173,8 @@ export default function AdminDashboard() {
   }, []);
 
 
-  if (loading) <PreLoader/>
+  if (loading) <PreLoader />
+  
   return (
     <div>
       {/* Header */}
