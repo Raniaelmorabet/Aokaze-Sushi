@@ -36,6 +36,11 @@ import {
 import { Button } from "@/components/ui/button";
 import useLocalStorage from "@/hooks/use-local-storage";
 
+// This forces dynamic rendering and prevents static generation
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 export default function Checkout() {
   // Prevent static generation for this route
   noStore();
