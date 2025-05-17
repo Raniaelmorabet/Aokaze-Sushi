@@ -8,14 +8,18 @@
     { "src": "/reservation/(.*)", "dest": "/reservation/$1" }
   ],
   "functions": {
-    "app/*": {
+    "app/profile/**/*.js": {
+      "memory": 512,
+      "maxDuration": 10
+    },
+    "app/reservation/**/*.js": {
       "memory": 512,
       "maxDuration": 10
     }
   },
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/(profile|reservation)(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -23,5 +27,8 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NEXT_PUBLIC_RUNTIME_ENV": "client"
+  }
 } 
