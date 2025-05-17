@@ -30,12 +30,13 @@ import { Tag } from "lucide-react";
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
 import { API_BASE_URL } from "@/utils/api";
+import useLocalStorage from "@/hooks/use-local-storage";
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState();
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-
+  const token = useLocalStorage("token");
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
@@ -84,7 +85,6 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     // Client-side only code
-    const token = localStorage.getItem("token");
     if (token) {
       ShowUser(token);
     }
