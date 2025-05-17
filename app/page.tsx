@@ -159,6 +159,10 @@ export default function Home() {
   }, []);
 
   const scrollToSection = (id: string) => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return;
+    }
+
     const element = document.getElementById(id);
     if (element) {
       const headerOffset = 80;
@@ -575,21 +579,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      const handleClickOutside = (event) => {
-        if (
-          notificationsOpen &&
-          !event.target.closest(".notification-container")
-        ) {
-          setNotificationsOpen(false);
-        }
-      };
+    if (typeof document === "undefined") return;
 
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationsOpen &&
+        !event.target.closest(".notification-container")
+      ) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [notificationsOpen]);
 
   if (loading) return <PreLoader />;
