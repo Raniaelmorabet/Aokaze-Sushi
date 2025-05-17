@@ -1,7 +1,7 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
-export const API_BASE_URL = 'https://aokaze-sushi.vercel.app/api';
+export const API_BASE_URL = "https://aokaze-sushi.vercel.app/api";
 // export const API_BASE_URL = "http://localhost:5000/api";
 
 /**
@@ -276,6 +276,17 @@ export const orderAPI = {
     const queryString = new URLSearchParams(queryParams).toString();
     return await apiRequest(
       `/orders/stats/income?${queryString}`,
+      "GET",
+      null,
+      true
+    );
+  },
+
+  // Get authenticated user's orders with advanced filtering
+  getMyOrders: async (queryParams = {}) => {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return await apiRequest(
+      `/orders/myorders?${queryString}`,
       "GET",
       null,
       true
@@ -638,7 +649,19 @@ export const categoryAPI = {
 export const customerAPI = {
   // Get all customers with optional query parameters (Admin only)
   getCustomers: async (queryParams = {}) => {
-    const queryString = new URLSearchParams(queryParams).toString();
+    const filteredParams = Object.entries(queryParams).reduce(
+      (acc, [key, value]) => {
+        if (value !== "" && value !== "all" && value != null) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {}
+    );
+
+    const queryString = new URLSearchParams(filteredParams).toString();
+    console.log("Filtered Query String:", queryString);
+
     return await apiRequest(`/customers?${queryString}`, "GET", null, true);
   },
 
