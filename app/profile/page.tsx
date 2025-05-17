@@ -49,6 +49,7 @@ export default function ProfilePage() {
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -208,7 +209,7 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-  
+
   const ShowUser = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -274,17 +275,20 @@ export default function ProfilePage() {
   }, []);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const headerOffset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition =
-        elementPosition + window.pageYOffset - headerOffset;
+    if (typeof document !== "undefined" && typeof window !== "undefined") {
+      const element = document.getElementById(id);
+      if (element) {
+        const headerOffset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition =
+          elementPosition + window.pageYOffset - headerOffset;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+        setIsMenuOpen(false);
+      }
     }
   };
 
@@ -849,12 +853,16 @@ export default function ProfilePage() {
                       />
                       <button
                         onClick={() =>
-                          document.getElementById("profile-image-input").click()
+                          typeof document !== "undefined" &&
+                          document
+                            .getElementById("profile-image-input")
+                            ?.click()
                         }
                         className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full transition-colors"
                       >
                         <Edit size={18} />
                       </button>
+
                       <input
                         type="file"
                         id="profile-image-input"
