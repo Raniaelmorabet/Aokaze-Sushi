@@ -28,23 +28,18 @@ const nextConfig = {
     parallelServerCompiles: true,
     optimizeCss: false,
     esmExternals: 'loose',
-    // Force all pages to be server-rendered
-    appDir: true
   },
-  // Disable incremental static regeneration
+  // Disable static optimization for all pages
   staticPageGenerationTimeout: 120,
-  // Disable static optimization
   reactStrictMode: false,
   poweredByHeader: false,
-  // Add trailingSlash option
   trailingSlash: false,
-  // Force all pages to be dynamically rendered
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 4,
   },
   // Disable static page generation
-  output: 'standalone',
+  output: 'standalone'
 }
 
 if (userConfig) {
