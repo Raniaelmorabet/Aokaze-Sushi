@@ -409,7 +409,9 @@ export default function ReservationPage() {
 
   const nextStep = () => {
     setStep(step + 1);
-    window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
   };
 
   const prevStep = () => {
@@ -419,7 +421,9 @@ export default function ReservationPage() {
     } else {
       setStep(step - 1);
     }
-    window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
   };
 
   const getStatusColor = (status: TableStatus) => {
@@ -734,7 +738,7 @@ export default function ReservationPage() {
         endTime: formattedEndTime,
         partySize: parseInt(formData.guests) || 1,
         specialRequests: formData.specialRequests,
-        totalPrice: parseFloat(totalPrice.toFixed(2)), 
+        totalPrice: parseFloat(totalPrice.toFixed(2)),
       };
 
       console.log("Sending reservation data:", reservationData);
@@ -750,7 +754,7 @@ export default function ReservationPage() {
           reservationDate: formattedReservationDate,
           startTime: formattedStartTime,
           endTime: formattedEndTime,
-          partySize: parseInt(formData.guests) || 1, 
+          partySize: parseInt(formData.guests) || 1,
           specialRequests: formData.specialRequests,
           totalPrice: parseFloat(totalPrice.toFixed(2)),
         }),
@@ -758,9 +762,9 @@ export default function ReservationPage() {
 
       // Handle successful reservation
       console.log("Reservation created:", response);
-      const res = await response.json()
+      const res = await response.json();
       console.log(res);
-      
+
       if (response.ok) nextStep();
     } catch (error) {
       console.error("Reservation error:", error);
@@ -844,8 +848,15 @@ export default function ReservationPage() {
       setCursorPosition({ x: event.clientX, y: event.clientY });
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    if (typeof window !== "undefined") {
+      window.addEventListener("mousemove", handleMouseMove);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("mousemove", handleMouseMove);
+      }
+    };
   }, []);
 
   if (loading) return <Loading />;
@@ -1051,14 +1062,16 @@ export default function ReservationPage() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.2 }}
               style={{
-                left: `${Math.min(
-                  window.innerWidth - 320,
-                  cursorPosition.x + 20
-                )}px`,
-                top: `${Math.min(
-                  window.innerHeight - 400,
-                  cursorPosition.y + 20
-                )}px`,
+                left: `${
+                  typeof window !== "undefined"
+                    ? Math.min(window.innerWidth - 320, cursorPosition.x + 20)
+                    : 0
+                }px`,
+                top: `${
+                  typeof window !== "undefined"
+                    ? Math.min(window.innerHeight - 400, cursorPosition.y + 20)
+                    : 0
+                }px`,
               }}
             >
               <img
@@ -1163,8 +1176,7 @@ export default function ReservationPage() {
               <div className="bg-[#1E1E1E] rounded-xl p-6 shadow-xl">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold">Select a Table</h2>
-                  <div className="flex flex-wrap gap-4">
-                  </div>
+                  <div className="flex flex-wrap gap-4"></div>
                 </div>
 
                 {filteredTables.length > 0 ? (
@@ -1290,7 +1302,7 @@ export default function ReservationPage() {
                       {t("reservation.next")}
                     </button>
                     {/* Tooltip */}
-                    {(!selectedTablee) && (
+                    {!selectedTablee && (
                       <div className="absolute z-10 hidden group-hover:block w-max max-w-xs px-3 py-2 text-sm text-white bg-gray-800 rounded-lg shadow-lg -bottom-12 left-1/2 transform -translate-x-1/2">
                         <div className="flex flex-col space-y-1">
                           {!selectedTablee && (
