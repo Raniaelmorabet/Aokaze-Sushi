@@ -9,6 +9,9 @@ import { Eye, EyeOff, Lock, Mail, User, Phone, AlertCircle } from "lucide-react"
 import { authAPI } from "@/utils/api"
 import logo from "@/public/logo.png";
 
+// Skip prerendering to avoid 'document is not defined' errors
+export const dynamic = 'force-dynamic';
+
 export default function Register() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -229,18 +232,16 @@ export default function Register() {
           </motion.div>
         </div>
 
-        {/* Right Side - Image */}
+        {/* Right Side - Background */}
         <div className="hidden md:block w-1/2 bg-[#0E0E0E] relative">
-        <div className="absolute inset-0 bg-black/40"></div>
-          <div className="relative w-full h-full">
-            <Image
-              src={logo}
-              alt="Sushi"
-              fill
-              sizes="50vw"
-              className="object-cover"
-              priority
-            />
+          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="relative w-full h-full bg-[#0E0E0E]">
+            {/* Use a div with background image instead of Next.js Image component */}
+            <div className="absolute inset-0 bg-cover bg-center" style={{ 
+              backgroundImage: `url('/logo.png')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}></div>
           </div>
           <div className="absolute inset-0 bg-gradient-to-r from-[#121212] to-transparent"></div>
 
