@@ -576,19 +576,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        notificationsOpen &&
-        !event.target.closest(".notification-container")
-      ) {
-        setNotificationsOpen(false);
-      }
-    };
+    if (typeof document !== "undefined") {
+      const handleClickOutside = (event) => {
+        if (
+          notificationsOpen &&
+          !event.target.closest(".notification-container")
+        ) {
+          setNotificationsOpen(false);
+        }
+      };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
   }, [notificationsOpen]);
 
   if (loading) return <PreLoader />;
@@ -667,19 +669,20 @@ export default function Home() {
                 </span>
               )}
             </button>
-            {loggedIn && <button
-              className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
-              onClick={() => setNotificationsOpen(true)}
-            >
-              
-              <Bell className="size-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {!notifications ? "0" : unreadCount}
-                </span>
-              )}
-            </button>}
-            
+            {loggedIn && (
+              <button
+                className="relative flex md:hidden bg-transparent border border-gray-600 rounded-full p-2 hover:bg-gray-800 transition-colors"
+                onClick={() => setNotificationsOpen(true)}
+              >
+                <Bell className="size-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {!notifications ? "0" : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
+
             <div className="hidden md:flex">
               {!loadUser ? (
                 loggedIn ? (
@@ -718,9 +721,7 @@ export default function Home() {
                   </Link>
                 )
               ) : (
-                <div className="w-6 h-6 rounded-full bg-gray-600 animate-pulse">
-                  
-                </div>
+                <div className="w-6 h-6 rounded-full bg-gray-600 animate-pulse"></div>
               )}
             </div>
             {/* <Link
