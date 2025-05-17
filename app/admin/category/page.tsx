@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { API_BASE_URL, categoryAPI } from "@/utils/api";
 import { toast } from 'sonner'
+import useLocalStorage from "@/hooks/use-local-storage";
 
 // Sample categories data
 const sampleCategories = [
@@ -177,7 +178,7 @@ export default function CategoryManagement() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [validateInputs, setValidateInpust] = useState("");
-
+  const token = useLocalStorage("token");
   const fileInputRef = useRef(null);
 
   // Clear the recently updated state after animation completes
@@ -726,7 +727,6 @@ export default function CategoryManagement() {
   };
 
   const getCategory = async () => {
-    const token = localStorage.getItem("token");
     try {
       const response = await fetch(
         `${API_BASE_URL}/categories`,
