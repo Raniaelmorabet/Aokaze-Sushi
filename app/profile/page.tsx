@@ -259,20 +259,22 @@ export default function ProfilePage() {
   }, []);
 
   const scrollToSection = (id: string) => {
-    if (typeof document !== "undefined" && typeof window !== "undefined") {
-      const element = document.getElementById(id);
-      if (element) {
-        const headerOffset = 80;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition =
-          elementPosition + window.pageYOffset - headerOffset;
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return;
+    }
 
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-        setIsMenuOpen(false);
-      }
+    const element = document.getElementById(id);
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+      setIsMenuOpen(false);
     }
   };
 
