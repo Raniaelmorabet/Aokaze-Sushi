@@ -13,7 +13,7 @@ const userNextConfig = {
   images: {
     domains: ['aokaze-sushi.vercel.app']
   },
-  // Output configuration - helps with static file serving
+  // Output configuration - force server components 
   output: 'standalone',
   // Help with asset handling
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
@@ -30,8 +30,12 @@ const userNextConfig = {
   generateBuildId: async () => {
     return 'build-' + new Date().getTime()
   },
-  // Explicitly configure which pages use Server-Side Rendering
-  runtime: 'nodejs'
+  // Force server-side rendering for all pages
+  runtime: 'nodejs',
+  // Disable static optimization
+  reactStrictMode: false,
+  // Force server-side rendering for all pages
+  staticPageGenerationTimeout: 0
 }
 
 export default userNextConfig 
