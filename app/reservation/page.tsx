@@ -20,6 +20,7 @@ import { useLanguage } from "@/context/language-context";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL, reservationAPI } from "@/utils/api";
 import Loading from "./loading";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 type TableStatus = "available" | "reserved" | "filled" | "availableSoon";
 type TableShape = "round" | "oval" | "rectangular";
@@ -310,6 +311,7 @@ export default function ReservationPage() {
   const [selectedTablee, setSelectedTablee] = useState<Table>(null);
   const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const token = useLocalStorage("token");
   const [cursorPosition, setCursorPosition] = useState<{
     x: number;
     y: number;
@@ -732,11 +734,10 @@ export default function ReservationPage() {
         endTime: formattedEndTime,
         partySize: parseInt(formData.guests) || 1,
         specialRequests: formData.specialRequests,
-        totalPrice: parseFloat(totalPrice.toFixed(2)), // Round to 2 decimal places
+        totalPrice: parseFloat(totalPrice.toFixed(2)), 
       };
 
       console.log("Sending reservation data:", reservationData);
-      const token = localStorage.getItem("token");
       // const response = await reservationAPI.createReservation(reservationData);
       const response = await fetch(`${API_BASE_URL}/reservations`, {
         method: "POST",
@@ -749,7 +750,7 @@ export default function ReservationPage() {
           reservationDate: formattedReservationDate,
           startTime: formattedStartTime,
           endTime: formattedEndTime,
-          partySize: parseInt(formData.guests) || 1, // Make sure this is called partySize
+          partySize: parseInt(formData.guests) || 1, 
           specialRequests: formData.specialRequests,
           totalPrice: parseFloat(totalPrice.toFixed(2)),
         }),
