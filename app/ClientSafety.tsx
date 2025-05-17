@@ -1,47 +1,28 @@
 "use client";
 
 import { useEffect } from "react";
+import { patchGlobalCreateTag } from './utils/client-utils';
 
 /**
- * This component monkey-patches the global createTag function 
- * that's causing the build error to provide a safe implementation
- * that works in both client and server environments.
+ * This component patches global DOM access functions
+ * that cause the build error by providing safe implementations
+ * that work in both client and server environments.
  */
 export default function ClientSafety() {
   useEffect(() => {
-    // Provide a global safe version of createTag
-    if (typeof window !== "undefined") {
-      // @ts-ignore
-      window.safeCreateTag = (tagName: string) => {
-        return document.createElement(tagName);
-      };
-      
-      // Attempt to monkey-patch the problematic function
-      try {
-        // @ts-ignore
-        if (window._createTagOriginal === undefined) {
-          // @ts-ignore
-          window._createTagOriginal = window.createTag;
-          // @ts-ignore
-          window.createTag = (tagName: string) => {
-            return document.createElement(tagName);
-          };
-        }
-      } catch (error) {
-        console.error("Error patching createTag:", error);
-      }
-    }
+    // Patch the global createTag function that's causing the build error
+    patchGlobalCreateTag();
     
     return () => {
       // Clean up the global patch if component unmounts
       if (typeof window !== "undefined") {
         try {
           // @ts-ignore
-          if (window._createTagOriginal !== undefined) {
+          if (window.originalCreateTag !== undefined) {
             // @ts-ignore
-            window.createTag = window._createTagOriginal;
+            window.createTag = window.originalCreateTag;
             // @ts-ignore
-            delete window._createTagOriginal;
+            delete window.originalCreateTag;
           }
           // @ts-ignore
           delete window.safeCreateTag;
