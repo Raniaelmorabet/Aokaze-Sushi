@@ -166,25 +166,25 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    if (typeof window === "undefined" || typeof document === "undefined") {
-      return;
-    }
+    const scrollToSection = (id: string) => {
+      if (typeof window === "undefined" || typeof document === "undefined") {
+        return;
+      }
 
-    const element = document.getElementById(id);
-    if (element) {
-      const headerOffset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition =
-        elementPosition + window.pageYOffset - headerOffset;
+      const element = document.getElementById(id);
+      if (element) {
+        const headerOffset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition =
+          elementPosition + window.pageYOffset - headerOffset;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-      setIsMenuOpen(false);
-    }
-  };
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+        setIsMenuOpen(false);
+      }
+    };
 
   const addToCart = async (item) => {
     let newItem;
@@ -588,7 +588,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
-
+  
     const handleClickOutside = (event: MouseEvent) => {
       if (
         notificationsOpen &&
@@ -598,8 +598,11 @@ export default function Home() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (typeof document !== "undefined") {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {};
   }, [notificationsOpen]);
 
   if (loading) return <PreLoader />;
