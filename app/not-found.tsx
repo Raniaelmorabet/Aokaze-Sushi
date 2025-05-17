@@ -1,3 +1,5 @@
+"use client";
+
 export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#121212] text-white">
