@@ -192,7 +192,7 @@ export default function ProfilePage() {
   const ShowOrders = async () => {
     setLoading(true);
     try {
-      const data = await orderAPI.getMyOrders()
+      const data = await orderAPI.getMyOrders();
       console.log(data.data);
       setGetOrders(data.data);
     } catch (error) {
@@ -291,10 +291,7 @@ export default function ProfilePage() {
 
         sessionStorage.clear();
 
-        window.history.replaceState(null, "", "/auth/login");
-        window.location.href = "/auth/login";
-
-        window.location.reload();
+        window.location.replace("/auth/login");
       } else {
         console.error("Logout failed");
       }
