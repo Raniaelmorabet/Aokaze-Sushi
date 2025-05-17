@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { translations } from "@/translations"
+import { isClient } from "@/app/utils/client-utils"
 
 type Language = "english" | "french" | "arabic"
 
@@ -21,7 +22,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
 useEffect(() => {
   // Check if code is running in browser environment
-  if (typeof window !== "undefined") {
+  if (isClient) {
     // Set the direction based on language
     setDir(language === "arabic" ? "rtl" : "ltr");
     
@@ -37,7 +38,7 @@ useEffect(() => {
   // Initialize language from localStorage if available
   useEffect(() => {
     // Check if code is running in browser environment
-    if (typeof window !== "undefined") {
+    if (isClient) {
       const savedLanguage = localStorage.getItem("language") as Language
       if (savedLanguage && ["english", "french", "arabic"].includes(savedLanguage)) {
         setLanguage(savedLanguage)
