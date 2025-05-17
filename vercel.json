@@ -3,6 +3,25 @@
   "buildCommand": "pnpm run build:vercel",
   "routes": [
     { "src": "/profile", "dest": "/profile" },
-    { "src": "/profile/(.*)", "dest": "/profile/$1" }
+    { "src": "/profile/(.*)", "dest": "/profile/$1" },
+    { "src": "/reservation", "dest": "/reservation" },
+    { "src": "/reservation/(.*)", "dest": "/reservation/$1" }
+  ],
+  "functions": {
+    "app/*": {
+      "memory": 512,
+      "maxDuration": 10
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    }
   ]
 } 
