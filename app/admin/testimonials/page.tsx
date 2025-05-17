@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { API_BASE_URL, testimonialAPI } from "@/utils/api";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 export default function TestimonialManagement() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function TestimonialManagement() {
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [showTestimonial, setShowTestimonial] = useState([]);
-
+  const token = useLocalStorage("token");
   // Filter testimonials based on tab
   const filteredTestimonials = showTestimonial
     .filter((testimonial) => {
@@ -151,13 +152,12 @@ export default function TestimonialManagement() {
 
   const getTestimonials = async () => {
     setLoading(true);
-    const Token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/testimonials`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
