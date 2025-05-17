@@ -1,16 +1,27 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-// This middleware ensures all pages are treated as dynamic routes
+// This middleware runs before any pages are rendered
 export function middleware(request: NextRequest) {
-  // Add a header to force the page to be dynamically rendered
+  // Add a header to tell Next.js to render the page dynamically
   const response = NextResponse.next();
+  
+  // Add headers to force dynamic rendering
   response.headers.set('x-middleware-cache', 'no-cache');
-  response.headers.set('Cache-Control', 'no-store, must-revalidate');
+  response.headers.set('x-middleware-revalidate', '0');
+  
   return response;
 }
 
-// See "Matching Paths" below to learn more
+// Run the middleware on all routes, especially profile
 export const config = {
-  matcher: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 }; 
