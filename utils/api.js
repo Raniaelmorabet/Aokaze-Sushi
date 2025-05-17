@@ -1,6 +1,9 @@
 // utils/api.js
 import Cookies from "js-cookie";
 
+// Browser check to prevent 'document is not defined' errors during server-side rendering
+const isBrowser = typeof window !== "undefined";
+
 export const API_BASE_URL = "https://aokaze-sushi.vercel.app/api";
 // export const API_BASE_URL = "http://localhost:5000/api";
 
@@ -9,7 +12,7 @@ export const API_BASE_URL = "https://aokaze-sushi.vercel.app/api";
  * @returns {string|null} The authentication token or null if not found
  */
 export const getToken = () => {
-  if (typeof window !== "undefined") {
+  if (isBrowser) {
     return localStorage.getItem("token");
   }
   return null;
@@ -93,7 +96,7 @@ export const authAPI = {
     const data = await apiRequest("/auth/login", "POST", { email, password });
     // Store token if provided
     if (data.token) {
-      if (typeof window !== "undefined") {
+      if (isBrowser) {
         Cookies.set("token", data.token, { expires: 30 });
         localStorage.setItem("token", data.token);
       }
@@ -108,7 +111,7 @@ export const authAPI = {
     console.log("Login response:", data);
     // Store token if provided
     if (data.token) {
-      if (typeof window !== "undefined") {
+      if (isBrowser) {
         Cookies.set("token", data.token, { expires: 30 }); // expires in 30 day
         localStorage.setItem("token", data.token);
       }
@@ -138,8 +141,9 @@ export const authAPI = {
       await apiRequest("/auth/logout", "GET", null, true);
     } finally {
       // Always clear local storage even if API call fails
-      if (typeof window !== "undefined") {
+      if (isBrowser) {
         Cookies.remove("token");
+        localStorage.removeItem("token");
       }
     }
   },
