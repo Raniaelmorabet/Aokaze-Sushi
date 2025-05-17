@@ -42,7 +42,9 @@ const nextConfig = {
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 4,
-  }
+  },
+  // Disable static page generation
+  output: 'standalone',
 }
 
 if (userConfig) {
