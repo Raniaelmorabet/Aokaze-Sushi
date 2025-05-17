@@ -29,6 +29,17 @@ const userNextConfig = {
   // Disallow static generation for problematic routes
   generateBuildId: async () => {
     return 'build-' + new Date().getTime()
+  },
+  // Explicitly configure which pages use Server-Side Rendering
+  runtime: 'nodejs',
+  // Skip rendering of pages with known document reference issues
+  exportPathMap: async function() {
+    return {
+      '/': { page: '/' },
+      // Skip problematic pages
+      '/_not-found': { page: '/_not-found', skip: true },
+      '/checkout': { page: '/checkout', skip: true }
+    };
   }
 }
 
