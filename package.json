@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:client": "cross-env NEXT_PUBLIC_RUNTIME_ENV=client next build",
     "start": "next start",
     "lint": "next lint",
     "clean": "rimraf .next node_modules/.cache"
@@ -72,6 +73,7 @@
     "postcss": "^8",
     "rimraf": "^5.0.10",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "cross-env": "^7.0.3"
   }
 }
