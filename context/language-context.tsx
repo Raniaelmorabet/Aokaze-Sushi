@@ -20,7 +20,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr")
 
 useEffect(() => {
-  if (typeof document !== "undefined") {
+  // Check if code is running in browser environment
+  if (typeof window !== "undefined") {
     // Set the direction based on language
     setDir(language === "arabic" ? "rtl" : "ltr");
     
@@ -35,9 +36,12 @@ useEffect(() => {
 
   // Initialize language from localStorage if available
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") as Language
-    if (savedLanguage && ["english", "french", "arabic"].includes(savedLanguage)) {
-      setLanguage(savedLanguage)
+    // Check if code is running in browser environment
+    if (typeof window !== "undefined") {
+      const savedLanguage = localStorage.getItem("language") as Language
+      if (savedLanguage && ["english", "french", "arabic"].includes(savedLanguage)) {
+        setLanguage(savedLanguage)
+      }
     }
   }, [])
 
