@@ -1,5 +1,6 @@
 "use client";
 
+import { unstable_noStore as noStore } from 'next/cache';
 import { useEffect, useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,7 +33,14 @@ import { AlertDialogHeader } from "@/components/ui/alert-dialog";
 import Loading from "../loading";
 import useLocalStorage from "@/hooks/use-local-storage";
 
+// This forces dynamic rendering and prevents static generation
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default function ProfilePage() {
+  // Prevent static generation for this route
+  noStore();
+  
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("orders");
   const [getorders, setGetOrders] = useState([]);
