@@ -1,5 +1,6 @@
 "use client";
 
+import { unstable_noStore as noStore } from 'next/cache';
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,6 +37,9 @@ import { Button } from "@/components/ui/button";
 import useLocalStorage from "@/hooks/use-local-storage";
 
 export default function Checkout() {
+  // Prevent static generation for this route
+  noStore();
+
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Shipping info
