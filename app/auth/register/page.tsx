@@ -232,12 +232,16 @@ export default function Register() {
         {/* Right Side - Image */}
         <div className="hidden md:block w-1/2 bg-[#0E0E0E] relative">
         <div className="absolute inset-0 bg-black/40"></div>
-          <Image
-            src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1200&auto=format&fit=crop"
-            alt="Sushi"
-            fill
-            className="object-cover"
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src={logo}
+              alt="Sushi"
+              fill
+              sizes="50vw"
+              className="object-cover"
+              priority
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-r from-[#121212] to-transparent"></div>
 
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full max-w-md px-8">
