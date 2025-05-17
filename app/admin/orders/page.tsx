@@ -33,21 +33,22 @@ export default function OrdersPage() {
 
   // Handle click outside status menu
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Only close if we clicked outside any of the active menus
-      const clickedOutsideAllMenus = !Object.values(
-        statusMenuRefs.current
-      ).some((ref) => ref && ref.contains(event.target));
+    if (typeof document !== "undefined") {
+      const handleClickOutside = (event) => {
+        const clickedOutsideAllMenus = !Object.values(
+          statusMenuRefs.current
+        ).some((ref) => ref && ref.contains(event.target));
 
-      if (clickedOutsideAllMenus) {
-        setSelectedOrderId(null);
-      }
-    };
+        if (clickedOutsideAllMenus) {
+          setSelectedOrderId(null);
+        }
+      };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
   }, []);
 
   const viewOrderDetails = (order) => {
@@ -573,7 +574,8 @@ export default function OrdersPage() {
                                 <div className="w-12 h-12 rounded-md overflow-hidden">
                                   <Image
                                     src={
-                                      item?.menuItem?.image || "/placeholder.svg"
+                                      item?.menuItem?.image ||
+                                      "/placeholder.svg"
                                     }
                                     alt={item?.menuItem?.name || "Menu Item"}
                                     width={48}
