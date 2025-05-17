@@ -1,5 +1,6 @@
 "use client";
 
+import { unstable_noStore as noStore } from 'next/cache';
 import { type SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -64,6 +65,11 @@ import logo from "@/public/logo.png";
 import PreLoader from "@/components/PreLoader";
 import useLocalStorage from "@/hooks/use-local-storage";
 
+// This forces dynamic rendering and prevents static generation
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 const LoadingSpinner = ({ size = "md", className = "" }) => {
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -88,6 +94,9 @@ const LoadingSpinner = ({ size = "md", className = "" }) => {
 };
 
 export default function Home() {
+  // Prevent static generation for this route
+  noStore();
+  
   const { t, dir } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("sushi");
