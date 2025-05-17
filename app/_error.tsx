@@ -1,5 +1,11 @@
-// This is a server component
+"use client";
+
 import { NextPage } from 'next';
+
+// Use proper Next.js 13+ app router configuration
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = false;
 
 interface ErrorProps {
   statusCode?: number;
@@ -14,11 +20,6 @@ const Error: NextPage<ErrorProps> = ({ statusCode }) => {
       <p className="mt-2">Please try again later</p>
     </div>
   );
-};
-
-Error.getInitialProps = ({ res, err }) => {
-  const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
-  return { statusCode };
 };
 
 export default Error; 
