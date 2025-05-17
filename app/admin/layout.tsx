@@ -57,6 +57,8 @@ export default function AdminLayout({ children }) {
   ];
 
   const handleLogout = async () => {
+    if (typeof window === "undefined") return; // Prevent running on server
+
     try {
       const res = await fetch(`${API_BASE_URL}/auth/logout`);
       const ress = await res.json();
