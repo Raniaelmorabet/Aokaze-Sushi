@@ -43,6 +43,34 @@ export const createTag = (tagName) => {
   return document.createElement(tagName);
 };
 
+// Global patching function to be called in layout component
+export function patchGlobalCreateTag() {
+  if (isClient) {
+    // Only run in browser environment
+    try {
+      // Save the original global function (if it exists) 
+      if (typeof window.originalCreateTag === 'undefined') {
+        // @ts-ignore - purposefully adding to window
+        window.originalCreateTag = window.createTag;
+      }
+      
+      // Replace the global function with our safe version
+      // @ts-ignore - purposefully adding to window
+      window.createTag = (tagName) => {
+        return document.createElement(tagName || 'div');
+      };
+      
+      // Also make our safe function globally available under a different name
+      // @ts-ignore - purposefully adding to window
+      window.safeCreateTag = (tagName) => {
+        return document.createElement(tagName || 'div');
+      };
+    } catch (err) {
+      console.error('Error patching createTag:', err);
+    }
+  }
+}
+
 // Safely query DOM elements
 export const querySelector = (selector) => {
   if (isClient) {
