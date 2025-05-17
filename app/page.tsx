@@ -579,7 +579,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof window === "undefined" || typeof document === "undefined") return;
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
