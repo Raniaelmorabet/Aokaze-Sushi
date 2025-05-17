@@ -26,10 +26,11 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import logo from "@/public/logo.png";
-import { API_BASE_URL, authAPI, reservationAPI } from "@/utils/api";
+import { API_BASE_URL, authAPI, orderAPI, reservationAPI } from "@/utils/api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialogHeader } from "@/components/ui/alert-dialog";
 import Loading from "../loading";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
@@ -52,7 +53,6 @@ export default function ProfilePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -191,16 +191,8 @@ export default function ProfilePage() {
 
   const ShowOrders = async () => {
     setLoading(true);
-    const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/orders/myorders`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const data = await orderAPI.getMyOrders()
       console.log(data.data);
       setGetOrders(data.data);
     } catch (error) {
@@ -212,16 +204,8 @@ export default function ProfilePage() {
 
   const ShowUser = async () => {
     setLoading(true);
-    const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const data = await authAPI.getCurrentUser();
       console.log(data.data);
       setGetUser(data.data);
       setUser(data.data);
