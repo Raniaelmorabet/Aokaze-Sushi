@@ -19,16 +19,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("english")
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr")
 
-  useEffect(() => {
+useEffect(() => {
+  if (typeof document !== "undefined") {
     // Set the direction based on language
-    setDir(language === "arabic" ? "rtl" : "ltr")
-
+    setDir(language === "arabic" ? "rtl" : "ltr");
+    
     // Set the dir attribute on the html element
-    document.documentElement.dir = language === "arabic" ? "rtl" : "ltr"
-
+    document.documentElement.dir = language === "arabic" ? "rtl" : "ltr";
+    
     // Store the language preference
-    localStorage.setItem("language", language)
-  }, [language])
+    localStorage.setItem("language", language);
+  }
+}, [language]);
+
 
   // Initialize language from localStorage if available
   useEffect(() => {
