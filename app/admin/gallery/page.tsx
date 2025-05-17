@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { API_BASE_URL, galleryAPI } from "@/utils/api";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 
 export default function GalleryManagement() {
@@ -43,7 +44,7 @@ export default function GalleryManagement() {
     third: null,
   });
   const [selectingPosition, setSelectingPosition] = useState(null);
-
+  const token = useLocalStorage("token");
 const filteredGallery = getGallery
   .filter((image) => {
     // Handle tab-based filtering (unchanged)
@@ -222,7 +223,6 @@ const filteredGallery = getGallery
 
   const Gallery = async () => {
     setLoading(true)
-    const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/gallery?limit=100`, {
         method: "GET",
@@ -242,7 +242,6 @@ const filteredGallery = getGallery
 
   const handleDeleteImage = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(
         `${API_BASE_URL}/gallery/${selectedImage.publicId}`,
         {
