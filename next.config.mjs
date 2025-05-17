@@ -27,9 +27,8 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
     optimizeCss: false,
-    esmExternals: 'loose',
   },
-  // Disable static optimization for all pages
+  // Completely disable static generation
   staticPageGenerationTimeout: 120,
   reactStrictMode: false,
   poweredByHeader: false,
@@ -38,8 +37,19 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 4,
   },
-  // Disable static page generation
-  output: 'standalone'
+  // Force server-side rendering for all pages
+  output: 'standalone',
+  // This is critical for preventing document references during static generation
+  compiler: {
+    styledComponents: true,
+  },
+  // Prevent Next.js from pre-rendering static pages with document references
+  serverRuntimeConfig: {
+    DISABLE_STATIC_OPTIMIZATION: true
+  },
+  // Disable static optimization
+  disableOptimizedLoading: true,
+  productionBrowserSourceMaps: true
 }
 
 if (userConfig) {
