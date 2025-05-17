@@ -62,6 +62,7 @@ import {
 } from "@/utils/api";
 import logo from "@/public/logo.png";
 import PreLoader from "@/components/PreLoader";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 const LoadingSpinner = ({ size = "md", className = "" }) => {
   const sizeClasses = {
@@ -124,7 +125,7 @@ export default function Home() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
-
+  const token = useLocalStorage("token");
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
   const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
@@ -221,13 +222,13 @@ export default function Home() {
       setCartItems([...cartItems, { ...newItem, quantity: 1 }]);
     }
 
-    if (localStorage.getItem("token")) {
+    if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/cart`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             menu_item_id: newItem._id,
@@ -252,13 +253,13 @@ export default function Home() {
   };
 
   const removeItemFromCart = async (id) => {
-    if (localStorage.getItem("token")) {
+    if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/cart/item/${id}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         if (!res.ok) {
@@ -352,7 +353,7 @@ export default function Home() {
 
   const getNotifications = async () => {
     try {
-      if (!localStorage.getItem("token")) {
+      if (!token) {
         setLoadUser(false);
         setUnreadCount(0);
         return;
@@ -376,10 +377,10 @@ export default function Home() {
   const getUser = async () => {
     setLoadUser(true);
     try {
-      if (!localStorage.getItem("token")) {
-        setLoadUser(false);
-        return;
-      }
+      // if (!token) {
+      //   setLoadUser(false);
+      //   return;
+      // }
       const data = await authAPI.getCurrentUser();
       if (data.success) {
         setLoggedIn(true);
@@ -409,7 +410,7 @@ export default function Home() {
   };
 
   const getCartItems = async () => {
-    if (localStorage.getItem("token")) {
+    if (token) {
       try {
         const data = await cartAPI.getCart();
         console.log("server Cart items: ", data.items);
@@ -442,7 +443,6 @@ export default function Home() {
   };
 
   const fetchChefs = async () => {
-    const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/chefs`, {
         headers: {
@@ -485,7 +485,6 @@ export default function Home() {
   };
 
   const getOpeningHours = async () => {
-    const token = localStorage.getItem("token");
     try {
       const response = await settingsAPI.getSettings();
       setOpeningHours(response.data.openingHours);
