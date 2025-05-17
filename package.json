@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:client": "cross-env NEXT_PUBLIC_RUNTIME_ENV=client next build",
+    "build:vercel": "NEXT_PUBLIC_RUNTIME_ENV=client cross-env NODE_OPTIONS='--max_old_space_size=4096' next build",
     "start": "next start",
     "lint": "next lint",
     "clean": "rimraf .next node_modules/.cache"
