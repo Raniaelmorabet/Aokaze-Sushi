@@ -68,7 +68,6 @@ import useLocalStorage from "@/hooks/use-local-storage";
 // This forces dynamic rendering and prevents static generation
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-export const revalidate = false;
 
 const LoadingSpinner = ({ size = "md", className = "" }) => {
   const sizeClasses = {
