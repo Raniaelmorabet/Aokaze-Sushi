@@ -33,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 export default function Checkout() {
   const [step, setStep] = useState(1);
@@ -71,7 +72,7 @@ export default function Checkout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("login");
-
+  const token = useLocalStorage("token");
   const validateStep1 = () => {
     const newErrors = {};
     let isValid = true;
@@ -164,7 +165,7 @@ export default function Checkout() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(orderData),
       });
@@ -222,7 +223,6 @@ export default function Checkout() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
 
     if (!token) {
