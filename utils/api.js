@@ -93,8 +93,10 @@ export const authAPI = {
     const data = await apiRequest("/auth/login", "POST", { email, password });
     // Store token if provided
     if (data.token) {
-      Cookies.set("token", data.token, { expires: 30 });
-      localStorage.setItem("token", data.token);
+      if (typeof window !== "undefined") {
+        Cookies.set("token", data.token, { expires: 30 });
+        localStorage.setItem("token", data.token);
+      }
     }
 
     return data;
@@ -106,8 +108,10 @@ export const authAPI = {
     console.log("Login response:", data);
     // Store token if provided
     if (data.token) {
-      Cookies.set("token", data.token, { expires: 30 }); // expires in 30 day
-      localStorage.setItem("token", data.token);
+      if (typeof window !== "undefined") {
+        Cookies.set("token", data.token, { expires: 30 }); // expires in 30 day
+        localStorage.setItem("token", data.token);
+      }
     }
 
     return data;
