@@ -33,11 +33,15 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 4,
   },
-  // Skip static optimization for problematic pages
+  // Disable static optimization
   reactStrictMode: false,
   poweredByHeader: false,
   // Add trailingSlash option
-  trailingSlash: false
+  trailingSlash: false,
+  // Force dynamic rendering
+  staticPageGenerationTimeout: 0,
+  // Disable static export
+  output: process.env.VERCEL ? 'standalone' : undefined,
 }
 
 if (userConfig) {
