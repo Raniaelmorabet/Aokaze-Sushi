@@ -43,6 +43,7 @@ import { Slider } from "@/components/ui/slider";
 import { format, set } from "date-fns";
 import { API_BASE_URL, categoryAPI, menuAPI, offersAPI } from "@/utils/api";
 import Loading from "./loading";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 // Sample data for offers
 const SAMPLE_OFFERS = [
@@ -223,7 +224,7 @@ export default function OffersManagement() {
   const [offerToToggle, setOfferToToggle] = useState(null);
   // Add a new state to track the recently toggled offer for animation
   const [recentlyToggledOfferId, setRecentlyToggledOfferId] = useState(null);
-
+  const token = useLocalStorage("token");
   // Clear the recently toggled offer ID after animation completes
   useEffect(() => {
     if (recentlyToggledOfferId) {
@@ -985,7 +986,6 @@ export default function OffersManagement() {
   };
 
   const getOffers = async () => {
-    const token = localStorage.getItem("token");
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/offers`, {
