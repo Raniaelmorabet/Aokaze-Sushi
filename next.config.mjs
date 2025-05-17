@@ -26,7 +26,13 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    optimizeCss: false,
+    esmExternals: 'loose'
   },
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 4,
+  }
 }
 
 if (userConfig) {
